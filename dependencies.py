@@ -11,7 +11,6 @@ from pydantic import BaseModel
 from settings import SECRET_KEY, ALGORITHM
 from db import db_user
 
-app = FastAPI()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='token')
 f = Fernet(SECRET_KEY)
 
@@ -38,16 +37,5 @@ def create_token(data: dict):
     return encoded_jwt
 
 
-@app.post("/auth")
-async def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]):
-    user = authenticate_user(db_user, form_data.username, form_data.password)
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Account not found",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-    data = {'sub': form_data.username}
-    access_token = create_token(data)
-    return Token(access_token=access_token, token_type="bearer")
+
 
