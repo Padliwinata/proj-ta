@@ -1,3 +1,6 @@
 fastapi
 uvicorn
 deta
+pydantic
+cryptography
+python-jose
