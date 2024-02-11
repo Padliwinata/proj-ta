@@ -1,8 +1,8 @@
-from pydantic import BaseModel, EmailStr, SecretStr
+from pydantic import BaseModel, SecretStr
 
 
 class RegisterForm(BaseModel):
     username: str
-    email: EmailStr
+    email: str
     password: SecretStr
 
