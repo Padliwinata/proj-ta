@@ -4,3 +4,4 @@ deta
 pydantic
 cryptography
 python-jose
+python-multipart

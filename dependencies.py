@@ -21,12 +21,13 @@ class Token(BaseModel):
 
 
 def authenticate_user(db: _Base, username: str, password: str):
-    encrypted_password = f.encrypt(password.encode('utf-8'))
-    response = db.fetch({'username': username, 'password': encrypted_password})
+    encrypted_password = f.encrypt(password.encode('utf-8')).decode('utf-8')
+    response = db.fetch({'username': username})
     if response.count == 0:
         return False
-    else:
-        user = response.items[0]
+
+    user = response.items[0]
+    if f.decrypt(user['password']).decode('utf-8') == password:
         return user
 
 

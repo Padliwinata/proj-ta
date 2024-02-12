@@ -1,10 +1,10 @@
+import faulthandler
 from typing import Annotated
 
 from fastapi import FastAPI, Depends
 from fastapi.security import OAuth2PasswordRequestForm
 
 from models import RegisterForm
-from db import db_user
 from dependencies import *
 
 app = FastAPI()
@@ -22,10 +22,12 @@ async def get_data():
     return {"data": res.items}
 
 
-@app.get('/register')
+@app.post('/register')
 async def register(data: RegisterForm):
+    data.password = f.encrypt(data.password.get_secret_value().encode('utf-8')).decode('utf-8')
     db_user.put(dict(data))
-    return dict(data)
+    response = {'username': data.username}
+    return response
 
 
 @app.post("/auth")
