@@ -3,7 +3,6 @@ from datetime import datetime, timedelta
 
 from cryptography.fernet import Fernet
 from deta import _Base
-from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jose import JWTError, jwt
 from pydantic import BaseModel
@@ -21,7 +20,6 @@ class Token(BaseModel):
 
 
 def authenticate_user(db: _Base, username: str, password: str):
-    encrypted_password = f.encrypt(password.encode('utf-8')).decode('utf-8')
     response = db.fetch({'username': username})
     if response.count == 0:
         return False
