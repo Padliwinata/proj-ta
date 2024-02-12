@@ -6,3 +6,9 @@ class RegisterForm(BaseModel):
     email: str
     password: SecretStr
 
+
+class Response(BaseModel):
+    success: str
+    message: str
+    data: dict
+
