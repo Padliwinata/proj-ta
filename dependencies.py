@@ -33,7 +33,7 @@ def authenticate_user(db: _Base, username: str, password: str):
 
 def create_access_token(data: dict):
     to_encode = data.copy()
-    to_encode.update({'exp': datetime.now() + timedelta(minutes=15), 'iat': datetime.now()})
+    to_encode.update({'exp': datetime.now() - timedelta(hours=7) + timedelta(seconds=5), 'iat': datetime.now()})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
 
