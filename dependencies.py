@@ -8,7 +8,7 @@ from jose import JWTError, jwt
 from pydantic import BaseModel
 
 from settings import SECRET_KEY, ALGORITHM
-from db import db_user
+from models import User
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='token')
 f = Fernet(SECRET_KEY)
@@ -20,14 +20,15 @@ class Token(BaseModel):
     token_type: str
 
 
-def authenticate_user(db: _Base, username: str, password: str):
+def authenticate_user(db: _Base, username: str, password: str) -> User | None:
     response = db.fetch({'username': username})
     if response.count == 0:
-        return False
+        return None
 
     user = response.items[0]
+    user_instance = User(**user)
     if f.decrypt(user['password']).decode('utf-8') == password:
-        return user
+        return user_instance
 
 
 def create_access_token(data: dict):

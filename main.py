@@ -5,6 +5,7 @@ from fastapi import FastAPI, Depends, HTTPException, status, Header
 
 from models import RegisterForm, Response, User
 from dependencies import *
+from db import db_user
 
 app = FastAPI()
 
@@ -34,7 +35,7 @@ async def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]):
             message="User not found"
         )
 
-    data = {'sub': form_data.username}
+    data = {'sub': form_data.username, 'role': user.role}
     access_token = create_access_token(data)
     refresh_token = create_refresh_token(data)
     data = Token(
