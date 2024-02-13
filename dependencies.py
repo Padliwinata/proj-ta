@@ -10,17 +10,17 @@ from pydantic import BaseModel
 from settings import SECRET_KEY, ALGORITHM
 from models import User
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl='token')
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl='auth')
 f = Fernet(SECRET_KEY)
 
 
-class Token(BaseModel):
+class TokenResponse(BaseModel):
     access_token: str
     refresh_token: str
     token_type: str
 
 
-def authenticate_user(db: _Base, username: str, password: str) -> User | None:
+def authenticate_user(db: _Base, username: str, password: str):
     response = db.fetch({'username': username})
     if response.count == 0:
         return None
@@ -40,7 +40,7 @@ def create_access_token(data: dict):
 
 def create_refresh_token(data: dict):
     to_encode = data.copy()
-    to_encode.update({'iat': datetime.now()})
+    to_encode.update({'exp': datetime.now() + timedelta(days=30), 'iat': datetime.now()})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
 

@@ -1,13 +1,19 @@
 import json
 from typing import Annotated, Optional
 
-from fastapi import FastAPI, Depends, HTTPException, status, Header
+from cryptography.fernet import Fernet
+from fastapi import FastAPI, Depends, HTTPException, status
+from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
+from jose import jwt, JWTError
 
-from models import RegisterForm, Response, User
-from dependencies import *
+from models import RegisterForm, Response, User, Refresh
+from dependencies import authenticate_user, create_refresh_token, create_access_token, TokenResponse
 from db import db_user
+from settings import SECRET_KEY, ALGORITHM, DEVELOPMENT
 
 app = FastAPI()
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl='auth')
+f = Fernet(SECRET_KEY)
 
 
 @app.post('/register')
@@ -38,21 +44,31 @@ async def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]):
     data = {'sub': form_data.username, 'role': user.role}
     access_token = create_access_token(data)
     refresh_token = create_refresh_token(data)
-    data = Token(
+    data = TokenResponse(
         access_token=access_token,
         refresh_token=refresh_token,
         token_type="bearer"
     ).dict()
-    return Response(
-        success=True,
-        code=status.HTTP_200_OK,
-        message="Authenticated",
-        data=data
-    )
+    if DEVELOPMENT:
+        resp = Response(
+            success=True,
+            code=status.HTTP_200_OK,
+            message="Authenticated",
+            data=data
+        ).dict()
+        resp['access_token'] = resp['data']['access_token']
+        return resp
+    else:
+        return Response(
+            success=True,
+            code=status.HTTP_200_OK,
+            message="Authenticated",
+            data=data
+        )
 
 
 @app.get("/auth")
-async def check(x_token: Optional[str] = Header(None)):
+async def check(x_token: str = Depends(oauth2_scheme)):
     if x_token is None:
         return Response(
             success=False,
@@ -71,11 +87,6 @@ async def check(x_token: Optional[str] = Header(None)):
             data=payload
         )
     except JWTError:
-        HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid token",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
         return Response(
             success=False,
             code=status.HTTP_401_UNAUTHORIZED,
@@ -84,5 +95,46 @@ async def check(x_token: Optional[str] = Header(None)):
                 'headers': {'WWW-Authenticate': 'Bearer'}
             }
         )
+
+
+@app.put("/auth")
+async def refresh(refresh_token: Refresh, access_token: str = Depends(oauth2_scheme)):
+    try:
+        refresh_payload = jwt.decode(refresh_token.refresh_token, SECRET_KEY, algorithms=ALGORITHM)
+        access_payload = jwt.decode(access_token, SECRET_KEY, algorithms=ALGORITHM)
+
+        if refresh_payload['iat'] == access_payload['iat']:
+            data = {'sub': access_payload['sub'], 'role': access_payload['role']}
+            access_token = create_access_token(data)
+            refresh_token = create_refresh_token(data)
+
+            data = TokenResponse(
+                access_token=access_token,
+                refresh_token=refresh_token,
+                token_type="bearer"
+            ).dict()
+            return Response(
+                success=True,
+                code=status.HTTP_200_OK,
+                message="Authenticated",
+                data=data
+            )
+        else:
+            return Response(
+                success=False,
+                code=status.HTTP_401_UNAUTHORIZED,
+                message="Token issued time invalid"
+            )
+
+    except JWTError:
+        return Response(
+            success=False,
+            code=status.HTTP_401_UNAUTHORIZED,
+            message="Invalid token",
+            data={
+                'headers': {'WWW-Authenticate': 'Bearer'}
+            }
+        )
+
 
 
