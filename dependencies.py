@@ -16,6 +16,7 @@ f = Fernet(SECRET_KEY)
 
 class Token(BaseModel):
     access_token: str
+    refresh_token: str
     token_type: str
 
 
@@ -29,9 +30,16 @@ def authenticate_user(db: _Base, username: str, password: str):
         return user
 
 
-def create_token(data: dict):
+def create_access_token(data: dict):
     to_encode = data.copy()
-    to_encode.update({'exp': datetime.now() + timedelta(minutes=15)})
+    to_encode.update({'exp': datetime.now() + timedelta(minutes=15), 'iat': datetime.now()})
+    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    return encoded_jwt
+
+
+def create_refresh_token(data: dict):
+    to_encode = data.copy()
+    to_encode.update({'iat': datetime.now()})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
 

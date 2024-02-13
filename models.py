@@ -1,4 +1,13 @@
-from pydantic import BaseModel, SecretStr
+from enum import Enum
+from typing import Optional
+
+from pydantic import BaseModel, SecretStr, Field
+
+
+class UserRole(str, Enum):
+    admin = "admin"
+    super_admin = "super admin"
+    staff = "staff"
 
 
 class RegisterForm(BaseModel):
@@ -8,7 +17,15 @@ class RegisterForm(BaseModel):
 
 
 class Response(BaseModel):
-    success: str
+    success: bool
+    code: int
     message: str
-    data: dict
+    data: Optional[dict]
+
+
+class User(BaseModel):
+    username: str
+    email: str
+    password: SecretStr
+    role: UserRole = UserRole.admin
 
