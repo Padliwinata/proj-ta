@@ -7,7 +7,7 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jose import JWTError, jwt
 from pydantic import BaseModel
 
-from settings import SECRET_KEY, ALGORITHM
+from settings import SECRET_KEY, ALGORITHM, JWT_EXPIRED
 from models import User
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='auth')
@@ -33,7 +33,7 @@ def authenticate_user(db: _Base, username: str, password: str):
 
 def create_access_token(data: dict):
     to_encode = data.copy()
-    to_encode.update({'exp': datetime.now() - timedelta(hours=7) + timedelta(seconds=5), 'iat': datetime.now()})
+    to_encode.update({'exp': datetime.now() - timedelta(hours=7) + timedelta(seconds=JWT_EXPIRED), 'iat': datetime.now()})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
 
