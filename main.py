@@ -4,6 +4,7 @@ from typing import Annotated, Optional
 from cryptography.fernet import Fernet
 from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
+from fastapi.middleware.cors import CORSMiddleware
 from jose import jwt, JWTError
 
 from models import RegisterForm, Response, User, Refresh
@@ -14,6 +15,11 @@ from settings import SECRET_KEY, ALGORITHM, DEVELOPMENT
 app = FastAPI()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='auth')
 f = Fernet(SECRET_KEY)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+)
 
 
 @app.post('/register')
