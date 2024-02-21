@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Optional
+from typing import Optional, Dict, Any
 
 from pydantic import BaseModel, SecretStr, Field
 
@@ -20,7 +20,7 @@ class Response(BaseModel):
     success: bool
     code: int
     message: str
-    data: Optional[dict]
+    data: Optional[Dict[str, Any]]
 
 
 class User(BaseModel):

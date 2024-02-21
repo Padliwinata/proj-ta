@@ -1,11 +1,11 @@
-import json
-from typing import Annotated, Optional
+from typing import Annotated, Dict, Any
 
 from cryptography.fernet import Fernet
 from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
 from fastapi.middleware.cors import CORSMiddleware
 from jose import jwt, JWTError
+from pydantic import SecretStr
 
 from models import RegisterForm, Response, User, Refresh
 from dependencies import authenticate_user, create_refresh_token, create_access_token, TokenResponse
@@ -26,11 +26,12 @@ app.add_middleware(
 
 
 @app.post('/register')
-async def register(data: RegisterForm):
-    data.password = f.encrypt(data.password.get_secret_value().encode('utf-8')).decode('utf-8')
+async def register(data: RegisterForm) -> Response:
+    encrypted_password = data.password.get_secret_value().encode('utf-8')
+    data.password = SecretStr(f.encrypt(encrypted_password).decode('utf-8'))
     new_user = User(**data.dict())
     new_user.password = data.password
-    db_user.put(new_user.dict())
+    db_user.put(new_user.model_dump_json())
     payload = {'username': data.username}
     return Response(
         success=True,
@@ -41,13 +42,14 @@ async def register(data: RegisterForm):
 
 
 @app.post("/auth")
-async def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]):
+async def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]) -> Response | Dict[str, Any]:
     user = authenticate_user(db_user, form_data.username, form_data.password)
     if not user:
         return Response(
             success=False,
             code=status.HTTP_401_UNAUTHORIZED,
-            message="User not found"
+            message="User not found",
+            data=None
         )
 
     data = {'sub': form_data.username, 'role': user.role}
@@ -77,7 +79,7 @@ async def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]):
 
 
 @app.get("/auth")
-async def check(x_token: str = Depends(oauth2_scheme)):
+async def check(x_token: str = Depends(oauth2_scheme)) -> Response:
     if x_token is None:
         return Response(
             success=False,
@@ -107,7 +109,7 @@ async def check(x_token: str = Depends(oauth2_scheme)):
 
 
 @app.put("/auth")
-async def refresh(refresh_token: Refresh, access_token: str = Depends(oauth2_scheme)):
+async def refresh(refresh_token: Refresh, access_token: str = Depends(oauth2_scheme)) -> Response:
     try:
         refresh_payload = jwt.decode(refresh_token.refresh_token, SECRET_KEY, algorithms=ALGORITHM)
         access_payload = jwt.decode(access_token, SECRET_KEY, algorithms=ALGORITHM)
@@ -115,11 +117,11 @@ async def refresh(refresh_token: Refresh, access_token: str = Depends(oauth2_sch
         if refresh_payload['iat'] == access_payload['iat']:
             data = {'sub': access_payload['sub'], 'role': access_payload['role']}
             access_token = create_access_token(data)
-            refresh_token = create_refresh_token(data)
+            new_refresh_token = create_refresh_token(data)
 
             data = TokenResponse(
                 access_token=access_token,
-                refresh_token=refresh_token,
+                refresh_token=new_refresh_token,
                 token_type="bearer"
             ).dict()
             return Response(
@@ -128,12 +130,12 @@ async def refresh(refresh_token: Refresh, access_token: str = Depends(oauth2_sch
                 message="Authenticated",
                 data=data
             )
-        else:
-            return Response(
-                success=False,
-                code=status.HTTP_401_UNAUTHORIZED,
-                message="Token issued time invalid"
-            )
+        return Response(
+            success=False,
+            code=status.HTTP_401_UNAUTHORIZED,
+            message="Token issued time invalid",
+            data=None
+        )
 
     except JWTError:
         return Response(
@@ -144,6 +146,24 @@ async def refresh(refresh_token: Refresh, access_token: str = Depends(oauth2_sch
                 'headers': {'WWW-Authenticate': 'Bearer'}
             }
         )
+
+
+@app.post("/account")
+async def register_another_account(data: User) -> Response:
+    registered_user = db_user.fetch(**data.dict())
+
+    if registered_user.count != 0:
+        return Response(
+            success=False,
+            code=status.HTTP_400_BAD_REQUEST,
+            message="Username or email already registered",
+            data=None
+        )
+
+    db_user.put()
+
+
+
 
 
 
