@@ -1,3 +1,4 @@
+import json
 from typing import Annotated, Dict, Any
 
 from cryptography.fernet import Fernet
@@ -31,7 +32,7 @@ async def register(data: RegisterForm) -> Response:
     data.password = SecretStr(f.encrypt(encrypted_password).decode('utf-8'))
     new_user = User(**data.dict())
     new_user.password = data.password
-    db_user.put(new_user.model_dump_json())
+    db_user.put(**json.loads(new_user.json()))
     payload = {'username': data.username}
     return Response(
         success=True,
@@ -150,7 +151,10 @@ async def refresh(refresh_token: Refresh, access_token: str = Depends(oauth2_sch
 
 @app.post("/account")
 async def register_another_account(data: User) -> Response:
-    registered_user = db_user.fetch(**data.dict())
+    parsed_data = data.dict()
+    parsed_data['password'] = data.password.get_secret_value()
+
+    registered_user = db_user.fetch(parsed_data)
 
     if registered_user.count != 0:
         return Response(
@@ -160,7 +164,15 @@ async def register_another_account(data: User) -> Response:
             data=None
         )
 
-    db_user.put()
+    db_user.put(**parsed_data)
+    del parsed_data['password']
+
+    return Response(
+        success=True,
+        code=status.HTTP_201_CREATED,
+        message="User created",
+        data=parsed_data
+    )
 
 
 
