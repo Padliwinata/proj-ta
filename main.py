@@ -165,9 +165,10 @@ async def refresh(refresh_token: Refresh, access_token: str = Depends(oauth2_sch
 
 
 @app.post("/account")
-async def register_another_account(data: User, ) -> Response:
+async def register_another_account(data: User) -> Response:
     parsed_data = data.dict()
-    parsed_data['password'] = data.password.get_secret_value()
+    if data.password:
+        parsed_data['password'] = data.password.get_secret_value()
 
     registered_user = db_user.fetch(parsed_data)
 
