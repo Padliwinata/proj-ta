@@ -8,7 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from jose import jwt, JWTError
 from pydantic import SecretStr
 
-from models import RegisterForm, Response, User, Refresh
+from models import RegisterForm, Response, User, Refresh, ResponseDev
 from dependencies import authenticate_user, create_refresh_token, create_access_token, TokenResponse
 from db import db_user
 from settings import SECRET_KEY, ALGORITHM, DEVELOPMENT
@@ -24,6 +24,18 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"]
 )
+
+
+def get_user(access_token: str = Depends(oauth2_scheme)) -> User | None:
+    try:
+        access_payload = jwt.decode(access_token, SECRET_KEY, algorithms=ALGORITHM)
+        user = db_user.fetch({'username': access_payload['sub']})
+        if user.count == 0:
+            return None
+        user_data: User = user.items[0]
+        return user_data
+    except JWTError:
+        return None
 
 
 @app.post('/register')
@@ -42,15 +54,16 @@ async def register(data: RegisterForm) -> Response:
     )
 
 
-@app.post("/auth")
-async def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]) -> Response | Dict[str, Any]:
+@app.post("/auth", response_model=ResponseDev)
+async def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]) -> ResponseDev:
     user = authenticate_user(db_user, form_data.username, form_data.password)
     if not user:
-        return Response(
+        return ResponseDev(
             success=False,
             code=status.HTTP_401_UNAUTHORIZED,
             message="User not found",
-            data=None
+            data=None,
+            access_token=None
         )
 
     data = {'sub': form_data.username, 'role': user.role}
@@ -62,41 +75,43 @@ async def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]) -> R
         token_type="bearer"
     ).dict()
     if DEVELOPMENT:
-        resp = Response(
+        resp = ResponseDev(
             success=True,
             code=status.HTTP_200_OK,
             message="Authenticated",
-            data=data
-        ).dict()
-        resp['access_token'] = resp['data']['access_token']
+            data=data,
+            access_token=data['access_token']
+        )
         return resp
     else:
-        return Response(
+        return ResponseDev(
             success=True,
             code=status.HTTP_200_OK,
             message="Authenticated",
-            data=data
+            data=data,
+            access_token=None
         )
 
 
 @app.get("/auth")
-async def check(x_token: str = Depends(oauth2_scheme)) -> Response:
-    if x_token is None:
-        return Response(
-            success=False,
-            code=status.HTTP_401_UNAUTHORIZED,
-            message="Credential not exist",
-            data={
-                'headers': {'WWW-Authenticate': "Bearer"}
-            }
-        )
+async def check(user: Dict[str, Any] = Depends(get_user)) -> Response:
+    # if x_token is None:
+    #     return Response(
+    #         success=False,
+    #         code=status.HTTP_401_UNAUTHORIZED,
+    #         message="Credential not exist",
+    #         data={
+    #             'headers': {'WWW-Authenticate': "Bearer"}
+    #         }
+    #     )
     try:
-        payload = jwt.decode(x_token, SECRET_KEY, algorithms=ALGORITHM)
+        # payload = jwt.decode(access_token, SECRET_KEY, algorithms=ALGORITHM)
+
         return Response(
             success=True,
             code=status.HTTP_200_OK,
             message="Authenticated",
-            data=payload
+            data=user
         )
     except JWTError:
         return Response(
@@ -150,7 +165,7 @@ async def refresh(refresh_token: Refresh, access_token: str = Depends(oauth2_sch
 
 
 @app.post("/account")
-async def register_another_account(data: User) -> Response:
+async def register_another_account(data: User, ) -> Response:
     parsed_data = data.dict()
     parsed_data['password'] = data.password.get_secret_value()
 

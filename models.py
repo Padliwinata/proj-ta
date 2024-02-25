@@ -23,10 +23,14 @@ class Response(BaseModel):
     data: Optional[Dict[str, Any]]
 
 
+class ResponseDev(Response):
+    access_token: Optional[str]
+
+
 class User(BaseModel):
     username: str
     email: str
-    password: SecretStr
+    password: Optional[SecretStr]
     role: UserRole = UserRole.admin
 
 
