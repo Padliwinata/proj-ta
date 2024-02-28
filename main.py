@@ -1,8 +1,8 @@
 import json
-from typing import Annotated, Dict, Any
+from typing import Annotated, Union
 
 from cryptography.fernet import Fernet
-from fastapi import FastAPI, Depends, HTTPException, status
+from fastapi import FastAPI, Depends, status
 from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
 from fastapi.middleware.cors import CORSMiddleware
 from jose import jwt, JWTError
@@ -26,7 +26,7 @@ app.add_middleware(
 )
 
 
-def get_user(access_token: str = Depends(oauth2_scheme)) -> User | None:
+def get_user(access_token: str = Depends(oauth2_scheme)) -> Union[User, None]:
     try:
         access_payload = jwt.decode(access_token, SECRET_KEY, algorithms=ALGORITHM)
         user = db_user.fetch({'username': access_payload['sub']})
@@ -94,24 +94,25 @@ async def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]) -> R
 
 
 @app.get("/auth")
-async def check(user: Dict[str, Any] = Depends(get_user)) -> Response:
-    # if x_token is None:
-    #     return Response(
-    #         success=False,
-    #         code=status.HTTP_401_UNAUTHORIZED,
-    #         message="Credential not exist",
-    #         data={
-    #             'headers': {'WWW-Authenticate': "Bearer"}
-    #         }
-    #     )
+async def check(access_token: str = Depends(oauth2_scheme)) -> Response:
     try:
-        # payload = jwt.decode(access_token, SECRET_KEY, algorithms=ALGORITHM)
+        payload = jwt.decode(access_token, SECRET_KEY, algorithms=ALGORITHM)
+        res = db_user.fetch({'username': payload['sub']})
+        if res.count == 0:
+            return Response(
+                success=False,
+                code=status.HTTP_404_NOT_FOUND,
+                message="User not found",
+                data=None
+            )
+        data = res.items[0]
+        data['payload'] = payload
 
         return Response(
             success=True,
             code=status.HTTP_200_OK,
             message="Authenticated",
-            data=user
+            data=data
         )
     except JWTError:
         return Response(
@@ -180,7 +181,12 @@ async def register_another_account(data: User) -> Response:
             data=None
         )
 
-    db_user.put(**parsed_data)
+    encoded_password = parsed_data['password'].encode('utf-8')
+    encrypted_password = f.encrypt(encoded_password).decode('utf-8')
+
+    parsed_data['password'] = encrypted_password
+
+    db_user.put(parsed_data)
     del parsed_data['password']
 
     return Response(

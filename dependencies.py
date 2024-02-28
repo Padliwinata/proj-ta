@@ -1,4 +1,4 @@
-from typing import Dict, Any
+from typing import Dict, Any, Union
 from datetime import datetime, timedelta
 
 from cryptography.fernet import Fernet
@@ -20,7 +20,7 @@ class TokenResponse(BaseModel):
     token_type: str
 
 
-def authenticate_user(db: _Base, username: str, password: str) -> User | None:
+def authenticate_user(db: _Base, username: str, password: str) -> Union[User, None]:
     response = db.fetch({'username': username})
     if response.count == 0:
         return None
