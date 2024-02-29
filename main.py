@@ -2,7 +2,7 @@ import json
 from typing import Annotated, Union
 
 from cryptography.fernet import Fernet
-from fastapi import FastAPI, Depends, status
+from fastapi import FastAPI, Depends, status, File, UploadFile
 from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
 from fastapi.middleware.cors import CORSMiddleware
 from jose import jwt, JWTError
@@ -10,7 +10,7 @@ from pydantic import SecretStr
 
 from models import RegisterForm, Response, User, Refresh, ResponseDev
 from dependencies import authenticate_user, create_refresh_token, create_access_token, TokenResponse
-from db import db_user
+from db import db_user, drive_1
 from settings import SECRET_KEY, ALGORITHM, DEVELOPMENT
 
 app = FastAPI()
@@ -197,6 +197,15 @@ async def register_another_account(data: User) -> Response:
     )
 
 
+@app.post('/document_1')
+async def upload_document_1(file: UploadFile = File(...)) -> Response:
+    drive_1.put('example.txt', file)
+    return Response(
+        success=True,
+        code=status.HTTP_200_OK,
+        message="Successfully stored",
+        data=None
+    )
 
 
 
