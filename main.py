@@ -198,13 +198,30 @@ async def register_another_account(data: User) -> Response:
 
 
 @app.post('/document_1')
-async def upload_document_1(file: UploadFile = File(...)) -> Response:
-    drive_1.put('example.txt', file)
+async def upload_document_1(access_token: str = Depends(oauth2_scheme), file: UploadFile = File(...)) -> Response:
+    try:
+        payload = jwt.decode(access_token, SECRET_KEY, algorithms=ALGORITHM)
+    except JWTError:
+        return Response(
+            success=False,
+            code=status.HTTP_401_UNAUTHORIZED,
+            message="Invalid token",
+            data={
+                'headers': {'WWW-Authenticate': 'Bearer'}
+            }
+        )
+
+    content = await file.read()
+    drive_1.put(f'{payload["sub"]}_1.pdf', content)
+
     return Response(
         success=True,
         code=status.HTTP_200_OK,
         message="Successfully stored",
-        data=None
+        data={
+            'filename': f'{payload["sub"]}_1.pdf',
+            'issuer': f'{payload["sub"]}'
+        }
     )
 
 
