@@ -32,6 +32,14 @@ class User(BaseModel):
     email: str
     password: Optional[SecretStr]
     role: UserRole = UserRole.admin
+    is_active: bool
+
+
+class AddUser(BaseModel):
+    username: str
+    email: str
+    password: Optional[SecretStr]
+    role: UserRole = UserRole.admin
 
 
 class Refresh(BaseModel):

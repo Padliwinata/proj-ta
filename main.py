@@ -1,5 +1,5 @@
 import json
-from typing import Annotated, Union
+from typing import Annotated, Union, Dict, Any
 
 from cryptography.fernet import Fernet
 from fastapi import FastAPI, Depends, status, File, UploadFile
@@ -8,7 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from jose import jwt, JWTError
 from pydantic import SecretStr
 
-from models import RegisterForm, Response, User, Refresh, ResponseDev
+from models import RegisterForm, Response, User, Refresh, ResponseDev, AddUser
 from dependencies import authenticate_user, create_refresh_token, create_access_token, TokenResponse
 from db import db_user, drive_1
 from settings import SECRET_KEY, ALGORITHM, DEVELOPMENT
@@ -42,9 +42,11 @@ def get_user(access_token: str = Depends(oauth2_scheme)) -> Union[User, None]:
 async def register(data: RegisterForm) -> Response:
     encrypted_password = data.password.get_secret_value().encode('utf-8')
     data.password = SecretStr(f.encrypt(encrypted_password).decode('utf-8'))
-    new_user = User(**data.dict())
-    new_user.password = data.password
-    db_user.put(**json.loads(new_user.json()))
+    new_data = data.dict()
+    new_data['is_active'] = True
+    new_user = User(**new_data)
+    new_user.password = data.password.get_secret_value().encode('utf-8')
+    db_user.put(json.loads(new_user.json()))
     payload = {'username': data.username}
     return Response(
         success=True,
@@ -166,7 +168,14 @@ async def refresh(refresh_token: Refresh, access_token: str = Depends(oauth2_sch
 
 
 @app.post("/account")
-async def register_another_account(data: User) -> Response:
+async def register_another_account(data: AddUser, user: Dict[str, Any] = Depends(get_user)) -> Response:
+    if not user:
+        return Response(
+            success=False,
+            code=status.HTTP_401_UNAUTHORIZED,
+            message="Credentials not found",
+            data=None
+        )
     parsed_data = data.dict()
     if data.password:
         parsed_data['password'] = data.password.get_secret_value()
@@ -185,6 +194,7 @@ async def register_another_account(data: User) -> Response:
     encrypted_password = f.encrypt(encoded_password).decode('utf-8')
 
     parsed_data['password'] = encrypted_password
+    parsed_data['is_active'] = False
 
     db_user.put(parsed_data)
     del parsed_data['password']
