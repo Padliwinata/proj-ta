@@ -5,3 +5,4 @@ pydantic
 cryptography
 python-jose
 python-multipart
+pydantic[email]

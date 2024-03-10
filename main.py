@@ -25,6 +25,11 @@ app.add_middleware(
     allow_headers=["*"]
 )
 
+test_data = {
+    'username': 'testing_username',
+    'email': 'testing@gmail.com'
+}
+
 
 def get_user(access_token: str = Depends(oauth2_scheme)) -> Union[User, None]:
     try:
@@ -232,6 +237,19 @@ async def upload_document_1(access_token: str = Depends(oauth2_scheme), file: Up
             'filename': f'{payload["sub"]}_1.pdf',
             'issuer': f'{payload["sub"]}'
         }
+    )
+
+
+@app.delete("/test")
+async def delete_test_data() -> Response:
+    data = db_user.fetch(test_data)
+    db_user.delete(data.items[0]['key'])
+
+    return Response(
+        success=True,
+        code=status.HTTP_200_OK,
+        message="Successfully deleted",
+        data=None
     )
 
 

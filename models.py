@@ -1,7 +1,7 @@
 from enum import Enum
 from typing import Optional, Dict, Any
 
-from pydantic import BaseModel, SecretStr, Field
+from pydantic import BaseModel, SecretStr, EmailStr
 
 
 class UserRole(str, Enum):
@@ -12,7 +12,7 @@ class UserRole(str, Enum):
 
 class RegisterForm(BaseModel):
     username: str
-    email: str
+    email: EmailStr
     password: SecretStr
 
 
