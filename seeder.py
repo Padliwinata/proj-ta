@@ -25,6 +25,7 @@ institution_data = [
 user_data: typing.List[typing.Dict[str, typing.Union[str, bool]]] = [
     {
         "username": "username",
+        "full_name": "User Name",
         "password": "password",
         "email": "username@example.com",
         "role": "super admin",
@@ -33,6 +34,7 @@ user_data: typing.List[typing.Dict[str, typing.Union[str, bool]]] = [
     },
     {
         "username": "alice_smith",
+        "full_name": "Alice Smith",
         "password": "another_secure_password",
         "email": "alice@example.com",
         "role": "admin",
@@ -41,6 +43,7 @@ user_data: typing.List[typing.Dict[str, typing.Union[str, bool]]] = [
     },
     {
         "username": "bob_marley",
+        "full_name": "Bob Marley",
         "password": "yet_another_secure_password",
         "email": "bob@example.com",
         "role": "staff",
@@ -49,6 +52,7 @@ user_data: typing.List[typing.Dict[str, typing.Union[str, bool]]] = [
     },
     {
         "username": "emma_jones",
+        "full_name": "Emma Jones",
         "password": "password",
         "email": "emma@example.com",
         "role": "reviewer",
@@ -57,6 +61,7 @@ user_data: typing.List[typing.Dict[str, typing.Union[str, bool]]] = [
     },
     {
         "username": "sam_smith",
+        "full_name": "Sam Smith",
         "password": "password123",
         "email": "sam@example.com",
         "role": "admin",
