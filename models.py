@@ -27,11 +27,14 @@ class RegisterForm(BaseModel):
 
 
 class Institution(BaseModel):
-    key: str
     name: str
     address: str
     phone: str
     email: EmailStr
+
+
+class InstitutionDB(Institution):
+    key: str
 
 
 class Response(BaseModel):
@@ -56,7 +59,7 @@ class User(BaseModel):
 
     def get_institution(self) -> typing.Dict[str, typing.Any]:
         institution = db_institution.get(self.id_institution)
-        data = Institution(**institution)
+        data = InstitutionDB(**institution)
         return data.dict()
 
 

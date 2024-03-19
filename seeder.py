@@ -1,4 +1,11 @@
+import typing
+
+from cryptography.fernet import Fernet
+
 from db import db_user, db_institution
+from settings import SECRET_KEY
+
+f = Fernet(SECRET_KEY)
 
 institution_data = [
     ({
@@ -15,7 +22,7 @@ institution_data = [
     }, 'uxalzb21mwcr')
 ]
 
-user_data = [
+user_data: typing.List[typing.Dict[str, typing.Union[str, bool]]] = [
     {
         "username": "username",
         "password": "password",
@@ -58,10 +65,15 @@ user_data = [
     }
 ]
 
-for ins_data in institution_data:
-    db_institution.put(*ins_data)
 
-for data in user_data:
-    db_user.put(data)
+def seed() -> None:
+    for ins_data in institution_data:
+        db_institution.put(*ins_data)
 
+    for data in user_data:
+        new_password = bytes()
+        if isinstance(data['password'], str):
+            new_password = f.encrypt(data['password'].encode('utf-8'))
+        data['password'] = new_password.decode('utf-8')
 
+        db_user.put(data)

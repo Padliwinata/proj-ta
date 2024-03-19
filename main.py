@@ -60,15 +60,16 @@ async def register(data: RegisterForm) -> JSONResponse:
     institution_data['phone'] = new_data['institution_phone']
     institution_data['email'] = new_data['institution_email']
     new_institution = Institution(**institution_data)
-    # stored_institution = db_institution.put(json.loads(new_institution.json()))
+    stored_institution = db_institution.put(json.loads(new_institution.json()))
 
     user_data = dict()
     user_data['username'] = new_data['username']
+    user_data['full_name'] = new_data['full_name']
     user_data['email'] = new_data['email']
     user_data['password'] = new_data['password']
 
     user_data['is_active'] = False
-    user_data['id_institution'] = "gc8uupscjs0e"
+    user_data['id_institution'] = stored_institution['key']
     new_user = User(**user_data)
     new_user.password = data.password.get_secret_value().encode('utf-8')
     db_user.put(json.loads(new_user.json()))
