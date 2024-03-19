@@ -13,6 +13,7 @@ from models import RegisterForm, Response, User, Refresh, ResponseDev, AddUser, 
 from dependencies import authenticate_user, create_refresh_token, create_access_token, TokenResponse, get_payload_from_token, create_response
 from db import db_user, db_institution, drive
 from settings import SECRET_KEY, ALGORITHM, DEVELOPMENT
+from seeder import seed, delete_db
 
 app = FastAPI()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='auth', auto_error=False)
@@ -372,8 +373,24 @@ async def get_staff(user: User = Depends(get_user)) -> JSONResponse:
     # for data in fetch_response.items:
 
 
+@app.get("/seed", include_in_schema=False)
+async def seed_database() -> JSONResponse:
+    seed()
+    return create_response(
+        message="Success",
+        status_code=status.HTTP_200_OK,
+        success=True
+    )
 
 
+@app.get("/delete", include_in_schema=False)
+async def delete_database() -> JSONResponse:
+    delete_db()
+    return create_response(
+        message="Success",
+        status_code=status.HTTP_200_OK,
+        success=True
+    )
 
 
 

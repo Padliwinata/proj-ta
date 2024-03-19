@@ -77,3 +77,16 @@ def seed() -> None:
         data['password'] = new_password.decode('utf-8')
 
         db_user.put(data)
+
+
+def delete_db() -> None:
+    user_res = db_user.fetch()
+    inst_res = db_institution.fetch()
+
+    if user_res.count > 0:
+        for data in user_res.items:
+            db_user.delete(data['key'])
+
+    if inst_res.count > 0:
+        for data in inst_res.items:
+            db_institution.delete(data['key'])
