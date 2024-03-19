@@ -13,11 +13,6 @@ class UserRole(str, Enum):
     reviewer = "reviewer"
 
 
-class Position(str, Enum):
-    pic = "pic"
-    owner = "owner"
-
-
 class RegisterForm(BaseModel):
     username: str
     email: EmailStr
@@ -32,6 +27,7 @@ class RegisterForm(BaseModel):
 
 
 class Institution(BaseModel):
+    key: str
     name: str
     address: str
     phone: str
@@ -51,10 +47,10 @@ class ResponseDev(Response):
 
 class User(BaseModel):
     username: str
+    full_name: str
     password: typing.Union[SecretStr, bytes, None]
     email: str
     role: UserRole = UserRole.admin
-    position: Position = Position.owner
     id_institution: str
     is_active: bool
 
@@ -66,7 +62,7 @@ class User(BaseModel):
 
 class AddUser(BaseModel):
     username: str
-    email: str
+    email: EmailStr
     password: typing.Optional[SecretStr]
     role: UserRole = UserRole.admin
 

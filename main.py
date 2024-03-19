@@ -10,7 +10,7 @@ from jose import jwt, JWTError
 from pydantic import SecretStr
 
 from models import RegisterForm, Response, User, Refresh, ResponseDev, AddUser, Institution, Payload
-from dependencies import authenticate_user, create_refresh_token, create_access_token, TokenResponse, get_payload_from_token
+from dependencies import authenticate_user, create_refresh_token, create_access_token, TokenResponse, get_payload_from_token, create_response
 from db import db_user, db_institution, drive
 from settings import SECRET_KEY, ALGORITHM, DEVELOPMENT
 
@@ -33,15 +33,19 @@ test_data = {
 
 
 def get_user(access_token: str = Depends(oauth2_scheme)) -> Union[User, None]:
+    if not access_token:
+        return None
     try:
-        access_payload = jwt.decode(access_token, SECRET_KEY, algorithms=ALGORITHM)
-        user = db_user.fetch({'username': access_payload['sub']})
-        if user.count == 0:
-            return None
-        user_data: User = user.items[0]
-        return user_data
+        payload = get_payload_from_token(access_token)
     except JWTError:
         return None
+
+    response = db_user.fetch({'username': payload.sub})
+    if response.count == 0:
+        return None
+
+    user = response.items[0]
+    return User(**user)
 
 
 @app.post('/register')
@@ -56,7 +60,7 @@ async def register(data: RegisterForm) -> JSONResponse:
     institution_data['phone'] = new_data['institution_phone']
     institution_data['email'] = new_data['institution_email']
     new_institution = Institution(**institution_data)
-    stored_institution = db_institution.put(json.loads(new_institution.json()))
+    # stored_institution = db_institution.put(json.loads(new_institution.json()))
 
     user_data = dict()
     user_data['username'] = new_data['username']
@@ -64,7 +68,7 @@ async def register(data: RegisterForm) -> JSONResponse:
     user_data['password'] = new_data['password']
 
     user_data['is_active'] = False
-    user_data['id_institution'] = stored_institution['key']
+    user_data['id_institution'] = "gc8uupscjs0e"
     new_user = User(**user_data)
     new_user.password = data.password.get_secret_value().encode('utf-8')
     db_user.put(json.loads(new_user.json()))
@@ -233,14 +237,10 @@ async def refresh(refresh_token: Refresh, access_token: str = Depends(oauth2_sch
 
 
 @app.post("/account")
-async def register_staff(data: AddUser, user: Dict[str, Any] = Depends(get_user)) -> Response:
+async def register_staff(data: AddUser, user: User = Depends(get_user)) -> JSONResponse:
     if not user:
-        return Response(
-            success=False,
-            code=status.HTTP_401_UNAUTHORIZED,
-            message="Credentials not found",
-            data=None
-        )
+        return create_response("Credentials Not Found", False, status.HTTP_401_UNAUTHORIZED)
+
     parsed_data = data.dict()
     if data.password:
         parsed_data['password'] = data.password.get_secret_value()
@@ -248,28 +248,19 @@ async def register_staff(data: AddUser, user: Dict[str, Any] = Depends(get_user)
     registered_user = db_user.fetch(parsed_data)
 
     if registered_user.count != 0:
-        return Response(
-            success=False,
-            code=status.HTTP_400_BAD_REQUEST,
-            message="Username or email already registered",
-            data=None
-        )
+        return create_response("User Already Exist", False, status.HTTP_400_BAD_REQUEST)
 
     encoded_password = parsed_data['password'].encode('utf-8')
     encrypted_password = f.encrypt(encoded_password).decode('utf-8')
 
     parsed_data['password'] = encrypted_password
     parsed_data['is_active'] = False
+    parsed_data['id_institution'] = user.get_institution()['key']
 
     db_user.put(parsed_data)
     del parsed_data['password']
 
-    return Response(
-        success=True,
-        code=status.HTTP_201_CREATED,
-        message="User created",
-        data=parsed_data
-    )
+    return create_response("User Created", True, status.HTTP_201_CREATED, parsed_data)
 
 
 @app.post('/document_1')
@@ -314,43 +305,12 @@ async def delete_test_data() -> Response:
 
 
 @app.get("/admin")
-async def get_admin_list(access_token: str = Depends(oauth2_scheme)) -> JSONResponse:
-    if not access_token:
-        response = Response(
-            success=False,
-            code=status.HTTP_401_UNAUTHORIZED,
-            message="Credentials not found",
-            data=None
-        )
-        return JSONResponse(
-            response.dict(),
-            status_code=status.HTTP_401_UNAUTHORIZED
-        )
-    try:
-        payload = get_payload_from_token(access_token)
-    except JWTError:
-        response = Response(
-            success=False,
-            code=status.HTTP_401_BAD_REQUEST,
-            message="Invalid token",
-            data=None
-        )
-        return JSONResponse(
-            response.dict(),
-            status_code=status.HTTP_401_BAD_REQUEST
-        )
+async def get_admin_list(user: User = Depends(get_user)) -> JSONResponse:
+    if not user:
+        return create_response("Credentials Not Found", False, status.HTTP_401_UNAUTHORIZED)
 
-    if payload.role is not 'super admin':
-        response = Response(
-            success=False,
-            code=status.HTTP_403_FORBIDDEN,
-            message="Forbidden Access",
-            data=None
-        )
-        return JSONResponse(
-            response.dict(),
-            status_code=status.HTTP_403_FORBIDDEN
-        )
+    if user.role != 'super admin':
+        return create_response("Forbidden Access", False, status.HTTP_403_FORBIDDEN, {'role': user.role})
 
     fetch_data = db_user.fetch({'role': 'admin'})
     if fetch_data.count == 0:
@@ -372,7 +332,7 @@ async def get_admin_list(access_token: str = Depends(oauth2_scheme)) -> JSONResp
             'institusi': user.get_institution(),
             'id': data['key'],
             'email': data['email'],
-            'status': data['is_active']
+            'is_active': data['is_active']
         })
 
     response = Response(
@@ -386,6 +346,30 @@ async def get_admin_list(access_token: str = Depends(oauth2_scheme)) -> JSONResp
         response.dict(),
         status_code=status.HTTP_200_OK
     )
+
+
+@app.get("/staff")
+async def get_staff(user: User = Depends(get_user)) -> JSONResponse:
+    if not user:
+        return create_response("Credentials Not Found", False, status.HTTP_401_UNAUTHORIZED)
+
+    id_institution = user.get_institution()['key']
+
+    fetch_response = db_user.fetch(
+        {'role': 'staff', 'id_institution': id_institution},
+        {'role': 'reviewer', 'id_institution': id_institution}
+    )
+
+    if fetch_response.count == 0:
+        return create_response(
+            message="Empty Data",
+            success=True,
+            status_code=status.HTTP_200_OK
+        )
+
+    # final_data = []
+    # for data in fetch_response.items:
+
 
 
 
