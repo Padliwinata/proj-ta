@@ -8,7 +8,7 @@ from jose import jwt
 from pydantic import BaseModel
 
 from settings import SECRET_KEY, ALGORITHM, JWT_EXPIRED
-from models import User
+from models import User, Payload
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='auth')
 f = Fernet(SECRET_KEY)
@@ -47,5 +47,7 @@ def create_refresh_token(data: Dict[str, Any]) -> str:
     return encoded_jwt
 
 
+def get_payload_from_token(access_token: str) -> Payload:
+    return Payload(**jwt.decode(access_token, SECRET_KEY, algorithms=[ALGORITHM]))
 
 
