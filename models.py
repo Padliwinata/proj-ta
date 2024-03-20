@@ -1,5 +1,6 @@
 from enum import Enum
 import typing
+from datetime import datetime
 
 from pydantic import BaseModel, SecretStr, EmailStr
 
@@ -80,5 +81,11 @@ class Payload(BaseModel):
     iat: int
 
 
+class Log(BaseModel):
+    nama: str
+    email: str
+    role: UserRole
+    tanggal: str
+    id_institution: str
 
 

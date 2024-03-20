@@ -59,7 +59,7 @@ def create_response(
         message: str,
         success: bool = False,
         status_code: int = 400,
-        data: typing.Union[typing.Dict[str, typing.Any], None] = None
+        data: typing.Union[typing.Dict[str, typing.Any], typing.List[typing.Any], None] = None
 ) -> JSONResponse:
     response = Response(
         success=success,

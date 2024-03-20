@@ -1,5 +1,6 @@
 import json
-from typing import Annotated, Union, Dict, Any, Tuple
+from typing import Annotated, Union
+from datetime import datetime
 
 from cryptography.fernet import Fernet
 from fastapi import FastAPI, Depends, status, File, UploadFile
@@ -9,9 +10,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from jose import jwt, JWTError
 from pydantic import SecretStr
 
-from models import RegisterForm, Response, User, Refresh, ResponseDev, AddUser, Institution, Payload
+from models import RegisterForm, Response, User, Refresh, ResponseDev, AddUser, Institution, Log
 from dependencies import authenticate_user, create_refresh_token, create_access_token, TokenResponse, get_payload_from_token, create_response
-from db import db_user, db_institution, drive
+from db import db_user, db_institution, db_log, drive
 from settings import SECRET_KEY, ALGORITHM, DEVELOPMENT
 from seeder import seed, delete_db
 
@@ -116,6 +117,13 @@ async def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]) -> J
         refresh_token=refresh_token,
         token_type="bearer"
     ).dict()
+
+    log_data = Log(nama=form_data.username, email=user.email, role=user.role, tanggal=datetime.now().strftime('%-d %B %Y, %H:%M'), id_institution=user.id_institution)
+    log_data_json = log_data.json()
+    log_data_dict = json.loads(log_data_json)
+
+    db_log.put(log_data_dict)
+
     if DEVELOPMENT:
         resp_dev = ResponseDev(
             success=True,
@@ -350,7 +358,7 @@ async def get_admin_list(user: User = Depends(get_user)) -> JSONResponse:
     )
 
 
-@app.get("/staff")
+@app.get("/staff", include_in_schema=False)
 async def get_staff(user: User = Depends(get_user)) -> JSONResponse:
     if not user:
         return create_response("Credentials Not Found", False, status.HTTP_401_UNAUTHORIZED)
@@ -371,6 +379,41 @@ async def get_staff(user: User = Depends(get_user)) -> JSONResponse:
 
     # final_data = []
     # for data in fetch_response.items:
+
+
+@app.get("/log")
+async def get_login_log(user: User = Depends(get_user)) -> JSONResponse:
+    if not user:
+        return create_response("Credentials Not Found", False, status.HTTP_401_UNAUTHORIZED)
+
+    if user.role != 'admin':
+        return create_response("Forbidden Access", False, status.HTTP_403_FORBIDDEN, {'role': user.role})
+
+    id_institution = user.get_institution()['key']
+
+    staff_data = db_log.fetch([
+        {'role': 'staff', 'id_institution': id_institution},
+        {'role': 'reviewer', 'id_institution': id_institution}
+    ])
+
+    if staff_data.count == 0:
+        return create_response(
+            message="Empty Data",
+            success=True,
+            status_code=status.HTTP_200_OK
+        )
+
+    final_data = []
+    for data in staff_data.items:
+        user_data = User(**data)
+        final_data.append({
+            'nama': user_data.full_name,
+            'email': user_data.email,
+            'role': user_data.role,
+            'tanggal': datetime.now().strftime('%-d %B %Y, %H:%M')
+        })
+
+    return create_response("Fetch Data Success", True, status.HTTP_200_OK, data=final_data)
 
 
 @app.get("/seed", include_in_schema=False)
