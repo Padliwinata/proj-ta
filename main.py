@@ -118,7 +118,7 @@ async def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]) -> J
         token_type="bearer"
     ).dict()
 
-    log_data = Log(nama=form_data.username, email=user.email, role=user.role, tanggal=datetime.now().strftime('%-d %B %Y, %H:%M'), id_institution=user.id_institution)
+    log_data = Log(name=form_data.username, email=user.email, role=user.role, tanggal=datetime.now().strftime('%-d %B %Y, %H:%M'), id_institution=user.id_institution)
     log_data_json = log_data.json()
     log_data_dict = json.loads(log_data_json)
 
@@ -391,12 +391,12 @@ async def get_login_log(user: User = Depends(get_user)) -> JSONResponse:
 
     id_institution = user.get_institution()['key']
 
-    staff_data = db_log.fetch([
+    log_data = db_log.fetch([
         {'role': 'staff', 'id_institution': id_institution},
         {'role': 'reviewer', 'id_institution': id_institution}
     ])
 
-    if staff_data.count == 0:
+    if log_data.count == 0:
         return create_response(
             message="Empty Data",
             success=True,
@@ -404,10 +404,10 @@ async def get_login_log(user: User = Depends(get_user)) -> JSONResponse:
         )
 
     final_data = []
-    for data in staff_data.items:
-        user_data = User(**data)
+    for data in log_data.items:
+        user_data = Log(**data)
         final_data.append({
-            'nama': user_data.full_name,
+            'nama': user_data.name,
             'email': user_data.email,
             'role': user_data.role,
             'tanggal': datetime.now().strftime('%-d %B %Y, %H:%M')

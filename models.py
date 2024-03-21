@@ -82,7 +82,7 @@ class Payload(BaseModel):
 
 
 class Log(BaseModel):
-    nama: str
+    name: str
     email: str
     role: UserRole
     tanggal: str
