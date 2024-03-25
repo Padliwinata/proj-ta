@@ -1,7 +1,7 @@
 fastapi
 uvicorn
 deta
-pydantic
+pydantic==1.10.12
 cryptography
 python-jose
 python-multipart

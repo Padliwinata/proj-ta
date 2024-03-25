@@ -1,5 +1,6 @@
 from enum import Enum
 import typing
+from datetime import datetime
 
 from pydantic import BaseModel, SecretStr, EmailStr
 
@@ -11,11 +12,6 @@ class UserRole(str, Enum):
     super_admin = "super admin"
     staff = "staff"
     reviewer = "reviewer"
-
-
-class Position(str, Enum):
-    pic = "pic"
-    owner = "owner"
 
 
 class RegisterForm(BaseModel):
@@ -38,6 +34,10 @@ class Institution(BaseModel):
     email: EmailStr
 
 
+class InstitutionDB(Institution):
+    key: str
+
+
 class Response(BaseModel):
     success: bool
     code: int
@@ -51,22 +51,22 @@ class ResponseDev(Response):
 
 class User(BaseModel):
     username: str
+    full_name: str
     password: typing.Union[SecretStr, bytes, None]
     email: str
     role: UserRole = UserRole.admin
-    position: Position = Position.owner
     id_institution: str
     is_active: bool
 
     def get_institution(self) -> typing.Dict[str, typing.Any]:
         institution = db_institution.get(self.id_institution)
-        data = Institution(**institution)
+        data = InstitutionDB(**institution)
         return data.dict()
 
 
 class AddUser(BaseModel):
     username: str
-    email: str
+    email: EmailStr
     password: typing.Optional[SecretStr]
     role: UserRole = UserRole.admin
 
@@ -81,5 +81,11 @@ class Payload(BaseModel):
     iat: int
 
 
+class Log(BaseModel):
+    name: str
+    email: str
+    role: UserRole
+    tanggal: str
+    id_institution: str
 
 

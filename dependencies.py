@@ -1,14 +1,17 @@
+import typing
 from typing import Dict, Any, Union
 from datetime import datetime, timedelta
 
 from cryptography.fernet import Fernet
 from deta import _Base
+from fastapi import status
 from fastapi.security import OAuth2PasswordBearer
+from fastapi.responses import JSONResponse
 from jose import jwt
 from pydantic import BaseModel
 
 from settings import SECRET_KEY, ALGORITHM, JWT_EXPIRED
-from models import User, Payload
+from models import User, Payload, Response
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='auth')
 f = Fernet(SECRET_KEY)
@@ -35,7 +38,8 @@ def authenticate_user(db: _Base, username: str, password: str) -> Union[User, No
 
 def create_access_token(data: Dict[str, Any]) -> str:
     to_encode = data.copy()
-    to_encode.update({'exp': datetime.now() - timedelta(hours=7) + timedelta(seconds=JWT_EXPIRED), 'iat': datetime.now()})
+    to_encode.update(
+        {'exp': datetime.now() - timedelta(hours=7) + timedelta(seconds=JWT_EXPIRED), 'iat': datetime.now()})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
 
@@ -51,3 +55,19 @@ def get_payload_from_token(access_token: str) -> Payload:
     return Payload(**jwt.decode(access_token, SECRET_KEY, algorithms=[ALGORITHM]))
 
 
+def create_response(
+        message: str,
+        success: bool = False,
+        status_code: int = 400,
+        data: typing.Union[typing.Dict[str, typing.Any], typing.List[typing.Any], None] = None
+) -> JSONResponse:
+    response = Response(
+        success=success,
+        code=status_code,
+        message=message,
+        data=data
+    )
+    return JSONResponse(
+        response.dict(),
+        status_code=status_code
+    )

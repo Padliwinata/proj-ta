@@ -1,5 +1,6 @@
 import json
-from typing import Annotated, Union, Dict, Any, Tuple
+from typing import Annotated, Union
+from datetime import datetime
 
 from cryptography.fernet import Fernet
 from fastapi import FastAPI, Depends, status, File, UploadFile
@@ -9,10 +10,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from jose import jwt, JWTError
 from pydantic import SecretStr
 
-from models import RegisterForm, Response, User, Refresh, ResponseDev, AddUser, Institution, Payload
-from dependencies import authenticate_user, create_refresh_token, create_access_token, TokenResponse, get_payload_from_token
-from db import db_user, db_institution, drive
+from models import RegisterForm, Response, User, Refresh, ResponseDev, AddUser, Institution, Log
+from dependencies import authenticate_user, create_refresh_token, create_access_token, TokenResponse, get_payload_from_token, create_response
+from db import db_user, db_institution, db_log, drive
 from settings import SECRET_KEY, ALGORITHM, DEVELOPMENT
+from seeder import seed, delete_db
 
 app = FastAPI()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='auth', auto_error=False)
@@ -33,15 +35,19 @@ test_data = {
 
 
 def get_user(access_token: str = Depends(oauth2_scheme)) -> Union[User, None]:
+    if not access_token:
+        return None
     try:
-        access_payload = jwt.decode(access_token, SECRET_KEY, algorithms=ALGORITHM)
-        user = db_user.fetch({'username': access_payload['sub']})
-        if user.count == 0:
-            return None
-        user_data: User = user.items[0]
-        return user_data
+        payload = get_payload_from_token(access_token)
     except JWTError:
         return None
+
+    response = db_user.fetch({'username': payload.sub})
+    if response.count == 0:
+        return None
+
+    user = response.items[0]
+    return User(**user)
 
 
 @app.post('/register')
@@ -60,6 +66,7 @@ async def register(data: RegisterForm) -> JSONResponse:
 
     user_data = dict()
     user_data['username'] = new_data['username']
+    user_data['full_name'] = new_data['full_name']
     user_data['email'] = new_data['email']
     user_data['password'] = new_data['password']
 
@@ -110,6 +117,13 @@ async def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]) -> J
         refresh_token=refresh_token,
         token_type="bearer"
     ).dict()
+
+    log_data = Log(name=form_data.username, email=user.email, role=user.role, tanggal=datetime.now().strftime('%-d %B %Y, %H:%M'), id_institution=user.id_institution)
+    log_data_json = log_data.json()
+    log_data_dict = json.loads(log_data_json)
+
+    db_log.put(log_data_dict)
+
     if DEVELOPMENT:
         resp_dev = ResponseDev(
             success=True,
@@ -233,14 +247,10 @@ async def refresh(refresh_token: Refresh, access_token: str = Depends(oauth2_sch
 
 
 @app.post("/account")
-async def register_staff(data: AddUser, user: Dict[str, Any] = Depends(get_user)) -> Response:
+async def register_staff(data: AddUser, user: User = Depends(get_user)) -> JSONResponse:
     if not user:
-        return Response(
-            success=False,
-            code=status.HTTP_401_UNAUTHORIZED,
-            message="Credentials not found",
-            data=None
-        )
+        return create_response("Credentials Not Found", False, status.HTTP_401_UNAUTHORIZED)
+
     parsed_data = data.dict()
     if data.password:
         parsed_data['password'] = data.password.get_secret_value()
@@ -248,28 +258,19 @@ async def register_staff(data: AddUser, user: Dict[str, Any] = Depends(get_user)
     registered_user = db_user.fetch(parsed_data)
 
     if registered_user.count != 0:
-        return Response(
-            success=False,
-            code=status.HTTP_400_BAD_REQUEST,
-            message="Username or email already registered",
-            data=None
-        )
+        return create_response("User Already Exist", False, status.HTTP_400_BAD_REQUEST)
 
     encoded_password = parsed_data['password'].encode('utf-8')
     encrypted_password = f.encrypt(encoded_password).decode('utf-8')
 
     parsed_data['password'] = encrypted_password
     parsed_data['is_active'] = False
+    parsed_data['id_institution'] = user.get_institution()['key']
 
     db_user.put(parsed_data)
     del parsed_data['password']
 
-    return Response(
-        success=True,
-        code=status.HTTP_201_CREATED,
-        message="User created",
-        data=parsed_data
-    )
+    return create_response("User Created", True, status.HTTP_201_CREATED, parsed_data)
 
 
 @app.post('/document_1')
@@ -314,43 +315,12 @@ async def delete_test_data() -> Response:
 
 
 @app.get("/admin")
-async def get_admin_list(access_token: str = Depends(oauth2_scheme)) -> JSONResponse:
-    if not access_token:
-        response = Response(
-            success=False,
-            code=status.HTTP_401_UNAUTHORIZED,
-            message="Credentials not found",
-            data=None
-        )
-        return JSONResponse(
-            response.dict(),
-            status_code=status.HTTP_401_UNAUTHORIZED
-        )
-    try:
-        payload = get_payload_from_token(access_token)
-    except JWTError:
-        response = Response(
-            success=False,
-            code=status.HTTP_401_BAD_REQUEST,
-            message="Invalid token",
-            data=None
-        )
-        return JSONResponse(
-            response.dict(),
-            status_code=status.HTTP_401_BAD_REQUEST
-        )
+async def get_admin_list(user: User = Depends(get_user)) -> JSONResponse:
+    if not user:
+        return create_response("Credentials Not Found", False, status.HTTP_401_UNAUTHORIZED)
 
-    if payload.role is not 'super admin':
-        response = Response(
-            success=False,
-            code=status.HTTP_403_FORBIDDEN,
-            message="Forbidden Access",
-            data=None
-        )
-        return JSONResponse(
-            response.dict(),
-            status_code=status.HTTP_403_FORBIDDEN
-        )
+    if user.role != 'super admin':
+        return create_response("Forbidden Access", False, status.HTTP_403_FORBIDDEN, {'role': user.role})
 
     fetch_data = db_user.fetch({'role': 'admin'})
     if fetch_data.count == 0:
@@ -372,7 +342,7 @@ async def get_admin_list(access_token: str = Depends(oauth2_scheme)) -> JSONResp
             'institusi': user.get_institution(),
             'id': data['key'],
             'email': data['email'],
-            'status': data['is_active']
+            'is_active': data['is_active']
         })
 
     response = Response(
@@ -388,7 +358,82 @@ async def get_admin_list(access_token: str = Depends(oauth2_scheme)) -> JSONResp
     )
 
 
+@app.get("/staff", include_in_schema=False)
+async def get_staff(user: User = Depends(get_user)) -> JSONResponse:
+    if not user:
+        return create_response("Credentials Not Found", False, status.HTTP_401_UNAUTHORIZED)
 
+    id_institution = user.get_institution()['key']
+
+    fetch_response = db_user.fetch(
+        {'role': 'staff', 'id_institution': id_institution},
+        {'role': 'reviewer', 'id_institution': id_institution}
+    )
+
+    if fetch_response.count == 0:
+        return create_response(
+            message="Empty Data",
+            success=True,
+            status_code=status.HTTP_200_OK
+        )
+
+    # final_data = []
+    # for data in fetch_response.items:
+
+
+@app.get("/log")
+async def get_login_log(user: User = Depends(get_user)) -> JSONResponse:
+    if not user:
+        return create_response("Credentials Not Found", False, status.HTTP_401_UNAUTHORIZED)
+
+    if user.role != 'admin':
+        return create_response("Forbidden Access", False, status.HTTP_403_FORBIDDEN, {'role': user.role})
+
+    id_institution = user.get_institution()['key']
+
+    log_data = db_log.fetch([
+        {'role': 'staff', 'id_institution': id_institution},
+        {'role': 'reviewer', 'id_institution': id_institution}
+    ])
+
+    if log_data.count == 0:
+        return create_response(
+            message="Empty Data",
+            success=True,
+            status_code=status.HTTP_200_OK
+        )
+
+    final_data = []
+    for data in log_data.items:
+        user_data = Log(**data)
+        final_data.append({
+            'nama': user_data.name,
+            'email': user_data.email,
+            'role': user_data.role,
+            'tanggal': datetime.now().strftime('%-d %B %Y, %H:%M')
+        })
+
+    return create_response("Fetch Data Success", True, status.HTTP_200_OK, data=final_data)
+
+
+@app.get("/seed", include_in_schema=False)
+async def seed_database() -> JSONResponse:
+    seed()
+    return create_response(
+        message="Success",
+        status_code=status.HTTP_200_OK,
+        success=True
+    )
+
+
+@app.get("/delete", include_in_schema=False)
+async def delete_database() -> JSONResponse:
+    delete_db()
+    return create_response(
+        message="Success",
+        status_code=status.HTTP_200_OK,
+        success=True
+    )
 
 
 
