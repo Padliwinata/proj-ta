@@ -64,6 +64,10 @@ class User(BaseModel):
         return data.dict()
 
 
+class UserDB(User):
+    key: str
+
+
 class AddUser(BaseModel):
     username: str
     email: EmailStr
@@ -91,22 +95,27 @@ class Log(BaseModel):
 
 class Proof(BaseModel):
     id_user: str
-    url: AnyUrl
+    url: str
     file_name: str
 
 
 class ProofMeta(BaseModel):
-    bab: int
+    bab: str
     sub_bab: str
     point: int
     answer: int
 
 
 class Point(BaseModel):
-    id_user: str
     bab: str
     sub_bab: str
-    poin: int
-    bukti: Proof
+    point: int
+    proof: Proof
+
+
+class FileMeta(BaseModel):
+    bab: str
+    sub_bab: str
+    point: int
 
 

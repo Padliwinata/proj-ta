@@ -1,19 +1,20 @@
+import io
 import json
 from typing import Annotated, Union
 from datetime import datetime
 
 from cryptography.fernet import Fernet
 from fastapi import FastAPI, Depends, status, File, UploadFile, Request
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, FileResponse, StreamingResponse
 from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
 from fastapi.middleware.cors import CORSMiddleware
 from jose import jwt, JWTError
-from pydantic import SecretStr
+from pydantic import SecretStr, AnyUrl
 
 from dependencies import authenticate_user, create_refresh_token, create_access_token, TokenResponse, get_payload_from_token, create_response
 from db import db_user, db_institution, db_log, drive
 from exceptions import DependencyException
-from models import RegisterForm, Response, User, Refresh, ResponseDev, AddUser, Institution, Log, ProofMeta
+from models import RegisterForm, Response, User, Refresh, ResponseDev, AddUser, Institution, Log, ProofMeta, Point, Proof, UserDB, FileMeta
 from settings import SECRET_KEY, ALGORITHM, DEVELOPMENT
 from seeder import seed, delete_db
 
@@ -35,7 +36,7 @@ test_data = {
 }
 
 
-def get_user(access_token: str = Depends(oauth2_scheme)) -> Union[User, None]:
+def get_user(access_token: str = Depends(oauth2_scheme)) -> Union[UserDB, None]:
     if not access_token:
         response_error = Response(
             success=False,
@@ -66,7 +67,7 @@ def get_user(access_token: str = Depends(oauth2_scheme)) -> Union[User, None]:
         raise DependencyException(status_code=status.HTTP_401_UNAUTHORIZED, detail_info=response_error.dict())
 
     user = response.items[0]
-    return User(**user)
+    return UserDB(**user)
 
 
 @app.exception_handler(DependencyException)
@@ -441,14 +442,36 @@ async def get_login_log(user: User = Depends(get_user)) -> JSONResponse:
 
 
 @app.post("/proof")
-async def upload_proof_point(metadata: ProofMeta = Depends(),
-                             user: User = Depends(get_user),
+async def upload_proof_point(request: Request,
+                             metadata: ProofMeta = Depends(),
+                             user: UserDB = Depends(get_user),
                              file: UploadFile = File(...)) -> JSONResponse:
 
     content = await file.read()
     filename = f"{user.get_institution()['key']}_{metadata.bab}_{metadata.sub_bab.replace('.', '')}_{metadata.point}.pdf"
 
     drive.put(filename, content)
+
+    data = {
+        'id_user': user.key,
+        'url': f"{request.url}/{filename}",
+        'file_name': filename
+    }
+
+    new_proof = Proof(
+        id_user=user.key,
+        url=f"{request.url.hostname}:{request.url.port}/file/{filename}",
+        file_name=filename
+    )
+
+    new_point = Point(
+        bab=metadata.bab,
+        sub_bab=metadata.sub_bab,
+        proof=new_proof,
+        point=metadata.point
+    )
+
+    data = json.loads(new_point.json())
 
     if not file.filename:
         return create_response(
@@ -460,7 +483,8 @@ async def upload_proof_point(metadata: ProofMeta = Depends(),
     return create_response(
         message=filename,
         status_code=status.HTTP_200_OK,
-        success=True
+        success=True,
+        data=data
     )
 
 
@@ -482,6 +506,20 @@ async def delete_database() -> JSONResponse:
         status_code=status.HTTP_200_OK,
         success=True
     )
+
+
+@app.get("/file", tags=["General"])
+async def get_file(filename: str, user: User = Depends(get_user)) -> StreamingResponse:
+    # filename = f"{user.get_institution()['key']}_{file_meta.bab}_{file_meta.sub_bab.replace('.', '')}_{file_meta.point}.pdf"
+    response = drive.get(filename)
+    content = response.read()
+
+    file_like = io.BytesIO(content)
+
+    headers = {
+        'Content-Disposition': f'attachment; filename="{filename}.pdf"'
+    }
+    return StreamingResponse(file_like, headers=headers)
 
 
 
