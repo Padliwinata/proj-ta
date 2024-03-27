@@ -2,7 +2,7 @@ import typing
 
 from cryptography.fernet import Fernet
 
-from db import db_user, db_institution
+from db import db_user, db_institution, db_log
 from settings import SECRET_KEY
 
 f = Fernet(SECRET_KEY)
@@ -87,6 +87,7 @@ def seed() -> None:
 def delete_db() -> None:
     user_res = db_user.fetch()
     inst_res = db_institution.fetch()
+    log_res = db_log.fetch()
 
     if user_res.count > 0:
         for data in user_res.items:
@@ -95,3 +96,7 @@ def delete_db() -> None:
     if inst_res.count > 0:
         for data in inst_res.items:
             db_institution.delete(data['key'])
+
+    if log_res.count > 0:
+        for data in log_res.items:
+            db_log.delete(data['key'])

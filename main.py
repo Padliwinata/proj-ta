@@ -1,6 +1,6 @@
 import io
 import json
-from typing import Annotated, Union
+from typing import Annotated, Union, List
 from datetime import datetime
 
 from cryptography.fernet import Fernet
@@ -452,15 +452,9 @@ async def upload_proof_point(request: Request,
 
     drive.put(filename, content)
 
-    data = {
-        'id_user': user.key,
-        'url': f"{request.url}/{filename}",
-        'file_name': filename
-    }
-
     new_proof = Proof(
         id_user=user.key,
-        url=f"{request.url.hostname}:{request.url.port}/file/{filename}",
+        url=f"{request.url.hostname}/file/{filename}",
         file_name=filename
     )
 
@@ -479,6 +473,55 @@ async def upload_proof_point(request: Request,
             status_code=status.HTTP_400_BAD_REQUEST,
             success=False
         )
+
+    return create_response(
+        message=filename,
+        status_code=status.HTTP_200_OK,
+        success=True,
+        data=data
+    )
+
+
+@app.post("/proofs", include_in_schema=False)
+async def upload_proof_point(request: Request,
+                             metadata: ProofMeta = Depends(),
+                             user: UserDB = Depends(get_user),
+                             file: List[UploadFile] = File(...)) -> JSONResponse:
+
+    # content = await file.read()
+    filename = f"{user.get_institution()['key']}_{metadata.bab}_{metadata.sub_bab.replace('.', '')}_{metadata.point}.pdf"
+
+    # drive.put(filename, content)
+
+    # data = {
+    #     'id_user': user.key,
+    #     'url': f"{request.url}/{filename}",
+    #     'file_name': filename,
+    #     'length': len(file)
+    # }
+
+    new_proof = Proof(
+        id_user=user.key,
+        url=f"{request.url.hostname}/file/{filename}",
+        file_name=filename
+    )
+
+    new_point = Point(
+        bab=metadata.bab,
+        sub_bab=metadata.sub_bab,
+        proof=new_proof,
+        point=metadata.point
+    )
+
+    data = json.loads(new_point.json())
+    data['length'] = len(file)
+
+    # if not file.filename:
+    #     return create_response(
+    #         message="Failed",
+    #         status_code=status.HTTP_400_BAD_REQUEST,
+    #         success=False
+    #     )
 
     return create_response(
         message=filename,
@@ -510,7 +553,6 @@ async def delete_database() -> JSONResponse:
 
 @app.get("/file", tags=["General"])
 async def get_file(filename: str, user: User = Depends(get_user)) -> StreamingResponse:
-    # filename = f"{user.get_institution()['key']}_{file_meta.bab}_{file_meta.sub_bab.replace('.', '')}_{file_meta.point}.pdf"
     response = drive.get(filename)
     content = response.read()
 
