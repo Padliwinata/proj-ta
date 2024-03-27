@@ -2,7 +2,7 @@ from enum import Enum
 import typing
 from datetime import datetime
 
-from pydantic import BaseModel, SecretStr, EmailStr
+from pydantic import BaseModel, SecretStr, EmailStr, AnyUrl
 
 from db import db_institution
 
@@ -64,6 +64,10 @@ class User(BaseModel):
         return data.dict()
 
 
+class UserDB(User):
+    key: str
+
+
 class AddUser(BaseModel):
     username: str
     email: EmailStr
@@ -87,5 +91,31 @@ class Log(BaseModel):
     role: UserRole
     tanggal: str
     id_institution: str
+
+
+class Proof(BaseModel):
+    id_user: str
+    url: str
+    file_name: str
+
+
+class ProofMeta(BaseModel):
+    bab: str
+    sub_bab: str
+    point: int
+    answer: int
+
+
+class Point(BaseModel):
+    bab: str
+    sub_bab: str
+    point: int
+    proof: Proof
+
+
+class FileMeta(BaseModel):
+    bab: str
+    sub_bab: str
+    point: int
 
 
