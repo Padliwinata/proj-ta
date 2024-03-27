@@ -447,6 +447,13 @@ async def upload_proof_point(request: Request,
                              user: UserDB = Depends(get_user),
                              file: UploadFile = File(...)) -> JSONResponse:
 
+    if user.role != 'admin':
+        return create_response(
+            message="Forbidden Access",
+            status_code=status.HTTP_403_FORBIDDEN,
+            success=False
+        )
+
     content = await file.read()
     filename = f"{user.get_institution()['key']}_{metadata.bab}_{metadata.sub_bab.replace('.', '')}_{metadata.point}.pdf"
 
