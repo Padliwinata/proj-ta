@@ -9,5 +9,6 @@ db_proof = deta_obj.Base("proof")
 db_questionnaire = deta_obj.Base("questionnaire")
 db_report = deta_obj.Base("report")
 db_log = deta_obj.Base("log")
+db_point = deta_obj.Base("point")
 
 drive = deta_obj.Drive("document")

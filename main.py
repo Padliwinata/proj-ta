@@ -1,5 +1,6 @@
 import io
 import json
+import requests
 from typing import Annotated, Union, List
 from datetime import datetime
 
@@ -12,7 +13,7 @@ from jose import jwt, JWTError
 from pydantic import SecretStr, AnyUrl
 
 from dependencies import authenticate_user, create_refresh_token, create_access_token, TokenResponse, get_payload_from_token, create_response
-from db import db_user, db_institution, db_log, drive
+from db import db_user, db_institution, db_log, db_point, db_proof, drive
 from exceptions import DependencyException
 from models import RegisterForm, Response, User, Refresh, ResponseDev, AddUser, Institution, Log, ProofMeta, Point, Proof, UserDB, FileMeta
 from settings import SECRET_KEY, ALGORITHM, DEVELOPMENT
@@ -108,6 +109,23 @@ async def register(data: RegisterForm) -> JSONResponse:
         'user': data.username,
         'institution': institution_data['name']
     }
+
+    email_request_header = {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'X-Postmark-Server-Token': '57999240-f933-4e5f-a308-8eea7b3014d2'
+    }
+
+    email_request_body = {
+        "From": "noreply@deltaharmonimandiri.com",
+        "To": new_user.email,
+        "HtmlBody": "<b>Example</b>",
+        "TextBody": "Example",
+
+    }
+
+    res = requests.post("https://api.postmarkapp.com/email", headers=email_request_header, json=email_request_body)
+    payload['confirm'] = res.json()
 
     response = Response(
         success=True,
@@ -465,12 +483,16 @@ async def upload_proof_point(request: Request,
         file_name=filename
     )
 
+    db_proof.put(new_proof.dict())
+
     new_point = Point(
         bab=metadata.bab,
         sub_bab=metadata.sub_bab,
         proof=new_proof,
         point=metadata.point
     )
+
+    db_point.put(json.loads(new_point.json()))
 
     data = json.loads(new_point.json())
 
@@ -490,10 +512,10 @@ async def upload_proof_point(request: Request,
 
 
 @app.post("/proofs", include_in_schema=False)
-async def upload_proof_point(request: Request,
-                             metadata: ProofMeta = Depends(),
-                             user: UserDB = Depends(get_user),
-                             file: List[UploadFile] = File(...)) -> JSONResponse:
+async def upload_proofs_point(request: Request,
+                              metadata: ProofMeta = Depends(),
+                              user: UserDB = Depends(get_user),
+                              file: List[UploadFile] = File(...)) -> JSONResponse:
 
     # content = await file.read()
     filename = f"{user.get_institution()['key']}_{metadata.bab}_{metadata.sub_bab.replace('.', '')}_{metadata.point}.pdf"
@@ -538,6 +560,16 @@ async def upload_proof_point(request: Request,
     )
 
 
+@app.get("/assessment")
+async def get_answers(user: User = Depends(get_user)) -> JSONResponse:
+    if user.role != 'admin':
+        return create_response(
+            message="Forbidden Access",
+            success=False,
+            status_code=status.HTTP_403_FORBIDDEN
+        )
+
+
 @app.get("/seed", tags=['Testing'])
 async def seed_database() -> JSONResponse:
     seed()
@@ -558,8 +590,8 @@ async def delete_database() -> JSONResponse:
     )
 
 
-@app.get("/file", tags=["General"])
-async def get_file(filename: str, user: User = Depends(get_user)) -> StreamingResponse:
+@app.get("/file/{filename}", tags=["General"])
+async def get_file(filename: str) -> StreamingResponse:
     response = drive.get(filename)
     content = response.read()
 
