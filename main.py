@@ -16,6 +16,7 @@ from dependencies import authenticate_user, create_refresh_token, create_access_
 from db import db_user, db_institution, db_log, db_point, db_proof, drive
 from exceptions import DependencyException
 from models import RegisterForm, Response, User, Refresh, ResponseDev, AddUser, Institution, Log, ProofMeta, Point, Proof, UserDB, FileMeta
+from mailer import send_confirmation
 from settings import SECRET_KEY, ALGORITHM, DEVELOPMENT
 from seeder import seed, delete_db
 
@@ -103,29 +104,32 @@ async def register(data: RegisterForm) -> JSONResponse:
     user_data['id_institution'] = stored_institution['key']
     new_user = User(**user_data)
     new_user.password = data.password.get_secret_value().encode('utf-8')
-    db_user.put(json.loads(new_user.json()))
+    res = db_user.put(json.loads(new_user.json()))
+
+    userid: str = res['key']
+    send_confirmation(userid, new_user.email, new_user.full_name)
 
     payload = {
         'user': data.username,
         'institution': institution_data['name']
     }
 
-    email_request_header = {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        'X-Postmark-Server-Token': '57999240-f933-4e5f-a308-8eea7b3014d2'
-    }
+    # email_request_header = {
+    #     'Content-Type': 'application/json',
+    #     'Accept': 'application/json',
+    #     'X-Postmark-Server-Token': '57999240-f933-4e5f-a308-8eea7b3014d2'
+    # }
+    #
+    # email_request_body = {
+    #     "From": "noreply@deltaharmonimandiri.com",
+    #     "To": new_user.email,
+    #     "HtmlBody": "<b>Example</b>",
+    #     "TextBody": "Example",
+    #
+    # }
 
-    email_request_body = {
-        "From": "noreply@deltaharmonimandiri.com",
-        "To": new_user.email,
-        "HtmlBody": "<b>Example</b>",
-        "TextBody": "Example",
-
-    }
-
-    res = requests.post("https://api.postmarkapp.com/email", headers=email_request_header, json=email_request_body)
-    payload['confirm'] = res.json()
+    # res = requests.post("https://api.postmarkapp.com/email", headers=email_request_header, json=email_request_body)
+    # payload['confirm'] = res.json()
 
     response = Response(
         success=True,
@@ -601,6 +605,33 @@ async def get_file(filename: str) -> StreamingResponse:
         'Content-Disposition': f'attachment; filename="{filename}.pdf"'
     }
     return StreamingResponse(file_like, headers=headers)
+
+
+@app.get("/verify/{userid}", tags=['Auth'])
+async def verify_user(userid: str) -> JSONResponse:
+    resp = db_user.get(userid)
+    if not resp:
+        return create_response(
+            message="User not found",
+            success=False,
+            status_code=status.HTTP_404_NOT_FOUND
+        )
+
+    user = UserDB(**resp)
+    user.is_active = True
+
+    db_user.update(
+        {'is_active': True},
+        user.key
+    )
+
+    return create_response(
+        message="User activated",
+        success=True,
+        status_code=status.HTTP_200_OK,
+        data=user.dict()
+    )
+
 
 
 
