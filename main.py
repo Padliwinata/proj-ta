@@ -1,6 +1,5 @@
 import io
 import json
-import requests
 from typing import Annotated, Union, List
 from datetime import datetime
 
@@ -113,23 +112,6 @@ async def register(data: RegisterForm) -> JSONResponse:
         'user': data.username,
         'institution': institution_data['name']
     }
-
-    # email_request_header = {
-    #     'Content-Type': 'application/json',
-    #     'Accept': 'application/json',
-    #     'X-Postmark-Server-Token': '57999240-f933-4e5f-a308-8eea7b3014d2'
-    # }
-    #
-    # email_request_body = {
-    #     "From": "noreply@deltaharmonimandiri.com",
-    #     "To": new_user.email,
-    #     "HtmlBody": "<b>Example</b>",
-    #     "TextBody": "Example",
-    #
-    # }
-
-    # res = requests.post("https://api.postmarkapp.com/email", headers=email_request_header, json=email_request_body)
-    # payload['confirm'] = res.json()
 
     response = Response(
         success=True,
@@ -625,11 +607,12 @@ async def verify_user(userid: str) -> JSONResponse:
         user.key
     )
 
+    # user_data = json.loads(user.json())
+
     return create_response(
         message="User activated",
         success=True,
         status_code=status.HTTP_200_OK,
-        data=user.dict()
     )
 
 
