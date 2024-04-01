@@ -1,5 +1,6 @@
 from fastapi.testclient import TestClient
 
+from dependencies import create_access_token
 from main import app
 from db import db_user
 
@@ -77,3 +78,23 @@ def test_login_development_mode():
     assert response.json()['success'] is True
     assert 'access_token' in response.json()['data']  # Check if access token is returned
     app.DEVELOPMENT = False
+    
+def test_upload_proof_point_success():
+    # Simulate user authentication and obtain access token
+    access_token = create_access_token({"username": "testingusername"})
+
+    # # Test case for successful proof upload
+    # metadata = {
+    #     'bab': '1',
+    #     'sub_bab': '1.1',
+    #     'point': 1,
+    #     'answer': 1
+    # }
+    file_content = b"fake_file_content"
+    files = {'file': ("test_proof.pdf", file_content)}
+
+    # Include the access token in the request headers
+    response = client.post('/proof?bab=1&sub_bab=1.1&point=1&answer=1', headers={"Authorization": f"Bearer {access_token}"}, files=files)
+    assert response.status_code == 200
+    assert response.json()['success'] is True
+    assert response.json()['message'] == "upload berhasil"
