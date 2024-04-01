@@ -1,6 +1,6 @@
 import io
 import json
-from typing import Annotated, Union
+from typing import Annotated, Union, List
 from datetime import datetime
 
 from cryptography.fernet import Fernet
@@ -12,9 +12,10 @@ from jose import jwt, JWTError
 from pydantic import SecretStr, AnyUrl
 
 from dependencies import authenticate_user, create_refresh_token, create_access_token, TokenResponse, get_payload_from_token, create_response
-from db import db_user, db_institution, db_log, drive
+from db import db_user, db_institution, db_log, db_point, db_proof, drive
 from exceptions import DependencyException
 from models import RegisterForm, Response, User, Refresh, ResponseDev, AddUser, Institution, Log, ProofMeta, Point, Proof, UserDB, FileMeta
+from mailer import send_confirmation
 from settings import SECRET_KEY, ALGORITHM, DEVELOPMENT
 from seeder import seed, delete_db
 
@@ -102,7 +103,10 @@ async def register(data: RegisterForm) -> JSONResponse:
     user_data['id_institution'] = stored_institution['key']
     new_user = User(**user_data)
     new_user.password = data.password.get_secret_value().encode('utf-8')
-    db_user.put(json.loads(new_user.json()))
+    res = db_user.put(json.loads(new_user.json()))
+
+    userid: str = res['key']
+    send_confirmation(userid, new_user.email, new_user.full_name)
 
     payload = {
         'user': data.username,
@@ -447,22 +451,25 @@ async def upload_proof_point(request: Request,
                              user: UserDB = Depends(get_user),
                              file: UploadFile = File(...)) -> JSONResponse:
 
+    if user.role != 'admin':
+        return create_response(
+            message="Forbidden Access",
+            status_code=status.HTTP_403_FORBIDDEN,
+            success=False
+        )
+
     content = await file.read()
     filename = f"{user.get_institution()['key']}_{metadata.bab}_{metadata.sub_bab.replace('.', '')}_{metadata.point}.pdf"
 
     drive.put(filename, content)
 
-    data = {
-        'id_user': user.key,
-        'url': f"{request.url}/{filename}",
-        'file_name': filename
-    }
-
     new_proof = Proof(
         id_user=user.key,
-        url=f"{request.url.hostname}:{request.url.port}/file/{filename}",
+        url=f"{request.url.hostname}/file/{filename}",
         file_name=filename
     )
+
+    db_proof.put(new_proof.dict())
 
     new_point = Point(
         bab=metadata.bab,
@@ -470,6 +477,8 @@ async def upload_proof_point(request: Request,
         proof=new_proof,
         point=metadata.point
     )
+
+    db_point.put(json.loads(new_point.json()))
 
     data = json.loads(new_point.json())
 
@@ -486,6 +495,65 @@ async def upload_proof_point(request: Request,
         success=True,
         data=data
     )
+
+
+@app.post("/proofs", include_in_schema=False)
+async def upload_proofs_point(request: Request,
+                              metadata: ProofMeta = Depends(),
+                              user: UserDB = Depends(get_user),
+                              file: List[UploadFile] = File(...)) -> JSONResponse:
+
+    # content = await file.read()
+    filename = f"{user.get_institution()['key']}_{metadata.bab}_{metadata.sub_bab.replace('.', '')}_{metadata.point}.pdf"
+
+    # drive.put(filename, content)
+
+    # data = {
+    #     'id_user': user.key,
+    #     'url': f"{request.url}/{filename}",
+    #     'file_name': filename,
+    #     'length': len(file)
+    # }
+
+    new_proof = Proof(
+        id_user=user.key,
+        url=f"{request.url.hostname}/file/{filename}",
+        file_name=filename
+    )
+
+    new_point = Point(
+        bab=metadata.bab,
+        sub_bab=metadata.sub_bab,
+        proof=new_proof,
+        point=metadata.point
+    )
+
+    data = json.loads(new_point.json())
+    data['length'] = len(file)
+
+    # if not file.filename:
+    #     return create_response(
+    #         message="Failed",
+    #         status_code=status.HTTP_400_BAD_REQUEST,
+    #         success=False
+    #     )
+
+    return create_response(
+        message=filename,
+        status_code=status.HTTP_200_OK,
+        success=True,
+        data=data
+    )
+
+
+@app.get("/assessment")
+async def get_answers(user: User = Depends(get_user)) -> JSONResponse:
+    if user.role != 'admin':
+        return create_response(
+            message="Forbidden Access",
+            success=False,
+            status_code=status.HTTP_403_FORBIDDEN
+        )
 
 
 @app.get("/seed", tags=['Testing'])
@@ -508,9 +576,8 @@ async def delete_database() -> JSONResponse:
     )
 
 
-@app.get("/file", tags=["General"])
-async def get_file(filename: str, user: User = Depends(get_user)) -> StreamingResponse:
-    # filename = f"{user.get_institution()['key']}_{file_meta.bab}_{file_meta.sub_bab.replace('.', '')}_{file_meta.point}.pdf"
+@app.get("/file/{filename}", tags=["General"])
+async def get_file(filename: str) -> StreamingResponse:
     response = drive.get(filename)
     content = response.read()
 
@@ -520,6 +587,34 @@ async def get_file(filename: str, user: User = Depends(get_user)) -> StreamingRe
         'Content-Disposition': f'attachment; filename="{filename}.pdf"'
     }
     return StreamingResponse(file_like, headers=headers)
+
+
+@app.get("/verify/{userid}", tags=['Auth'])
+async def verify_user(userid: str) -> JSONResponse:
+    resp = db_user.get(userid)
+    if not resp:
+        return create_response(
+            message="User not found",
+            success=False,
+            status_code=status.HTTP_404_NOT_FOUND
+        )
+
+    user = UserDB(**resp)
+    user.is_active = True
+
+    db_user.update(
+        {'is_active': True},
+        user.key
+    )
+
+    # user_data = json.loads(user.json())
+
+    return create_response(
+        message="User activated",
+        success=True,
+        status_code=status.HTTP_200_OK,
+    )
+
 
 
 
