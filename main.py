@@ -4,7 +4,7 @@ from typing import Annotated, Union, List
 from datetime import datetime
 
 from cryptography.fernet import Fernet
-from fastapi import FastAPI, Depends, status, File, UploadFile, Request
+from fastapi import FastAPI, Depends, status, File, UploadFile, Request, APIRouter
 from fastapi.responses import JSONResponse, FileResponse, StreamingResponse
 from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
 from fastapi.middleware.cors import CORSMiddleware
@@ -17,9 +17,10 @@ from exceptions import DependencyException
 from models import RegisterForm, Response, User, Refresh, ResponseDev, AddUser, Institution, Log, ProofMeta, Point, Proof, UserDB, FileMeta, AssessmentDB, SubPoint
 from mailer import send_confirmation
 from settings import SECRET_KEY, ALGORITHM, DEVELOPMENT
-from seeder import seed, delete_db
+from seeder import seed, delete_db, seed_assessment
 
 app = FastAPI()
+router = APIRouter(prefix='/api')
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='auth', auto_error=False)
 f = Fernet(SECRET_KEY)
 
@@ -572,6 +573,16 @@ async def seed_database() -> JSONResponse:
     )
 
 
+@app.get("/seed/assessment")
+async def assessment_seeder() -> JSONResponse:
+    seed_assessment()
+    return create_response(
+        message="Success",
+        status_code=status.HTTP_200_OK,
+        success=True
+    )
+
+
 @app.get("/delete", tags=['Testing'])
 async def delete_database() -> JSONResponse:
     delete_db()
@@ -681,16 +692,7 @@ async def get_current_assessment(sub_bab: str, user: UserDB = Depends(get_user))
     )
 
 
-
-
-
-
-
-
-
-
-
-
+app.include_router(router)
 
 
 
