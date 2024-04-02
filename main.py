@@ -692,6 +692,33 @@ async def get_current_assessment(sub_bab: str, user: UserDB = Depends(get_user))
     )
 
 
+@router.get("/assessments")
+async def get_all_assessment(user: UserDB = Depends(get_user)):
+    if user.role != 'admin':
+        return create_response(
+            message="Forbidden access",
+            success=False,
+            status_code=status.HTTP_403_FORBIDDEN
+        )
+
+    existing_assessments_data = db_assessment.fetch({'id_admin': user.key})
+    if existing_assessments_data.count == 0:
+        return create_response(
+            message="Empty data",
+            success=True,
+            status_code=status.HTTP_200_OK
+        )
+
+    data = existing_assessments_data.items
+
+    return create_response(
+        message="Success fetch data",
+        success=True,
+        status_code=status.HTTP_200_OK,
+        data=data
+    )
+
+
 app.include_router(router)
 
 
