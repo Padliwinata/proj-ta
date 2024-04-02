@@ -21,7 +21,7 @@ from seeder import seed, delete_db, seed_assessment
 
 app = FastAPI()
 router = APIRouter(prefix='/api')
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl='auth', auto_error=False)
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl='api/auth', auto_error=False)
 f = Fernet(SECRET_KEY)
 
 app.add_middleware(
@@ -80,7 +80,7 @@ async def custom_handler(request: Request, exc: DependencyException) -> JSONResp
     )
 
 
-@app.post('/register', tags=['General', 'Auth'])
+@router.post('/register', tags=['General', 'Auth'])
 async def register(data: RegisterForm) -> JSONResponse:
     existing_data = db_user.fetch([{'username': data.username}, {'email': data.email}])
     if existing_data.count > 0:
@@ -132,7 +132,7 @@ async def register(data: RegisterForm) -> JSONResponse:
     )
 
 
-@app.post("/auth", tags=['General', 'Auth'])
+@router.post("/auth", tags=['General', 'Auth'])
 async def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]) -> JSONResponse:
     user = authenticate_user(db_user, form_data.username, form_data.password)
     if not user:
@@ -188,7 +188,7 @@ async def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]) -> J
         )
 
 
-@app.get("/auth", tags=['General'])
+@router.get("/auth", tags=['General'])
 async def check(access_token: str = Depends(oauth2_scheme)) -> JSONResponse:
     try:
         if not access_token:
@@ -245,7 +245,7 @@ async def check(access_token: str = Depends(oauth2_scheme)) -> JSONResponse:
         )
 
 
-@app.put("/auth", tags=['General'])
+@router.put("/auth", tags=['General'])
 async def refresh(refresh_token: Refresh, access_token: str = Depends(oauth2_scheme)) -> Response:
     try:
         refresh_payload = get_payload_from_token(refresh_token.refresh_token)
@@ -285,7 +285,7 @@ async def refresh(refresh_token: Refresh, access_token: str = Depends(oauth2_sch
         )
 
 
-@app.post("/account", tags=['Admin'])
+@router.post("/account", tags=['Admin'])
 async def register_staff(data: AddUser, user: User = Depends(get_user)) -> JSONResponse:
     if not user:
         return create_response("Credentials Not Found", False, status.HTTP_401_UNAUTHORIZED)
@@ -312,7 +312,7 @@ async def register_staff(data: AddUser, user: User = Depends(get_user)) -> JSONR
     return create_response("User Created", True, status.HTTP_201_CREATED, parsed_data)
 
 
-@app.post('/document_1', include_in_schema=False)
+@router.post('/document_1', include_in_schema=False)
 async def upload_document_1(access_token: str = Depends(oauth2_scheme), file: UploadFile = File(...)) -> Response:
     try:
         payload = jwt.decode(access_token, SECRET_KEY, algorithms=ALGORITHM)
@@ -340,7 +340,7 @@ async def upload_document_1(access_token: str = Depends(oauth2_scheme), file: Up
     )
 
 
-@app.delete("/test", include_in_schema=False)
+@router.delete("/test", include_in_schema=False)
 async def delete_test_data() -> Response:
     data = db_user.fetch(test_data)
     db_user.delete(data.items[0]['key'])
@@ -353,7 +353,7 @@ async def delete_test_data() -> Response:
     )
 
 
-@app.get("/admin", tags=['Super Admin'])
+@router.get("/admin", tags=['Super Admin'])
 async def get_admin_list(user: User = Depends(get_user)) -> JSONResponse:
     if user.role != 'super admin':
         return create_response("Forbidden Access", False, status.HTTP_403_FORBIDDEN, {'role': user.role})
@@ -394,7 +394,7 @@ async def get_admin_list(user: User = Depends(get_user)) -> JSONResponse:
     )
 
 
-@app.get("/staff", include_in_schema=False)
+@router.get("/staff", include_in_schema=False)
 async def get_staff(user: User = Depends(get_user)) -> JSONResponse:
     if not user:
         return create_response("Credentials Not Found", False, status.HTTP_401_UNAUTHORIZED)
@@ -417,7 +417,7 @@ async def get_staff(user: User = Depends(get_user)) -> JSONResponse:
     # for data in fetch_response.items:
 
 
-@app.get("/log", tags=['Admin'])
+@router.get("/log", tags=['Admin'])
 async def get_login_log(user: User = Depends(get_user)) -> JSONResponse:
     if user.role != 'admin':
         return create_response("Forbidden Access", False, status.HTTP_403_FORBIDDEN, {'role': user.role})
@@ -449,7 +449,7 @@ async def get_login_log(user: User = Depends(get_user)) -> JSONResponse:
     return create_response("Fetch Data Success", True, status.HTTP_200_OK, data=final_data)
 
 
-@app.post("/point")
+@router.post("/point")
 async def upload_proof_point(request: Request,
                              metadata: ProofMeta = Depends(),
                              user: UserDB = Depends(get_user),
@@ -514,7 +514,7 @@ async def upload_proof_point(request: Request,
     )
 
 
-@app.post("/proofs", include_in_schema=False)
+@router.post("/proofs", include_in_schema=False)
 async def upload_proofs_point(request: Request,
                               metadata: ProofMeta = Depends(),
                               user: UserDB = Depends(get_user),
@@ -563,7 +563,7 @@ async def upload_proofs_point(request: Request,
     )
 
 
-@app.get("/seed", tags=['Testing'])
+@router.get("/seed", tags=['Testing'])
 async def seed_database() -> JSONResponse:
     seed()
     return create_response(
@@ -573,7 +573,7 @@ async def seed_database() -> JSONResponse:
     )
 
 
-@app.get("/seed/assessment")
+@router.get("/seed/assessment")
 async def assessment_seeder() -> JSONResponse:
     seed_assessment()
     return create_response(
@@ -583,7 +583,7 @@ async def assessment_seeder() -> JSONResponse:
     )
 
 
-@app.get("/delete", tags=['Testing'])
+@router.get("/delete", tags=['Testing'])
 async def delete_database() -> JSONResponse:
     delete_db()
     return create_response(
@@ -593,7 +593,7 @@ async def delete_database() -> JSONResponse:
     )
 
 
-@app.get("/file/{filename}", tags=["General"])
+@router.get("/file/{filename}", tags=["General"])
 async def get_file(filename: str) -> StreamingResponse:
     response = drive.get(filename)
     content = response.read()
@@ -606,7 +606,7 @@ async def get_file(filename: str) -> StreamingResponse:
     return StreamingResponse(file_like, headers=headers)
 
 
-@app.get("/verify/{userid}", tags=['Auth'])
+@router.get("/verify/{userid}", tags=['Auth'])
 async def verify_user(userid: str) -> JSONResponse:
     resp = db_user.get(userid)
     if not resp:
@@ -633,7 +633,7 @@ async def verify_user(userid: str) -> JSONResponse:
     )
 
 
-@app.post("/assessment")
+@router.post("/assessment")
 async def start_assessment(user: UserDB = Depends(get_user)) -> JSONResponse:
     existing_data = db_assessment.fetch({'id_admin': user.key, 'selesai': False})
     if existing_data.count > 0:
@@ -661,7 +661,7 @@ async def start_assessment(user: UserDB = Depends(get_user)) -> JSONResponse:
     )
 
 
-@app.get("/assessment")
+@router.get("/assessment")
 async def get_current_assessment(sub_bab: str, user: UserDB = Depends(get_user)) -> JSONResponse:
     existing_assessment_data = db_assessment.fetch({'id_admin': user.key, 'selesai': False})
     if existing_assessment_data.count == 0:
