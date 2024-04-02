@@ -81,7 +81,14 @@ def test_login_development_mode():
     
 def test_upload_proof_point_success():
     # Simulate user authentication and obtain access token
-    access_token = create_access_token({"username": "testingusername"})
+    test_data = {
+        'username': 'testingusername',
+        'password': 'testingpassword'
+    }
+    response = client.post('/auth', data=test_data)
+    access_token = response.json()['data']['access_token']
+    
+    print(access_token)
 
     # # Test case for successful proof upload
     # metadata = {
