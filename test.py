@@ -1,6 +1,5 @@
 from fastapi.testclient import TestClient
 
-from dependencies import create_access_token
 from main import app
 from db import db_user
 
@@ -21,7 +20,7 @@ def test_register_user():
         'institution_phone': '123456789',
         'institution_email': 'institution@example.com'
     }
-    response = client.post('/register', json=test_data)
+    response = client.post('/api/register', json=test_data)
     assert response.status_code == 201
     assert response.json()['success'] is True
 
@@ -40,7 +39,7 @@ def test_register_invalid_data() -> None:
         'institution_phone': '123456789',
         'institution_email': 'institutionexamplecom' #invalid email  format
     }
-    response = client.post('/register', json=invalid_user_data)
+    response = client.post('/api/register', json=invalid_user_data)
     assert response.status_code == 422  
     assert 'detail' in response.json()
     assert 'value is not a valid email address' in response.json()['detail'][0]['msg']
@@ -48,10 +47,10 @@ def test_register_invalid_data() -> None:
 def test_login_user() -> None:
     # Test case for successful user login
     test_data = {
-        'username': 'testingusername',
-        'password': 'testingpassword'
+        'username': 'alice_smith',
+        'password': 'another_secure_password'
     }
-    response = client.post('/auth', data=test_data)
+    response = client.post('/api/auth', data=test_data)
     assert response.status_code == 200
     assert response.json()['success'] is True
 
@@ -61,7 +60,7 @@ def test_login_user_not_found() -> None:
         'username': 'non_existent_user',
         'password': 'some_password'
     }
-    response = client.post('/auth', data=test_data)
+    response = client.post('/api/auth', data=test_data)
     assert response.status_code == 401
     assert response.json()['success'] is False
     assert response.json()['message'] == "User not found"
@@ -73,7 +72,7 @@ def test_login_development_mode():
         'username': 'testingusername',
         'password': 'testingpassword'
     }
-    response = client.post('/auth', data=test_data)
+    response = client.post('/api/auth', data=test_data)
     assert response.status_code == 200
     assert response.json()['success'] is True
     assert 'access_token' in response.json()['data']  # Check if access token is returned
@@ -82,13 +81,13 @@ def test_login_development_mode():
 def test_upload_proof_point_success():
     # Simulate user authentication and obtain access token
     test_data = {
-        'username': 'testingusername',
-        'password': 'testingpassword'
+        'username': 'alice_smith',
+        'password': 'another_secure_password'
     }
-    response = client.post('/auth', data=test_data)
+    response = client.post('/api/auth', data=test_data)
     access_token = response.json()['data']['access_token']
-    
     print(access_token)
+    
 
     # # Test case for successful proof upload
     # metadata = {
