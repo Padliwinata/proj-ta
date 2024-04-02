@@ -107,8 +107,15 @@ class ProofMeta(BaseModel):
 
 
 class Point(BaseModel):
+    id_assessment: str
     bab: str
     sub_bab: str
+    point: int
+    answer: int
+    proof: Proof
+
+
+class SubPoint(BaseModel):
     point: int
     proof: Proof
 
@@ -117,5 +124,17 @@ class FileMeta(BaseModel):
     bab: str
     sub_bab: str
     point: int
+
+
+class Assessment(BaseModel):
+    id_admin: str
+    id_reviewer: typing.Optional[str]
+    tanggal: str
+    hasil: int
+    selesai: bool
+
+
+class AssessmentDB(Assessment):
+    key: str
 
 

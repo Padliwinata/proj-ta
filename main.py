@@ -12,9 +12,9 @@ from jose import jwt, JWTError
 from pydantic import SecretStr, AnyUrl
 
 from dependencies import authenticate_user, create_refresh_token, create_access_token, TokenResponse, get_payload_from_token, create_response
-from db import db_user, db_institution, db_log, db_point, db_proof, drive
+from db import db_user, db_institution, db_log, db_point, db_proof, drive, db_assessment
 from exceptions import DependencyException
-from models import RegisterForm, Response, User, Refresh, ResponseDev, AddUser, Institution, Log, ProofMeta, Point, Proof, UserDB, FileMeta
+from models import RegisterForm, Response, User, Refresh, ResponseDev, AddUser, Institution, Log, ProofMeta, Point, Proof, UserDB, FileMeta, AssessmentDB, SubPoint
 from mailer import send_confirmation
 from settings import SECRET_KEY, ALGORITHM, DEVELOPMENT
 from seeder import seed, delete_db
@@ -81,6 +81,12 @@ async def custom_handler(request: Request, exc: DependencyException) -> JSONResp
 
 @app.post('/register', tags=['General', 'Auth'])
 async def register(data: RegisterForm) -> JSONResponse:
+    existing_data = db_user.fetch([{'username': data.username}, {'email': data.email}])
+    if existing_data.count > 0:
+        return create_response(
+            message="Username or email already "
+        )
+
     encrypted_password = data.password.get_secret_value().encode('utf-8')
     data.password = SecretStr(f.encrypt(encrypted_password).decode('utf-8'))
     new_data = data.dict()
@@ -348,9 +354,6 @@ async def delete_test_data() -> Response:
 
 @app.get("/admin", tags=['Super Admin'])
 async def get_admin_list(user: User = Depends(get_user)) -> JSONResponse:
-    if not user:
-        return create_response("Credentials Not Found", False, status.HTTP_401_UNAUTHORIZED)
-
     if user.role != 'super admin':
         return create_response("Forbidden Access", False, status.HTTP_403_FORBIDDEN, {'role': user.role})
 
@@ -445,7 +448,7 @@ async def get_login_log(user: User = Depends(get_user)) -> JSONResponse:
     return create_response("Fetch Data Success", True, status.HTTP_200_OK, data=final_data)
 
 
-@app.post("/proof")
+@app.post("/point")
 async def upload_proof_point(request: Request,
                              metadata: ProofMeta = Depends(),
                              user: UserDB = Depends(get_user),
@@ -461,21 +464,34 @@ async def upload_proof_point(request: Request,
     content = await file.read()
     filename = f"{user.get_institution()['key']}_{metadata.bab}_{metadata.sub_bab.replace('.', '')}_{metadata.point}.pdf"
 
-    drive.put(filename, content)
-
     new_proof = Proof(
         id_user=user.key,
         url=f"{request.url.hostname}/file/{filename}",
         file_name=filename
     )
 
+    existing_assessment_data = db_assessment.fetch({'id_admin': user.key, 'selesai': False})
+
+    if existing_assessment_data.count == 0:
+        return create_response(
+            message="Please create a new assessment",
+            success=False,
+            status_code=status.HTTP_400_BAD_REQUEST
+        )
+
+    assessment_data = existing_assessment_data.items[0]
+    assessment_data = AssessmentDB(**assessment_data)
+
+    drive.put(filename, content)
     db_proof.put(new_proof.dict())
 
     new_point = Point(
+        id_assessment=assessment_data.key,
         bab=metadata.bab,
         sub_bab=metadata.sub_bab,
         proof=new_proof,
-        point=metadata.point
+        point=metadata.point,
+        answer=metadata.answer
     )
 
     db_point.put(json.loads(new_point.json()))
@@ -546,16 +562,6 @@ async def upload_proofs_point(request: Request,
     )
 
 
-@app.get("/assessment")
-async def get_answers(user: User = Depends(get_user)) -> JSONResponse:
-    if user.role != 'admin':
-        return create_response(
-            message="Forbidden Access",
-            success=False,
-            status_code=status.HTTP_403_FORBIDDEN
-        )
-
-
 @app.get("/seed", tags=['Testing'])
 async def seed_database() -> JSONResponse:
     seed()
@@ -614,6 +620,77 @@ async def verify_user(userid: str) -> JSONResponse:
         success=True,
         status_code=status.HTTP_200_OK,
     )
+
+
+@app.post("/assessment")
+async def start_assessment(user: UserDB = Depends(get_user)) -> JSONResponse:
+    existing_data = db_assessment.fetch({'id_admin': user.key, 'selesai': False})
+    if existing_data.count > 0:
+        return create_response(
+            message="Please finish last assessment first",
+            success=False,
+            status_code=status.HTTP_400_BAD_REQUEST
+        )
+
+    new_assessment = {
+        'id_admin': user.key,
+        'id_reviewer': '',
+        'tanggal': datetime.now().strftime('%-d %B %Y, %H:%M'),
+        'hasil': 0,
+        'selesai': False
+    }
+
+    db_assessment.put(new_assessment)
+
+    return create_response(
+        message="Start assessment success",
+        success=True,
+        status_code=status.HTTP_201_CREATED,
+        data=new_assessment
+    )
+
+
+@app.get("/assessment")
+async def get_current_assessment(sub_bab: str, user: UserDB = Depends(get_user)) -> JSONResponse:
+    existing_assessment_data = db_assessment.fetch({'id_admin': user.key, 'selesai': False})
+    if existing_assessment_data.count == 0:
+        return create_response(
+            message="No active assessment",
+            success=False,
+            status_code=status.HTTP_404_NOT_FOUND
+        )
+
+    assessment = AssessmentDB(**existing_assessment_data.items[0])
+    existing_point_data = db_point.fetch({'id_assessment': assessment.key, 'sub_bab': sub_bab})
+
+    if existing_point_data.count == 0:
+        return create_response(
+            message="Empty data",
+            success=True,
+            status_code=status.HTTP_200_OK
+        )
+
+    data = [Point(**x) for x in existing_point_data.items]
+    response_data = [x.dict() for x in data]
+
+    return create_response(
+        message="Fetch data success",
+        success=True,
+        status_code=status.HTTP_200_OK,
+        data=response_data
+    )
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
