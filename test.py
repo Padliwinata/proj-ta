@@ -158,14 +158,14 @@ def test_login_development_mode():
 
 
 def test_register_staff(authorized_client) -> None:
-    # Test case for registering a new staff
+    admin_client, _ = authorized_client
     test_data = {
         'username': 'new_staff',
         'password': 'new_password',
         'email': 'staff@example.com',  # Adjusted for the required fields
         'role': 'staff'  # Adjusted for the role
     }
-    response = authorized_client.post('/api/account', json=test_data)
+    response = admin_client.post('/api/account', json=test_data)
     assert response.status_code == 201
     assert response.json()['success'] is True
 
@@ -209,8 +209,8 @@ def test_fill_assessment(authorized_client) -> None:
 
     client.post("/api/assessment")
 
-    with open('Fraud D.pdf', "rb") as file:
-        res = client.post('/api/point?bab=1&sub_bab=1.1&point=1&answer=1', files={'file': ("Fraud D.pdf", file, "application/pdf")})
+    with open('cobafraud.pdf', "rb") as file:
+        res = client.post('/api/point?bab=1&sub_bab=1.1&point=1&answer=1', files={'file': ("cobafraud.pdf", file, "application/pdf")})
         print(res.json())
         assert res.status_code == 200
 
@@ -218,6 +218,8 @@ def test_fill_assessment(authorized_client) -> None:
     id_user = user.items[0]['key']
     res = db_assessment.fetch({'id_admin': id_user})
     db_assessment.delete(res.items[0]['key'])
+    
+    
 
 
 
