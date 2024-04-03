@@ -1,6 +1,7 @@
 import typing
 from fastapi.testclient import TestClient
 
+
 from main import app
 from db import db_user, db_assessment
 import pytest
@@ -12,7 +13,8 @@ client = TestClient(app)
 
 
 @pytest.fixture
-def authorized_client() -> typing.Tuple[TestClient, TestClient]: # type: ignore
+
+def authorized_client() -> typing.Tuple[TestClient, TestClient]:
     client = TestClient(app)
     admin_client = TestClient(app)
     reviewer_client = TestClient(app)
@@ -114,16 +116,17 @@ def test_login_user(authorized_client) -> None:
         'username': 'testingusername',
         'password': 'testingpassword'
     }
-    response = authorized_client.post('/api/auth', data=test_data)
+    client, _ = authorized_client
+    response = client.post('/api/auth', data=test_data)
     assert response.status_code == 200
     assert response.json()['success'] is True
 
 
 def test_check_endpoint(authorized_client) -> None:
-    response = authorized_client.get('/api/auth')
+    client, _ = authorized_client
+    response = client.get('/api/auth')
     print(response.json())
     assert response.status_code == 200
-
 
 def test_login_user_not_found() -> None:
     # Test case for user not found scenario
@@ -152,42 +155,7 @@ def test_login_development_mode():
 # def test_login_and_upload_proof(authorized_client)-> None:
 #     # Test case for successful login
 #     login_data = {
-#         'username': 'testingusername',
-#         'password': 'testingpassword'
-#     }
-#     response_login = authorized_client.post('/api/auth', data=login_data)
-    
-#     # Assert that login is successful
-#     assert response_login.status_code == 200
-#     assert response_login.json()['success'] is True
-#     assert 'access_token' in response_login.json()['data']
 
-#     # Obtain access token from the login response
-#     auth_token = response_login.json()['data']['access_token']
-
-#     # Define metadata for the proof
-#     metadata = {
-#         'bab': '1',
-#         'sub_bab': '1.1',
-#         'point': 1,
-#         'answer': 1,
-#     }
-
-    # # Simulate uploading a file
-    # file_content = b"fake_file_content"
-    # files = {'file': ("test_proof.pdf", file_content)}
-
-    # # Send a POST request to upload the proof, including metadata and files
-    # response = authorized_client.post('/api/point', files=files, data=metadata)
-
-    # # Assert the response
-    # assert response.status_code == 200
-    # assert response.json()['success'] is True
-    # assert response.json()['message'] == "Successfully stored"
-    # assert 'data' in response.json()
-    
-    # # Assert that the file has been stored correctly in the database
-    # assert response.json()['data']['file_name'] == f"{authorized_client.user.get_institution()['key']}_1_11_1.pdf"
 
 def test_register_staff(authorized_client) -> None:
     # Test case for registering a new staff

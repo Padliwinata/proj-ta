@@ -692,7 +692,7 @@ async def start_assessment(user: UserDB = Depends(get_user)) -> JSONResponse:
         'id_institution': user.id_institution,
         'id_admin': user.key,
         'id_reviewer': '',
-        'tanggal': datetime.now().strftime('%-d %B %Y, %H:%M'),
+        'tanggal': datetime.now().strftime('%d %B %Y, %H:%M'),
         'hasil': 0,
         'selesai': False
     }
@@ -801,7 +801,7 @@ async def get_finished_assessments(user: UserDB = Depends(get_user)) -> JSONResp
     )
 
 
-@router.post("/assessments/evaluation")
+@router.post("/assessments/evaluation", tags=['Reviewer'])
 async def evaluate_assessment(data: AssessmentEval, user: UserDB = Depends(get_user)) -> JSONResponse:
     if user.role != 'reviewer':
         return create_response(
@@ -848,6 +848,11 @@ async def evaluate_assessment(data: AssessmentEval, user: UserDB = Depends(get_u
     for point in sorted_points:
         to_update = Point(**point)
         db_point.update(to_update.dict(), point['key'])
+
+    existing_assessment['hasil'] = sum([point['skor'] for point in sorted_points]) + existing_assessment['hasil']
+    key = existing_assessment['key']
+    del existing_assessment['key']
+    db_assessment.update(existing_assessment, key=key)
 
     return create_response(
         message="Success update data",
