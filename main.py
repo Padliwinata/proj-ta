@@ -14,7 +14,7 @@ from pydantic import SecretStr, AnyUrl
 from dependencies import authenticate_user, create_refresh_token, create_access_token, TokenResponse, get_payload_from_token, create_response
 from db import db_user, db_institution, db_log, db_point, db_proof, drive, db_assessment
 from exceptions import DependencyException
-from models import RegisterForm, Response, User, Refresh, ResponseDev, AddUser, Institution, Log, ProofMeta, Point, Proof, UserDB, AssessmentDB, Assessment, AssessmentEval, PointDB
+from models import RegisterForm, Response, User, Refresh, ResponseDev, AddUser, Institution, Log, ProofMeta, Point, Proof, UserDB, AssessmentDB, Assessment, AssessmentEval, PointDB, Report
 from mailer import send_confirmation
 from settings import SECRET_KEY, ALGORITHM, DEVELOPMENT
 from seeder import seed, delete_db, seed_assessment
@@ -849,10 +849,10 @@ async def evaluate_assessment(data: AssessmentEval, user: UserDB = Depends(get_u
         to_update = Point(**point)
         db_point.update(to_update.dict(), point['key'])
 
-    existing_assessment['hasil'] = sum([point['skor'] for point in sorted_points]) + existing_assessment['hasil']
-    key = existing_assessment['key']
-    del existing_assessment['key']
-    db_assessment.update(existing_assessment, key=key)
+    # existing_assessment['hasil'] = sum([point['skor'] for point in sorted_points]) + existing_assessment['hasil']
+    # key = existing_assessment['key']
+    # del existing_assessment['key']
+    # db_assessment.update(existing_assessment, key=key)
 
     return create_response(
         message="Success update data",
@@ -860,6 +860,48 @@ async def evaluate_assessment(data: AssessmentEval, user: UserDB = Depends(get_u
         status_code=status.HTTP_200_OK,
         data=sorted_points
     )
+
+
+@router.post("/selesai")
+async def selesai_isi(id_assessment: str, user: UserDB = Depends(get_user)):
+    if user.role != 'admin':
+        return create_response(
+            message="Forbidden access",
+            success=False,
+            status_code=status.HTTP_403_FORBIDDEN
+        )
+
+    existing_points = db_point.fetch({'id_assessment': id_assessment})
+    if existing_points.count < 100:
+        return create_response(
+            message="Unfinished assessment",
+            success=False,
+            status_code=status.HTTP_400_BAD_REQUEST
+        )
+
+    assessment = db_assessment.get(id_assessment)
+    assessment['selesai'] = True
+    db_assessment.update(assessment, key=assessment['key'])
+
+    return create_response(
+        message="Assessment finished",
+        success=True,
+        status_code=status.HTTP_200_OK,
+        data=assessment
+    )
+
+
+
+# @app.post("/report")
+# async def get_beneish_score(data: Report, user: UserDB = Depends(get_user)) -> JSONResponse:
+#     if user.role != 'staff':
+#         return create_response(
+#             message="Forbidden access",
+#             success=False,
+#             status_code=status.HTTP_403_FORBIDDEN
+#         )
+
+
 
 
 app.include_router(router)
