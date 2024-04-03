@@ -801,7 +801,7 @@ async def get_finished_assessments(user: UserDB = Depends(get_user)) -> JSONResp
     )
 
 
-@router.post("/assessments/evaluation")
+@router.post("/assessments/evaluation", tags=['Reviewer'])
 async def evaluate_assessment(data: AssessmentEval, user: UserDB = Depends(get_user)) -> JSONResponse:
     if user.role != 'reviewer':
         return create_response(
