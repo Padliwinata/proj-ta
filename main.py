@@ -849,6 +849,11 @@ async def evaluate_assessment(data: AssessmentEval, user: UserDB = Depends(get_u
         to_update = Point(**point)
         db_point.update(to_update.dict(), point['key'])
 
+    existing_assessment['hasil'] = sum([point['skor'] for point in sorted_points]) + existing_assessment['hasil']
+    key = existing_assessment['key']
+    del existing_assessment['key']
+    db_assessment.update(existing_assessment, key=key)
+
     return create_response(
         message="Success update data",
         success=True,

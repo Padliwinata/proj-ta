@@ -3,13 +3,16 @@ import typing
 
 from fastapi.testclient import TestClient
 
-from db import db_user
+from db import db_user, db_assessment
 from main import app
 
 
 @pytest.fixture
-def authorized_client() -> typing.Generator[TestClient, None, None]:
+def authorized_client() -> typing.Tuple[TestClient, TestClient]:
     client = TestClient(app)
+    admin_client = TestClient(app)
+    reviewer_client = TestClient(app)
+
     test_data = {
         'username': 'testingusername',
         'email': 'testing@gmail.com',
@@ -22,16 +25,40 @@ def authorized_client() -> typing.Generator[TestClient, None, None]:
         'institution_phone': '123456789',
         'institution_email': 'institution@example.com'
     }
+
+    rev_data = {
+        'username': 'testrev',
+        'email': 'revwer@gmail.com',
+        'password': 'testrev',
+        'full_name': 'testing full name',
+        'role': 'reviewer',
+        'phone': '081357516553',
+        'institution_name': 'Testing Institution',
+        'institution_address': '123 Testing St',
+        'institution_phone': '123456789',
+        'institution_email': 'institution@example.com'
+    }
+
     client.post('/api/register', json=test_data)
+    client.post('/api/register', json=rev_data)
     login_data = {
         'username': 'testingusername',
         'password': 'testingpassword'
     }
+
+    login_rev = {
+        'username': 'testrev',
+        'password': 'testrev'
+    }
+
     login_response = client.post('/api/auth', data=login_data)
-    # print(login_response.json())
     auth_token = login_response.json()['access_token']
-    client.headers.update({"Authorization": f"Bearer {auth_token}"})
-    yield client
+    admin_client.headers.update({"Authorization": f"Bearer {auth_token}"})
+
+    login_response = client.post('/api/auth', data=login_rev)
+    auth_token = login_response.json()['access_token']
+    reviewer_client.headers.update({"Authorization": f"Bearer {auth_token}"})
+    yield admin_client, reviewer_client
     user = db_user.fetch({'username': 'testingusername'})
     db_user.delete(user.items[0]['key'])
 
@@ -84,15 +111,33 @@ def test_login_user(authorized_client) -> None:
         'username': 'testingusername',
         'password': 'testingpassword'
     }
-    response = authorized_client.post('/api/auth', data=test_data)
+    client, _ = authorized_client
+    response = client.post('/api/auth', data=test_data)
     assert response.status_code == 200
     assert response.json()['success'] is True
 
 
 def test_check_endpoint(authorized_client) -> None:
-    response = authorized_client.get('/api/auth')
+    client, _ = authorized_client
+    response = client.get('/api/auth')
     print(response.json())
     assert response.status_code == 200
+
+
+def test_fill_assessment(authorized_client) -> None:
+    client, _ = authorized_client
+
+    client.post("/api/assessment")
+
+    with open('Fraud D.pdf', "rb") as file:
+        res = client.post('/api/point?bab=1&sub_bab=1.1&point=1&answer=1', files={'file': ("Fraud D.pdf", file, "application/pdf")})
+        print(res.json())
+        assert res.status_code == 200
+
+    user = db_user.fetch({'username': 'testingusername'})
+    id_user = user.items[0]['key']
+    res = db_assessment.fetch({'id_admin': id_user})
+    db_assessment.delete(res.items[0]['key'])
 
 
 # def test_login_user_not_found() -> None:
