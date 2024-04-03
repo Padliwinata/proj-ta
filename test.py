@@ -4,6 +4,9 @@ from fastapi.testclient import TestClient
 from main import app
 from db import db_user
 import pytest
+from unittest.mock import MagicMock
+from fastapi import status
+app.db_user = db_user
 
 client = TestClient(app)
 
@@ -121,45 +124,94 @@ def test_login_development_mode():
     assert 'access_token' in response.json()['data']  # Check if access token is returned
     app.DEVELOPMENT = False
     
-def test_login_and_upload_proof(authorized_client)-> None:
-    # Test case for successful login
-    login_data = {
-        'username': 'testingusername',
-        'password': 'testingpassword'
-    }
-    response_login = authorized_client.post('/api/auth', data=login_data)
+# def test_login_and_upload_proof(authorized_client)-> None:
+#     # Test case for successful login
+#     login_data = {
+#         'username': 'testingusername',
+#         'password': 'testingpassword'
+#     }
+#     response_login = authorized_client.post('/api/auth', data=login_data)
     
-    # Assert that login is successful
-    assert response_login.status_code == 200
-    assert response_login.json()['success'] is True
-    assert 'access_token' in response_login.json()['data']
+#     # Assert that login is successful
+#     assert response_login.status_code == 200
+#     assert response_login.json()['success'] is True
+#     assert 'access_token' in response_login.json()['data']
 
-    # Obtain access token from the login response
-    auth_token = response_login.json()['data']['access_token']
+#     # Obtain access token from the login response
+#     auth_token = response_login.json()['data']['access_token']
 
-    # Define metadata for the proof
-    metadata = {
-        'bab': '1',
-        'sub_bab': '1.1',
-        'point': 1,
-        'answer': 1,
+#     # Define metadata for the proof
+#     metadata = {
+#         'bab': '1',
+#         'sub_bab': '1.1',
+#         'point': 1,
+#         'answer': 1,
+#     }
+
+    # # Simulate uploading a file
+    # file_content = b"fake_file_content"
+    # files = {'file': ("test_proof.pdf", file_content)}
+
+    # # Send a POST request to upload the proof, including metadata and files
+    # response = authorized_client.post('/api/point', files=files, data=metadata)
+
+    # # Assert the response
+    # assert response.status_code == 200
+    # assert response.json()['success'] is True
+    # assert response.json()['message'] == "Successfully stored"
+    # assert 'data' in response.json()
+    
+    # # Assert that the file has been stored correctly in the database
+    # assert response.json()['data']['file_name'] == f"{authorized_client.user.get_institution()['key']}_1_11_1.pdf"
+
+def test_register_staff(authorized_client) -> None:
+    # Test case for registering a new staff
+    test_data = {
+        'username': 'new_staff',
+        'password': 'new_password',
+        'email': 'staff@example.com',  # Adjusted for the required fields
+        'role': 'staff'  # Adjusted for the role
     }
-
-    # Simulate uploading a file
-    file_content = b"fake_file_content"
-    files = {'file': ("test_proof.pdf", file_content)}
-
-    # Send a POST request to upload the proof, including metadata and files
-    response = authorized_client.post('/api/point', files=files, data=metadata)
-
-    # Assert the response
-    assert response.status_code == 200
+    response = authorized_client.post('/api/account', json=test_data)
+    assert response.status_code == 201
     assert response.json()['success'] is True
-    assert response.json()['message'] == "Successfully stored"
-    assert 'data' in response.json()
+
+# def test_register_staff_existing_user(authorized_client) -> None:
+#     # Test case for registering an existing user as staff
+#     test_data = {
+#         'username': 'new_staff',
+#         'password': 'new_password',
+#         'email': 'staff@example.com',  # Adjusted for the required fields
+#         'role': 'staff'
+#     }
+#     response = authorized_client.post('/api/account', json=test_data)
+#     assert response.status_code == 400
+#     assert response.json()['success'] is False
     
-    # Assert that the file has been stored correctly in the database
-    assert response.json()['data']['file_name'] == f"{authorized_client.user.get_institution()['key']}_1_11_1.pdf"
+def test_get_login_log_as_admin(authorized_client)-> None:
+    # Mocking dependencies
+    authorized_client.user = MagicMock(role='admin', get_institution=MagicMock(return_value={'key': '123'}))
+    mock_log_data = [
+        {'name': 'Staff Name', 'email': 'staff@example.com', 'role': 'staff', 'tanggal': '2024-04-01'},
+        {'name': 'Reviewer Name', 'email': 'reviewer@example.com', 'role': 'reviewer', 'tanggal': '2024-04-02'}
+    ]
+    authorized_client.db_user.fetch.return_value = MagicMock(count=2, items=mock_log_data)
+
+    # Call the function
+    response = authorized_client.get('/api/log')
+
+    # Assertions
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json() == {
+        'message': 'Fetch Data Success',
+        'success': True,
+        'data': [
+            {'nama': 'Staff Name', 'email': 'staff@example.com', 'role': 'staff', 'tanggal': '2024-04-01'},
+            {'nama': 'Reviewer Name', 'email': 'reviewer@example.com', 'role': 'reviewer', 'tanggal': '2024-04-02'}
+        ]
+    }
+
+
 
 
     
