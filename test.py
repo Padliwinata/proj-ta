@@ -1,13 +1,45 @@
+import typing
 from fastapi.testclient import TestClient
 
 from main import app
 from db import db_user
-
+import pytest
 
 client = TestClient(app)
+
+
+@pytest.fixture
+def authorized_client() -> typing.Generator[TestClient, None, None]:
+    client = TestClient(app)
+    test_data = {
+        'username': 'testingusername',
+        'email': 'testing@gmail.com',
+        'password': 'testingpassword',
+        'full_name': 'testing full name',
+        'role': 'admin',
+        'phone': '081357516553',
+        'institution_name': 'Testing Institution',
+        'institution_address': '123 Testing St',
+        'institution_phone': '123456789',
+        'institution_email': 'institution@example.com'
+    }
+    client.post('/api/register', json=test_data)
+    login_data = {
+        'username': 'testingusername',
+        'password': 'testingpassword'
+    }
+    login_response = client.post('/api/auth', data=login_data)
+    # print(login_response.json())
+    auth_token = login_response.json()['access_token']
+    client.headers.update({"Authorization": f"Bearer {auth_token}"})
+    yield client
+    user = db_user.fetch({'username': 'testingusername'})
+    db_user.delete(user.items[0]['key'])
     
 
-def test_register_user():
+
+def test_register_user() -> None:
+    client = TestClient(app)
     test_data = {
         'username': 'testingusername',
         'email': 'testing@gmail.com',
@@ -23,9 +55,12 @@ def test_register_user():
     response = client.post('/api/register', json=test_data)
     assert response.status_code == 201
     assert response.json()['success'] is True
+    user = db_user.fetch({'username': 'testingusername'})
+    db_user.delete(user.items[0]['key'])
 
 
 def test_register_invalid_data() -> None:
+    client = TestClient(app)
     # Test case for registering a user with invalid data
     invalid_user_data = {
         'username': 'testingusername',
@@ -40,19 +75,27 @@ def test_register_invalid_data() -> None:
         'institution_email': 'institutionexamplecom' #invalid email  format
     }
     response = client.post('/api/register', json=invalid_user_data)
-    assert response.status_code == 422  
+    assert response.status_code == 422
     assert 'detail' in response.json()
     assert 'value is not a valid email address' in response.json()['detail'][0]['msg']
-    
-def test_login_user() -> None:
+
+
+def test_login_user(authorized_client) -> None:
     # Test case for successful user login
     test_data = {
-        'username': 'alice_smith',
-        'password': 'another_secure_password'
+        'username': 'testingusername',
+        'password': 'testingpassword'
     }
-    response = client.post('/api/auth', data=test_data)
+    response = authorized_client.post('/api/auth', data=test_data)
     assert response.status_code == 200
     assert response.json()['success'] is True
+
+
+def test_check_endpoint(authorized_client) -> None:
+    response = authorized_client.get('/api/auth')
+    print(response.json())
+    assert response.status_code == 200
+
 
 def test_login_user_not_found() -> None:
     # Test case for user not found scenario
@@ -69,8 +112,8 @@ def test_login_development_mode():
     # Test case for login in development mode
     app.DEVELOPMENT = True  # Set app to development mode for this test
     test_data = {
-        'username': 'testingusername',
-        'password': 'testingpassword'
+        'username': 'alice_smith',
+        'password': 'another_secure_password'
     }
     response = client.post('/api/auth', data=test_data)
     assert response.status_code == 200
@@ -78,29 +121,47 @@ def test_login_development_mode():
     assert 'access_token' in response.json()['data']  # Check if access token is returned
     app.DEVELOPMENT = False
     
-def test_upload_proof_point_success():
-    # Simulate user authentication and obtain access token
-    test_data = {
-        'username': 'alice_smith',
-        'password': 'another_secure_password'
+def test_login_and_upload_proof(authorized_client)-> None:
+    # Test case for successful login
+    login_data = {
+        'username': 'testingusername',
+        'password': 'testingpassword'
     }
-    response = client.post('/api/auth', data=test_data)
-    access_token = response.json()['data']['access_token']
-    print(access_token)
+    response_login = authorized_client.post('/api/auth', data=login_data)
     
+    # Assert that login is successful
+    assert response_login.status_code == 200
+    assert response_login.json()['success'] is True
+    assert 'access_token' in response_login.json()['data']
 
-    # # Test case for successful proof upload
-    # metadata = {
-    #     'bab': '1',
-    #     'sub_bab': '1.1',
-    #     'point': 1,
-    #     'answer': 1
-    # }
+    # Obtain access token from the login response
+    auth_token = response_login.json()['data']['access_token']
+
+    # Define metadata for the proof
+    metadata = {
+        'bab': '1',
+        'sub_bab': '1.1',
+        'point': 1,
+        'answer': 1,
+    }
+
+    # Simulate uploading a file
     file_content = b"fake_file_content"
     files = {'file': ("test_proof.pdf", file_content)}
 
-    # Include the access token in the request headers
-    response = client.post('/proof?bab=1&sub_bab=1.1&point=1&answer=1', headers={"Authorization": f"Bearer {access_token}"}, files=files)
+    # Send a POST request to upload the proof, including metadata and files
+    response = authorized_client.post('/api/point', files=files, data=metadata)
+
+    # Assert the response
     assert response.status_code == 200
     assert response.json()['success'] is True
-    assert response.json()['message'] == "upload berhasil"
+    assert response.json()['message'] == "Successfully stored"
+    assert 'data' in response.json()
+    
+    # Assert that the file has been stored correctly in the database
+    assert response.json()['data']['file_name'] == f"{authorized_client.user.get_institution()['key']}_1_11_1.pdf"
+
+
+    
+
+
