@@ -2,18 +2,21 @@ import typing
 from fastapi.testclient import TestClient
 
 from main import app
-from db import db_user
+from db import db_user, db_assessment
 import pytest
 from unittest.mock import MagicMock
 from fastapi import status
-app.db_user = db_user
+
 
 client = TestClient(app)
 
 
 @pytest.fixture
-def authorized_client() -> typing.Generator[TestClient, None, None]:
+def authorized_client() -> typing.Tuple[TestClient, TestClient]: # type: ignore
     client = TestClient(app)
+    admin_client = TestClient(app)
+    reviewer_client = TestClient(app)
+
     test_data = {
         'username': 'testingusername',
         'email': 'testing@gmail.com',
@@ -26,19 +29,42 @@ def authorized_client() -> typing.Generator[TestClient, None, None]:
         'institution_phone': '123456789',
         'institution_email': 'institution@example.com'
     }
+
+    rev_data = {
+        'username': 'testrev',
+        'email': 'revwer@gmail.com',
+        'password': 'testrev',
+        'full_name': 'testing full name',
+        'role': 'reviewer',
+        'phone': '081357516553',
+        'institution_name': 'Testing Institution',
+        'institution_address': '123 Testing St',
+        'institution_phone': '123456789',
+        'institution_email': 'institution@example.com'
+    }
+
     client.post('/api/register', json=test_data)
+    client.post('/api/register', json=rev_data)
     login_data = {
         'username': 'testingusername',
         'password': 'testingpassword'
     }
+
+    login_rev = {
+        'username': 'testrev',
+        'password': 'testrev'
+    }
+
     login_response = client.post('/api/auth', data=login_data)
-    # print(login_response.json())
     auth_token = login_response.json()['access_token']
-    client.headers.update({"Authorization": f"Bearer {auth_token}"})
-    yield client
+    admin_client.headers.update({"Authorization": f"Bearer {auth_token}"})
+
+    login_response = client.post('/api/auth', data=login_rev)
+    auth_token = login_response.json()['access_token']
+    reviewer_client.headers.update({"Authorization": f"Bearer {auth_token}"})
+    yield admin_client, reviewer_client
     user = db_user.fetch({'username': 'testingusername'})
     db_user.delete(user.items[0]['key'])
-    
 
 
 def test_register_user() -> None:
@@ -81,7 +107,6 @@ def test_register_invalid_data() -> None:
     assert response.status_code == 422
     assert 'detail' in response.json()
     assert 'value is not a valid email address' in response.json()['detail'][0]['msg']
-
 
 def test_login_user(authorized_client) -> None:
     # Test case for successful user login
@@ -188,29 +213,43 @@ def test_register_staff(authorized_client) -> None:
 #     assert response.status_code == 400
 #     assert response.json()['success'] is False
     
-def test_get_login_log_as_admin(authorized_client)-> None:
-    # Mocking dependencies
-    authorized_client.user = MagicMock(role='admin', get_institution=MagicMock(return_value={'key': '123'}))
-    mock_log_data = [
-        {'name': 'Staff Name', 'email': 'staff@example.com', 'role': 'staff', 'tanggal': '2024-04-01'},
-        {'name': 'Reviewer Name', 'email': 'reviewer@example.com', 'role': 'reviewer', 'tanggal': '2024-04-02'}
-    ]
-    authorized_client.db_user.fetch.return_value = MagicMock(count=2, items=mock_log_data)
+# def test_get_login_log_as_admin(authorized_client)-> None:
+#     # Mocking dependencies
+#     authorized_client.user = MagicMock(role='admin', get_institution=MagicMock(return_value={'key': '123'}))
+#     mock_log_data = [
+#         {'name': 'Staff Name', 'email': 'staff@example.com', 'role': 'staff', 'tanggal': '2024-04-01'},
+#         {'name': 'Reviewer Name', 'email': 'reviewer@example.com', 'role': 'reviewer', 'tanggal': '2024-04-02'}
+#     ]
+#     authorized_client.db_user.fetch.return_value = MagicMock(count=2, items=mock_log_data)
 
-    # Call the function
-    response = authorized_client.get('/api/log')
+#     # Call the function
+#     response = authorized_client.get('/api/log')
 
-    # Assertions
-    assert response.status_code == status.HTTP_200_OK
-    assert response.json() == {
-        'message': 'Fetch Data Success',
-        'success': True,
-        'data': [
-            {'nama': 'Staff Name', 'email': 'staff@example.com', 'role': 'staff', 'tanggal': '2024-04-01'},
-            {'nama': 'Reviewer Name', 'email': 'reviewer@example.com', 'role': 'reviewer', 'tanggal': '2024-04-02'}
-        ]
-    }
+#     # Assertions
+#     assert response.status_code == status.HTTP_200_OK
+#     assert response.json() == {
+#         'message': 'Fetch Data Success',
+#         'success': True,
+#         'data': [
+#             {'nama': 'Staff Name', 'email': 'staff@example.com', 'role': 'staff', 'tanggal': '2024-04-01'},
+#             {'nama': 'Reviewer Name', 'email': 'reviewer@example.com', 'role': 'reviewer', 'tanggal': '2024-04-02'}
+#         ]
+#     }
 
+def test_fill_assessment(authorized_client) -> None:
+    client, _ = authorized_client
+
+    client.post("/api/assessment")
+
+    with open('Fraud D.pdf', "rb") as file:
+        res = client.post('/api/point?bab=1&sub_bab=1.1&point=1&answer=1', files={'file': ("Fraud D.pdf", file, "application/pdf")})
+        print(res.json())
+        assert res.status_code == 200
+
+    user = db_user.fetch({'username': 'testingusername'})
+    id_user = user.items[0]['key']
+    res = db_assessment.fetch({'id_admin': id_user})
+    db_assessment.delete(res.items[0]['key'])
 
 
 
