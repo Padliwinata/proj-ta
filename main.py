@@ -172,7 +172,7 @@ async def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]) -> J
         token_type="bearer"
     ).dict()
 
-    log_data = Log(name=form_data.username, email=user.email, role=user.role, tanggal=datetime.now().strftime('%-d %B %Y, %H:%M'), id_institution=user.id_institution)
+    log_data = Log(name=form_data.username, email=user.email, role=user.role, tanggal=datetime.now().strftime('%d %B %Y, %H:%M'), id_institution=user.id_institution)
     log_data_json = log_data.json()
     log_data_dict = json.loads(log_data_json)
 
@@ -692,7 +692,7 @@ async def start_assessment(user: UserDB = Depends(get_user)) -> JSONResponse:
         'id_institution': user.id_institution,
         'id_admin': user.key,
         'id_reviewer': '',
-        'tanggal': datetime.now().strftime('%-d %B %Y, %H:%M'),
+        'tanggal': datetime.now().strftime('%d %B %Y, %H:%M'),
         'hasil': 0,
         'selesai': False
     }

@@ -129,8 +129,8 @@ def test_fill_assessment(authorized_client) -> None:
 
     client.post("/api/assessment")
 
-    with open('Fraud D.pdf', "rb") as file:
-        res = client.post('/api/point?bab=1&sub_bab=1.1&point=1&answer=1', files={'file': ("Fraud D.pdf", file, "application/pdf")})
+    with open('cobafraud.pdf', "rb") as file:
+        res = client.post('/api/point?bab=1&sub_bab=1.1&point=1&answer=1', files={'file': ("cobafraud.pdf", file, "application/pdf")})
         print(res.json())
         assert res.status_code == 200
 
