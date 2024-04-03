@@ -842,8 +842,6 @@ async def evaluate_assessment(data: AssessmentEval, user: UserDB = Depends(get_u
         )
 
     sorted_points = sorted(existing_points.items, key=lambda x: x['point'])
-    print(json.dumps(sorted_points, indent=4))
-    print(data.skor)
     for i in range(len(sorted_points)):
         sorted_points[i]['skor'] = data.skor[i]
 
