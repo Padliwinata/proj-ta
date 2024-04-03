@@ -1,10 +1,11 @@
+import json
 from enum import Enum
 import typing
 from datetime import datetime
 
 from pydantic import BaseModel, SecretStr, EmailStr, AnyUrl
 
-from db import db_institution
+from db import db_institution, db_user
 
 
 class UserRole(str, Enum):
@@ -112,7 +113,12 @@ class Point(BaseModel):
     sub_bab: str
     point: int
     answer: int
+    skor: int
     proof: Proof
+
+
+class PointDB(Point):
+    key: str
 
 
 class SubPoint(BaseModel):
@@ -127,14 +133,39 @@ class FileMeta(BaseModel):
 
 
 class Assessment(BaseModel):
+    id_institution: str
     id_admin: str
     id_reviewer: typing.Optional[str]
     tanggal: str
     hasil: int
     selesai: bool
 
+    def get_admin(self) -> str:
+        data = db_user.get(self.id_admin)
+        name: str = data['full_name']
+        return name
+
+    def get_reviewer(self) -> str:
+        if self.id_reviewer == '':
+            return ''
+        reviewer = db_user.get(self.id_reviewer)
+        name: str = reviewer['full_name']
+        return name
+
+    def get_all_dict(self) -> typing.Dict[str, typing.Any]:
+        data = super().dict()
+        data['nama_admin'] = self.get_admin()
+        data['nama_reviewer'] = self.get_reviewer()
+        return data
+
 
 class AssessmentDB(Assessment):
     key: str
+
+
+class AssessmentEval(BaseModel):
+    id_assessment: str
+    sub_bab: str
+    skor: typing.List[int]
 
 

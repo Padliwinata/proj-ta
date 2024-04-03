@@ -100,6 +100,7 @@ def seed() -> None:
 
 def seed_assessment() -> None:
     new_assessment = {
+        'id_institution': 'gc8uupscjs0e',
         'id_admin': "ev9ag3o7lxed",
         'id_reviewer': '',
         'tanggal': datetime.now().strftime('%-d %B %Y, %H:%M'),
@@ -154,10 +155,10 @@ def seed_assessment() -> None:
                     sub_bab=bab[i],
                     proof=proofs[counter],
                     point=num+1,
-                    answer=1
+                    answer=1,
+                    skor=0
                 )
             )
-            print(num+1)
             counter += 1
 
     for point in points:

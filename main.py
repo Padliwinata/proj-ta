@@ -14,7 +14,7 @@ from pydantic import SecretStr, AnyUrl
 from dependencies import authenticate_user, create_refresh_token, create_access_token, TokenResponse, get_payload_from_token, create_response
 from db import db_user, db_institution, db_log, db_point, db_proof, drive, db_assessment
 from exceptions import DependencyException
-from models import RegisterForm, Response, User, Refresh, ResponseDev, AddUser, Institution, Log, ProofMeta, Point, Proof, UserDB, FileMeta, AssessmentDB, SubPoint
+from models import RegisterForm, Response, User, Refresh, ResponseDev, AddUser, Institution, Log, ProofMeta, Point, Proof, UserDB, AssessmentDB, Assessment, AssessmentEval, PointDB
 from mailer import send_confirmation
 from settings import SECRET_KEY, ALGORITHM, DEVELOPMENT
 from seeder import seed, delete_db, seed_assessment
@@ -36,6 +36,21 @@ test_data = {
     'username': 'testing_username',
     'email': 'testing@gmail.com'
 }
+
+bab = [
+    '1.1',
+    '1.2',
+    '2.1',
+    '2.2',
+    '3.1',
+    '3.2',
+    '4.1',
+    '4.2',
+    '5.1',
+    '6.1'
+]
+
+question_number = [10, 10, 10, 10, 8, 7, 7, 8, 15, 15]
 
 
 def get_user(access_token: str = Depends(oauth2_scheme)) -> Union[UserDB, None]:
@@ -492,7 +507,8 @@ async def upload_proof_point(request: Request,
         sub_bab=metadata.sub_bab,
         proof=new_proof,
         point=metadata.point,
-        answer=metadata.answer
+        answer=metadata.answer,
+        skor=0
     )
 
     db_point.put(json.loads(new_point.json()))
@@ -505,6 +521,28 @@ async def upload_proof_point(request: Request,
             status_code=status.HTTP_400_BAD_REQUEST,
             success=False
         )
+
+    if existing_assessment_data.count == 0:
+        return create_response(
+            message="Assessment not found",
+            success=False,
+            status_code=status.HTTP_404_NOT_FOUND
+        )
+
+    assessment = existing_assessment_data.items[0]
+
+    existing_points = [db_point.fetch({'id_assessment': assessment['key'], 'sub_bab': sub_bab}) for sub_bab in bab]
+    points_status = [point.count for point in existing_points]
+
+    point_finished = []
+    for i in range(len(bab)):
+        if points_status[i] >= question_number[i]:
+            point_finished.append(bab[i])
+
+    if len(point_finished) == 10:
+        assessment['selesai'] = True
+        db_assessment.update(assessment, key=assessment['key'])
+
 
     return create_response(
         message=filename,
@@ -542,7 +580,8 @@ async def upload_proofs_point(request: Request,
         bab=metadata.bab,
         sub_bab=metadata.sub_bab,
         proof=new_proof,
-        point=metadata.point
+        point=metadata.point,
+        skor=0
     )
 
     data = json.loads(new_point.json())
@@ -574,7 +613,13 @@ async def seed_database() -> JSONResponse:
 
 
 @router.get("/seed/assessment")
-async def assessment_seeder() -> JSONResponse:
+async def assessment_seeder(password: str) -> JSONResponse:
+    if password != "iya":
+        return create_response(
+            message="Salah, jangan ngadi ngadi",
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            success=False
+        )
     seed_assessment()
     return create_response(
         message="Success",
@@ -644,6 +689,7 @@ async def start_assessment(user: UserDB = Depends(get_user)) -> JSONResponse:
         )
 
     new_assessment = {
+        'id_institution': user.id_institution,
         'id_admin': user.key,
         'id_reviewer': '',
         'tanggal': datetime.now().strftime('%-d %B %Y, %H:%M'),
@@ -693,15 +739,15 @@ async def get_current_assessment(sub_bab: str, user: UserDB = Depends(get_user))
 
 
 @router.get("/assessments")
-async def get_all_assessment(user: UserDB = Depends(get_user)):
-    if user.role != 'admin':
+async def get_all_assessment(user: UserDB = Depends(get_user)) -> JSONResponse:
+    if user.role not in ['admin', 'reviewer']:
         return create_response(
             message="Forbidden access",
             success=False,
             status_code=status.HTTP_403_FORBIDDEN
         )
 
-    existing_assessments_data = db_assessment.fetch({'id_admin': user.key})
+    existing_assessments_data = db_assessment.fetch({'id_institution': user.id_institution})
     if existing_assessments_data.count == 0:
         return create_response(
             message="Empty data",
@@ -709,13 +755,107 @@ async def get_all_assessment(user: UserDB = Depends(get_user)):
             status_code=status.HTTP_200_OK
         )
 
-    data = existing_assessments_data.items
+    raw_data = [AssessmentDB(**x) for x in existing_assessments_data.items]
+    data = [assessment.get_all_dict() for assessment in raw_data]
 
     return create_response(
         message="Success fetch data",
         success=True,
         status_code=status.HTTP_200_OK,
         data=data
+    )
+
+
+@router.get("/assessments/progress")
+async def get_finished_assessments(user: UserDB = Depends(get_user)) -> JSONResponse:
+    if user.role != 'admin':
+        return create_response(
+            message="Forbidden access",
+            success=False,
+            status_code=status.HTTP_403_FORBIDDEN
+        )
+
+    existing_assessment = db_assessment.fetch({'id_admin': user.key, 'selesai': False})
+    if existing_assessment.count == 0:
+        return create_response(
+            message="Assessment not found",
+            success=False,
+            status_code=status.HTTP_404_NOT_FOUND
+        )
+
+    assessment = existing_assessment.items[0]
+
+    existing_points = [db_point.fetch({'id_assessment': assessment['key'], 'sub_bab': sub_bab}) for sub_bab in bab]
+    points_status = [point.count for point in existing_points]
+
+    point_finished = []
+    for i in range(len(bab)):
+        if points_status[i] >= question_number[i]:
+            point_finished.append(bab[i])
+
+    return create_response(
+        message="Success fetch data",
+        success=True,
+        status_code=status.HTTP_200_OK,
+        data=point_finished
+    )
+
+
+@router.post("/assessments/evaluation")
+async def evaluate_assessment(data: AssessmentEval, user: UserDB = Depends(get_user)) -> JSONResponse:
+    if user.role != 'reviewer':
+        return create_response(
+            message="Forbidden access",
+            success=False,
+            status_code=status.HTTP_403_FORBIDDEN
+        )
+
+    existing_assessment = db_assessment.get(data.id_assessment)
+    if not existing_assessment:
+        return create_response(
+            message="Assessment not found",
+            success=False,
+            status_code=status.HTTP_404_NOT_FOUND
+        )
+
+    if existing_assessment['id_reviewer'] != '':
+        return create_response(
+            message="Already reviewed by another reviewer",
+            success=False,
+            status_code=status.HTTP_400_BAD_REQUEST
+        )
+
+    if question_number[bab.index(data.sub_bab)] != len(data.skor):
+        return create_response(
+            message="Number of score didn't match",
+            success=False,
+            status_code=status.HTTP_400_BAD_REQUEST
+        )
+
+    existing_points = db_point.fetch({'id_assessment': data.id_assessment, 'sub_bab': data.sub_bab})
+
+    if existing_points.count < question_number[bab.index(data.sub_bab)]:
+        return create_response(
+            message="Please finish the assessment before evaluation",
+            success=False,
+            status_code=status.HTTP_400_BAD_REQUEST
+        )
+
+    sorted_points = sorted(existing_points.items, key=lambda x: x['point'])
+    print(json.dumps(sorted_points, indent=4))
+    print(data.skor)
+    for i in range(len(sorted_points)):
+        sorted_points[i]['skor'] = data.skor[i]
+
+    for point in sorted_points:
+        to_update = Point(**point)
+        db_point.update(to_update.dict(), point['key'])
+
+    return create_response(
+        message="Success update data",
+        success=True,
+        status_code=status.HTTP_200_OK,
+        data=sorted_points
     )
 
 
