@@ -551,7 +551,6 @@ async def upload_proof_point(request: Request,
         assessment['selesai'] = True
         db_assessment.update(assessment, key=assessment['key'])
 
-
     return create_response(
         message=filename,
         status_code=status.HTTP_200_OK,
@@ -892,7 +891,9 @@ async def selesai_isi(id_assessment: str, user: UserDB = Depends(get_user)) -> J
 
     assessment = db_assessment.get(id_assessment)
     assessment['selesai'] = True
-    db_assessment.update(assessment, key=assessment['key'])
+    key = assessment['key']
+    del assessment['key']
+    db_assessment.update(assessment, key=key)
 
     return create_response(
         message="Assessment finished",
