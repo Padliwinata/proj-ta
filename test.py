@@ -62,7 +62,9 @@ def authorized_client() -> typing.Tuple[TestClient, TestClient]:
     yield admin_client, reviewer_client
 
     user = db_user.fetch({'username': 'testingusername'})
+    reviewer = db_user.fetch({'username': 'testrev'})
     db_user.delete(user.items[0]['key'])
+    db_user.delete(reviewer.items[0]['key'])
 
 
 def test_register_user() -> None:

@@ -114,7 +114,7 @@ class Point(BaseModel):
     point: int
     answer: int
     skor: int
-    proof: Proof
+    proof: typing.Optional[Proof]
 
 
 class PointDB(Point):

@@ -1,7 +1,7 @@
 import io
 import json
 from typing import Annotated, Union, List
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from cryptography.fernet import Fernet
 from fastapi import FastAPI, Depends, status, File, UploadFile, Request, APIRouter
@@ -477,7 +477,9 @@ async def upload_proof_point(request: Request,
             success=False
         )
 
-    content = await file.read()
+    content = None
+    if file:
+        content = await file.read()
 
     filename = ''
     new_proof = None
@@ -502,7 +504,7 @@ async def upload_proof_point(request: Request,
     assessment_data = existing_assessment_data.items[0]
     assessment_data = AssessmentDB(**assessment_data)
 
-    if file:
+    if new_proof:
         drive.put(filename, content)
         db_proof.put(new_proof.dict())
 
@@ -520,12 +522,13 @@ async def upload_proof_point(request: Request,
 
     data = json.loads(new_point.json())
 
-    if not file.filename:
-        return create_response(
-            message="Failed",
-            status_code=status.HTTP_400_BAD_REQUEST,
-            success=False
-        )
+    if file:
+        if not file.filename:
+            return create_response(
+                message="Failed",
+                status_code=status.HTTP_400_BAD_REQUEST,
+                success=False
+            )
 
     if existing_assessment_data.count == 0:
         return create_response(
@@ -693,11 +696,14 @@ async def start_assessment(user: UserDB = Depends(get_user)) -> JSONResponse:
             status_code=status.HTTP_400_BAD_REQUEST
         )
 
+    current_datetime = datetime.now()
+    extra_datetime = current_datetime + timedelta(hours=7)
+
     new_assessment = {
         'id_institution': user.id_institution,
         'id_admin': user.key,
         'id_reviewer': '',
-        'tanggal': datetime.now().strftime('%-d %B %Y, %H:%M'),
+        'tanggal': extra_datetime.strftime('%-d %B %Y, %H:%M'),
         'hasil': 0,
         'selesai': False
     }
