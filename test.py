@@ -58,7 +58,9 @@ def authorized_client() -> typing.Tuple[TestClient, TestClient]:
     login_response = client.post('/api/auth', data=login_rev)
     auth_token = login_response.json()['access_token']
     reviewer_client.headers.update({"Authorization": f"Bearer {auth_token}"})
+
     yield admin_client, reviewer_client
+
     user = db_user.fetch({'username': 'testingusername'})
     db_user.delete(user.items[0]['key'])
 
@@ -131,7 +133,6 @@ def test_fill_assessment(authorized_client) -> None:
 
     with open('Fraud D.pdf', "rb") as file:
         res = client.post('/api/point?bab=1&sub_bab=1.1&point=1&answer=1', files={'file': ("Fraud D.pdf", file, "application/pdf")})
-        print(res.json())
         assert res.status_code == 200
 
     user = db_user.fetch({'username': 'testingusername'})

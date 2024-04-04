@@ -468,7 +468,7 @@ async def get_login_log(user: User = Depends(get_user)) -> JSONResponse:
 async def upload_proof_point(request: Request,
                              metadata: ProofMeta = Depends(),
                              user: UserDB = Depends(get_user),
-                             file: UploadFile = File(...)) -> JSONResponse:
+                             file: UploadFile = File(None)) -> JSONResponse:
 
     if user.role != 'admin':
         return create_response(
@@ -478,13 +478,17 @@ async def upload_proof_point(request: Request,
         )
 
     content = await file.read()
-    filename = f"{user.get_institution()['key']}_{metadata.bab}_{metadata.sub_bab.replace('.', '')}_{metadata.point}.pdf"
 
-    new_proof = Proof(
-        id_user=user.key,
-        url=f"{request.url.hostname}/file/{filename}",
-        file_name=filename
-    )
+    filename = ''
+    new_proof = None
+    if file:
+        filename = f"{user.get_institution()['key']}_{metadata.bab}_{metadata.sub_bab.replace('.', '')}_{metadata.point}.pdf"
+
+        new_proof = Proof(
+            id_user=user.key,
+            url=f"{request.url.hostname}/file/{filename}",
+            file_name=filename
+        )
 
     existing_assessment_data = db_assessment.fetch({'id_admin': user.key, 'selesai': False})
 
@@ -498,8 +502,9 @@ async def upload_proof_point(request: Request,
     assessment_data = existing_assessment_data.items[0]
     assessment_data = AssessmentDB(**assessment_data)
 
-    drive.put(filename, content)
-    db_proof.put(new_proof.dict())
+    if file:
+        drive.put(filename, content)
+        db_proof.put(new_proof.dict())
 
     new_point = Point(
         id_assessment=assessment_data.key,
@@ -863,7 +868,7 @@ async def evaluate_assessment(data: AssessmentEval, user: UserDB = Depends(get_u
 
 
 @router.post("/selesai")
-async def selesai_isi(id_assessment: str, user: UserDB = Depends(get_user)):
+async def selesai_isi(id_assessment: str, user: UserDB = Depends(get_user)) -> JSONResponse:
     if user.role != 'admin':
         return create_response(
             message="Forbidden access",
