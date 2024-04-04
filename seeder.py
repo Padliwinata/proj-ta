@@ -169,6 +169,9 @@ def seed_assessment() -> None:
 def delete_db() -> None:
     user_res = db_user.fetch()
     inst_res = db_institution.fetch()
+    assessment_res = db_assessment.fetch()
+    proof_res = db_proof.fetch()
+    point_res = db_point.fetch()
     log_res = db_log.fetch()
 
     if user_res.count > 0:
@@ -182,3 +185,21 @@ def delete_db() -> None:
     if log_res.count > 0:
         for data in log_res.items:
             db_log.delete(data['key'])
+
+    if assessment_res.count > 0:
+        for data in assessment_res.items:
+            db_assessment.delete(data['key'])
+
+    if proof_res.count > 0:
+        for data in proof_res.items:
+            db_proof.delete(data['key'])
+
+    if point_res.count > 0:
+        for data in point_res.items:
+            db_point.delete(data['key'])
+
+    filename_list = drive.list()['names']
+    if filename_list:
+        drive.delete_many(filename_list)
+
+

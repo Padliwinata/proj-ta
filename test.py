@@ -66,9 +66,13 @@ def authorized_client() -> typing.Tuple[TestClient, TestClient]:
     login_response = client.post('/api/auth', data=login_rev)
     auth_token = login_response.json()['access_token']
     reviewer_client.headers.update({"Authorization": f"Bearer {auth_token}"})
+
     yield admin_client, reviewer_client
+
     user = db_user.fetch({'username': 'testingusername'})
+    reviewer = db_user.fetch({'username': 'testrev'})
     db_user.delete(user.items[0]['key'])
+    db_user.delete(reviewer.items[0]['key'])
 
 
 def test_register_user() -> None:
@@ -86,10 +90,10 @@ def test_register_user() -> None:
         'institution_email': 'institution@example.com'
     }
     response = client.post('/api/register', json=test_data)
-    assert response.status_code == 201
-    assert response.json()['success'] is True
     user = db_user.fetch({'username': 'testingusername'})
     db_user.delete(user.items[0]['key'])
+    assert response.status_code == 201
+    assert response.json()['success'] is True
 
 
 def test_register_invalid_data() -> None:
@@ -207,15 +211,15 @@ def test_fill_assesment(authorized_client) -> None:
 
     client.post("/api/assessment")
 
+
     with open('cobafraud.pdf', "rb") as file:
         res = client.post('/api/point?bab=1&sub_bab=1.1&point=1&answer=1', files={'file': ("cobafraud.pdf", file, "application/pdf")})
-        print(res.json())
+        user = db_user.fetch({'username': 'testingusername'})
+        id_user = user.items[0]['key']
+        assessment = db_assessment.fetch({'id_admin': id_user})
+        db_assessment.delete(assessment.items[0]['key'])
         assert res.status_code == 200
 
-    user = db_user.fetch({'username': 'testingusername'})
-    id_user = user.items[0]['key']
-    res = db_assessment.fetch({'id_admin': id_user})
-    db_assessment.delete(res.items[0]['key'])
 
 # def test_seed_assessment(authorized_client) -> None:
 #     admin_client, _ = authorized_client

@@ -1,7 +1,7 @@
 import io
 import json
 from typing import Annotated, Union, List
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from cryptography.fernet import Fernet
 from fastapi import FastAPI, Depends, status, File, UploadFile, Request, APIRouter
@@ -14,7 +14,7 @@ from pydantic import SecretStr, AnyUrl
 from dependencies import authenticate_user, create_refresh_token, create_access_token, TokenResponse, get_payload_from_token, create_response
 from db import db_user, db_institution, db_log, db_point, db_proof, drive, db_assessment
 from exceptions import DependencyException
-from models import RegisterForm, Response, User, Refresh, ResponseDev, AddUser, Institution, Log, ProofMeta, Point, Proof, UserDB, AssessmentDB, Assessment, AssessmentEval, PointDB
+from models import RegisterForm, Response, User, Refresh, ResponseDev, AddUser, Institution, Log, ProofMeta, Point, Proof, UserDB, AssessmentDB, Assessment, AssessmentEval, PointDB, Report
 from mailer import send_confirmation
 from settings import SECRET_KEY, ALGORITHM, DEVELOPMENT
 from seeder import seed, delete_db, seed_assessment
@@ -468,7 +468,7 @@ async def get_login_log(user: User = Depends(get_user)) -> JSONResponse:
 async def upload_proof_point(request: Request,
                              metadata: ProofMeta = Depends(),
                              user: UserDB = Depends(get_user),
-                             file: UploadFile = File(...)) -> JSONResponse:
+                             file: UploadFile = File(None)) -> JSONResponse:
 
     if user.role != 'admin':
         return create_response(
@@ -477,14 +477,20 @@ async def upload_proof_point(request: Request,
             success=False
         )
 
-    content = await file.read()
-    filename = f"{user.get_institution()['key']}_{metadata.bab}_{metadata.sub_bab.replace('.', '')}_{metadata.point}.pdf"
+    content = None
+    if file:
+        content = await file.read()
 
-    new_proof = Proof(
-        id_user=user.key,
-        url=f"{request.url.hostname}/file/{filename}",
-        file_name=filename
-    )
+    filename = ''
+    new_proof = None
+    if file:
+        filename = f"{user.get_institution()['key']}_{metadata.bab}_{metadata.sub_bab.replace('.', '')}_{metadata.point}.pdf"
+
+        new_proof = Proof(
+            id_user=user.key,
+            url=f"{request.url.hostname}/file/{filename}",
+            file_name=filename
+        )
 
     existing_assessment_data = db_assessment.fetch({'id_admin': user.key, 'selesai': False})
 
@@ -498,8 +504,9 @@ async def upload_proof_point(request: Request,
     assessment_data = existing_assessment_data.items[0]
     assessment_data = AssessmentDB(**assessment_data)
 
-    drive.put(filename, content)
-    db_proof.put(new_proof.dict())
+    if new_proof:
+        drive.put(filename, content)
+        db_proof.put(new_proof.dict())
 
     new_point = Point(
         id_assessment=assessment_data.key,
@@ -515,12 +522,13 @@ async def upload_proof_point(request: Request,
 
     data = json.loads(new_point.json())
 
-    if not file.filename:
-        return create_response(
-            message="Failed",
-            status_code=status.HTTP_400_BAD_REQUEST,
-            success=False
-        )
+    if file:
+        if not file.filename:
+            return create_response(
+                message="Failed",
+                status_code=status.HTTP_400_BAD_REQUEST,
+                success=False
+            )
 
     if existing_assessment_data.count == 0:
         return create_response(
@@ -542,7 +550,6 @@ async def upload_proof_point(request: Request,
     if len(point_finished) == 10:
         assessment['selesai'] = True
         db_assessment.update(assessment, key=assessment['key'])
-
 
     return create_response(
         message=filename,
@@ -687,6 +694,9 @@ async def start_assessment(user: UserDB = Depends(get_user)) -> JSONResponse:
             success=False,
             status_code=status.HTTP_400_BAD_REQUEST
         )
+
+    current_datetime = datetime.now()
+    extra_datetime = current_datetime + timedelta(hours=7)
 
     new_assessment = {
         'id_institution': user.id_institution,
@@ -849,10 +859,10 @@ async def evaluate_assessment(data: AssessmentEval, user: UserDB = Depends(get_u
         to_update = Point(**point)
         db_point.update(to_update.dict(), point['key'])
 
-    existing_assessment['hasil'] = sum([point['skor'] for point in sorted_points]) + existing_assessment['hasil']
-    key = existing_assessment['key']
-    del existing_assessment['key']
-    db_assessment.update(existing_assessment, key=key)
+    # existing_assessment['hasil'] = sum([point['skor'] for point in sorted_points]) + existing_assessment['hasil']
+    # key = existing_assessment['key']
+    # del existing_assessment['key']
+    # db_assessment.update(existing_assessment, key=key)
 
     return create_response(
         message="Success update data",
@@ -860,6 +870,50 @@ async def evaluate_assessment(data: AssessmentEval, user: UserDB = Depends(get_u
         status_code=status.HTTP_200_OK,
         data=sorted_points
     )
+
+
+@router.post("/selesai")
+async def selesai_isi(id_assessment: str, user: UserDB = Depends(get_user)) -> JSONResponse:
+    if user.role != 'admin':
+        return create_response(
+            message="Forbidden access",
+            success=False,
+            status_code=status.HTTP_403_FORBIDDEN
+        )
+
+    existing_points = db_point.fetch({'id_assessment': id_assessment})
+    if existing_points.count < 100:
+        return create_response(
+            message="Unfinished assessment",
+            success=False,
+            status_code=status.HTTP_400_BAD_REQUEST
+        )
+
+    assessment = db_assessment.get(id_assessment)
+    assessment['selesai'] = True
+    key = assessment['key']
+    del assessment['key']
+    db_assessment.update(assessment, key=key)
+
+    return create_response(
+        message="Assessment finished",
+        success=True,
+        status_code=status.HTTP_200_OK,
+        data=assessment
+    )
+
+
+
+# @app.post("/report")
+# async def get_beneish_score(data: Report, user: UserDB = Depends(get_user)) -> JSONResponse:
+#     if user.role != 'staff':
+#         return create_response(
+#             message="Forbidden access",
+#             success=False,
+#             status_code=status.HTTP_403_FORBIDDEN
+#         )
+
+
 
 
 app.include_router(router)

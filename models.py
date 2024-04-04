@@ -114,7 +114,7 @@ class Point(BaseModel):
     point: int
     answer: int
     skor: int
-    proof: Proof
+    proof: typing.Optional[Proof]
 
 
 class PointDB(Point):
@@ -167,5 +167,30 @@ class AssessmentEval(BaseModel):
     id_assessment: str
     sub_bab: str
     skor: typing.List[int]
+
+
+class Report(BaseModel):
+    revenue: float
+    cogs: float
+    sgae: float
+    depreciation: float
+    net_continuous: float
+    account_receivables: float
+    current_assets: float
+    ppe: float
+    securities: float
+    total_asset: float
+    current_liabilities: float
+    total_ltd: float
+    cash_flow_operate: float
+    dsri: float
+    gmi: float
+    aqi: float
+    sgi: float
+    depi: float
+    sgai: float
+    lvgi: float
+    tata: float
+    beneish_m: float
 
 
