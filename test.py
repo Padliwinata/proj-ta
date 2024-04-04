@@ -3,10 +3,12 @@ from fastapi.testclient import TestClient
 
 
 from main import app
-from db import db_user, db_assessment
+from db import db_user, db_assessment, db_point
 import pytest
 from unittest.mock import MagicMock
 from fastapi import status
+
+from seeder import seed, seed_assessment
 
 
 client = TestClient(app)
@@ -151,10 +153,6 @@ def test_login_development_mode():
     assert response.json()['success'] is True
     assert 'access_token' in response.json()['data']  # Check if access token is returned
     app.DEVELOPMENT = False
-    
-# def test_login_and_upload_proof(authorized_client)-> None:
-#     # Test case for successful login
-#     login_data = {
 
 
 def test_register_staff(authorized_client) -> None:
@@ -204,7 +202,7 @@ def test_register_staff(authorized_client) -> None:
 #         ]
 #     }
 
-def test_fill_assessment(authorized_client) -> None:
+def test_fill_assesment(authorized_client) -> None:
     client, _ = authorized_client
 
     client.post("/api/assessment")
@@ -218,11 +216,52 @@ def test_fill_assessment(authorized_client) -> None:
     id_user = user.items[0]['key']
     res = db_assessment.fetch({'id_admin': id_user})
     db_assessment.delete(res.items[0]['key'])
+
+# def test_seed_assessment(authorized_client) -> None:
+#     admin_client, _ = authorized_client
+
+#     # Test case for correct password
+#     response = admin_client.get("/api/seed/assessment?password=iya")
+#     assert response.status_code == 200
+#     assert response.json()["success"] == True
+#     assert response.json()["message"] == "Success"
     
+def test_start_assessment(authorized_client) -> None:
+    admin_client, _ = authorized_client
+
+    response = admin_client.post("/api/assessment")
+
+    assert response.status_code == 201
+    assert response.json()["message"] == "Start assessment success"
+    assert response.json()["success"] == True
     
+def test_start_assessment_existing_data(authorized_client) -> None:
+    admin_client, _ = authorized_client
+
+    # Create an existing assessment
+    admin_client.post("/api/assessment")
+
+    # Try to start assessment again
+    response = admin_client.post("/api/assessment")
+
+    assert response.status_code == 400
+    assert response.json()["message"] == "Please finish last assessment first"
+    assert response.json()["success"] == False
+
+    
+def test_get_all_assessment(authorized_client) -> None:
+    admin_client, _ = authorized_client
+
+    # Create an assessment
+    admin_client.post("/api/assessment")
+
+    # Get all assessments
+    response = admin_client.get("/api/assessments")
+
+    assert response.status_code == 200
+    assert response.json()["success"] == True
+    assert len(response.json()["data"]) == 1  # Assuming only one assessment is created
 
 
-
-    
 
 
