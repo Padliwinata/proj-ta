@@ -145,17 +145,17 @@ class Assessment(BaseModel):
         name: str = data['full_name']
         return name
 
-    def get_reviewer(self) -> str:
-        if self.id_reviewer == '':
-            return ''
-        reviewer = db_user.get(self.id_reviewer)
-        name: str = reviewer['full_name']
-        return name
+    # def get_reviewer(self) -> str:
+    #     if self.id_reviewer == '':
+    #         return ''
+    #     reviewer = db_user.get(self.id_reviewer)
+    #     name: str = reviewer['full_name']
+    #     return name
 
     def get_all_dict(self) -> typing.Dict[str, typing.Any]:
         data = super().dict()
         data['nama_admin'] = self.get_admin()
-        data['nama_reviewer'] = self.get_reviewer()
+        data['nama_reviewer'] = ''
         return data
 
 
