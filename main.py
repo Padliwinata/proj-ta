@@ -409,17 +409,17 @@ async def get_admin_list(user: User = Depends(get_user)) -> JSONResponse:
     )
 
 
-@router.get("/staff", include_in_schema=False)
+@router.get("/staff")
 async def get_staff(user: User = Depends(get_user)) -> JSONResponse:
-    if not user:
-        return create_response("Credentials Not Found", False, status.HTTP_401_UNAUTHORIZED)
+    if user.role != 'admin':
+        return create_response("Forbidden Access", False, status.HTTP_403_FORBIDDEN, {'role': user.role})
 
     id_institution = user.get_institution()['key']
 
-    fetch_response = db_user.fetch(
+    fetch_response = db_user.fetch([
         {'role': 'staff', 'id_institution': id_institution},
         {'role': 'reviewer', 'id_institution': id_institution}
-    )
+    ])
 
     if fetch_response.count == 0:
         return create_response(
@@ -428,7 +428,22 @@ async def get_staff(user: User = Depends(get_user)) -> JSONResponse:
             status_code=status.HTTP_200_OK
         )
 
-    # final_data = []
+    final_data = []
+    for user in fetch_response.items:
+        parsed_user = dict(user)
+        final_data.append({
+            'full_name': parsed_user['full_name'],
+            'email': parsed_user['email'],
+            'role': parsed_user['role'],
+            'status': parsed_user['is_active']
+        })
+
+    return create_response(
+        "Success fetch data",
+        True,
+        status.HTTP_200_OK,
+        data=final_data
+    )
     # for data in fetch_response.items:
 
 
@@ -903,15 +918,14 @@ async def selesai_isi(id_assessment: str, user: UserDB = Depends(get_user)) -> J
     )
 
 
-
-# @app.post("/report")
-# async def get_beneish_score(data: Report, user: UserDB = Depends(get_user)) -> JSONResponse:
-#     if user.role != 'staff':
-#         return create_response(
-#             message="Forbidden access",
-#             success=False,
-#             status_code=status.HTTP_403_FORBIDDEN
-#         )
+@app.post("/report")
+async def get_beneish_score(data: Report, user: UserDB = Depends(get_user)) -> JSONResponse:
+    if user.role != 'staff':
+        return create_response(
+            message="Forbidden access",
+            success=False,
+            status_code=status.HTTP_403_FORBIDDEN
+        )
 
 
 
