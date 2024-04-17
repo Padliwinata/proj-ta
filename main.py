@@ -661,7 +661,24 @@ async def delete_database() -> JSONResponse:
 
 
 @router.get("/file/{filename}", tags=["General"])
-async def get_file(filename: str) -> StreamingResponse:
+async def get_file(filename: str, request: Request) -> JSONResponse:
+    response = drive.get(filename)
+    if not response:
+        return create_response(
+            message="File not found",
+            success=False,
+            status_code=status.HTTP_404_NOT_FOUND
+        )
+    return create_response(
+        message="Fetch file success",
+        success=True,
+        status_code=status.HTTP_200_OK,
+        data={'url': f"{request.base_url}api/actualfile/{filename}"}
+    )
+
+
+@router.get("/actualfile/{filename}", include_in_schema=False)
+async def get_actual_file(filename: str) -> StreamingResponse:
     response = drive.get(filename)
     content = response.read()
 
