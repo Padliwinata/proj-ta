@@ -11,10 +11,46 @@ from fastapi.middleware.cors import CORSMiddleware
 from jose import jwt, JWTError
 from pydantic import SecretStr, AnyUrl
 
-from dependencies import authenticate_user, create_refresh_token, create_access_token, TokenResponse, get_payload_from_token, create_response
-from db import db_user, db_institution, db_log, db_point, db_proof, drive, db_assessment
+from dependencies import (
+    authenticate_user,
+    create_refresh_token,
+    create_access_token,
+    TokenResponse,
+    get_payload_from_token,
+    create_response
+)
+
+from db import (
+    db_user,
+    db_institution,
+    db_log,
+    db_point,
+    db_proof,
+    drive,
+    db_assessment,
+    db_report
+)
 from exceptions import DependencyException
-from models import RegisterForm, Response, User, Refresh, ResponseDev, AddUser, Institution, Log, ProofMeta, Point, Proof, UserDB, AssessmentDB, Assessment, AssessmentEval, PointDB, Report
+from models import (
+    RegisterForm,
+    Response,
+    User,
+    Refresh,
+    ResponseDev,
+    AddUser,
+    Institution,
+    Log,
+    ProofMeta,
+    Point,
+    Proof,
+    UserDB,
+    AssessmentDB,
+    Assessment,
+    AssessmentEval,
+    PointDB,
+    Report,
+    ReportInput
+)
 from mailer import send_confirmation
 from settings import SECRET_KEY, ALGORITHM, DEVELOPMENT
 from seeder import seed, delete_db, seed_assessment
@@ -943,9 +979,17 @@ async def get_beneish_score(data: Report, user: UserDB = Depends(get_user)) -> J
             success=False,
             status_code=status.HTTP_403_FORBIDDEN
         )
-
-
-
+    report = data.dict()
+    report['beneish_m'] = -2
+    report['id_institution'] = user.id_institution
+    report_object = Report(**report)
+    db_report.insert(report_object.dict())
+    return create_response(
+        message="Success insert report",
+        success=True,
+        status_code=status.HTTP_201_CREATED,
+        data=report_object.dict()
+    )
 
 app.include_router(router)
 
