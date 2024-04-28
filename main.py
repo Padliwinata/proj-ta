@@ -11,10 +11,46 @@ from fastapi.middleware.cors import CORSMiddleware
 from jose import jwt, JWTError
 from pydantic import SecretStr, AnyUrl
 
-from dependencies import authenticate_user, create_refresh_token, create_access_token, TokenResponse, get_payload_from_token, create_response
-from db import db_user, db_institution, db_log, db_point, db_proof, drive, db_assessment
+from dependencies import (
+    authenticate_user,
+    create_refresh_token,
+    create_access_token,
+    TokenResponse,
+    get_payload_from_token,
+    create_response
+)
+
+from db import (
+    db_user,
+    db_institution,
+    db_log,
+    db_point,
+    db_proof,
+    drive,
+    db_assessment,
+    db_report
+)
 from exceptions import DependencyException
-from models import RegisterForm, Response, User, Refresh, ResponseDev, AddUser, Institution, Log, ProofMeta, Point, Proof, UserDB, AssessmentDB, Assessment, AssessmentEval, PointDB, Report
+from models import (
+    RegisterForm,
+    Response,
+    User,
+    Refresh,
+    ResponseDev,
+    AddUser,
+    Institution,
+    Log,
+    ProofMeta,
+    Point,
+    Proof,
+    UserDB,
+    AssessmentDB,
+    Assessment,
+    AssessmentEval,
+    PointDB,
+    Report,
+    ReportInput
+)
 from mailer import send_confirmation
 from settings import SECRET_KEY, ALGORITHM, DEVELOPMENT
 from seeder import seed, delete_db, seed_assessment
@@ -409,17 +445,17 @@ async def get_admin_list(user: User = Depends(get_user)) -> JSONResponse:
     )
 
 
-@router.get("/staff", include_in_schema=False)
+@router.get("/staff")
 async def get_staff(user: User = Depends(get_user)) -> JSONResponse:
-    if not user:
-        return create_response("Credentials Not Found", False, status.HTTP_401_UNAUTHORIZED)
+    if user.role != 'admin':
+        return create_response("Forbidden Access", False, status.HTTP_403_FORBIDDEN, {'role': user.role})
 
     id_institution = user.get_institution()['key']
 
-    fetch_response = db_user.fetch(
+    fetch_response = db_user.fetch([
         {'role': 'staff', 'id_institution': id_institution},
         {'role': 'reviewer', 'id_institution': id_institution}
-    )
+    ])
 
     if fetch_response.count == 0:
         return create_response(
@@ -428,7 +464,22 @@ async def get_staff(user: User = Depends(get_user)) -> JSONResponse:
             status_code=status.HTTP_200_OK
         )
 
-    # final_data = []
+    final_data = []
+    for user in fetch_response.items:
+        parsed_user = dict(user)
+        final_data.append({
+            'full_name': parsed_user['full_name'],
+            'email': parsed_user['email'],
+            'role': parsed_user['role'],
+            'status': parsed_user['is_active']
+        })
+
+    return create_response(
+        "Success fetch data",
+        True,
+        status.HTTP_200_OK,
+        data=final_data
+    )
     # for data in fetch_response.items:
 
 
@@ -646,7 +697,24 @@ async def delete_database() -> JSONResponse:
 
 
 @router.get("/file/{filename}", tags=["General"])
-async def get_file(filename: str) -> StreamingResponse:
+async def get_file(filename: str, request: Request) -> JSONResponse:
+    response = drive.get(filename)
+    if not response:
+        return create_response(
+            message="File not found",
+            success=False,
+            status_code=status.HTTP_404_NOT_FOUND
+        )
+    return create_response(
+        message="Fetch file success",
+        success=True,
+        status_code=status.HTTP_200_OK,
+        data={'url': f"{request.base_url}api/actualfile/{filename}"}
+    )
+
+
+@router.get("/actualfile/{filename}", include_in_schema=False)
+async def get_actual_file(filename: str) -> StreamingResponse:
     response = drive.get(filename)
     content = response.read()
 
@@ -903,18 +971,25 @@ async def selesai_isi(id_assessment: str, user: UserDB = Depends(get_user)) -> J
     )
 
 
-
-# @app.post("/report")
-# async def get_beneish_score(data: Report, user: UserDB = Depends(get_user)) -> JSONResponse:
-#     if user.role != 'staff':
-#         return create_response(
-#             message="Forbidden access",
-#             success=False,
-#             status_code=status.HTTP_403_FORBIDDEN
-#         )
-
-
-
+@app.post("/report")
+async def get_beneish_score(data: Report, user: UserDB = Depends(get_user)) -> JSONResponse:
+    if user.role != 'staff':
+        return create_response(
+            message="Forbidden access",
+            success=False,
+            status_code=status.HTTP_403_FORBIDDEN
+        )
+    report = data.dict()
+    report['beneish_m'] = -2
+    report['id_institution'] = user.id_institution
+    report_object = Report(**report)
+    db_report.insert(report_object.dict())
+    return create_response(
+        message="Success insert report",
+        success=True,
+        status_code=status.HTTP_201_CREATED,
+        data=report_object.dict()
+    )
 
 app.include_router(router)
 
