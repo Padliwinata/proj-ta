@@ -219,16 +219,6 @@ def test_fill_assesment(authorized_client) -> None:
         assessment = db_assessment.fetch({'id_admin': id_user})
         db_assessment.delete(assessment.items[0]['key'])
         assert res.status_code == 200
-
-
-# def test_seed_assessment(authorized_client) -> None:
-#     admin_client, _ = authorized_client
-
-#     # Test case for correct password
-#     response = admin_client.get("/api/seed/assessment?password=iya")
-#     assert response.status_code == 200
-#     assert response.json()["success"] == True
-#     assert response.json()["message"] == "Success"
     
 def test_start_assessment(authorized_client) -> None:
     admin_client, _ = authorized_client
