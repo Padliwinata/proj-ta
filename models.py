@@ -145,17 +145,17 @@ class Assessment(BaseModel):
         name: str = data['full_name']
         return name
 
-    def get_reviewer(self) -> str:
-        if self.id_reviewer == '':
-            return ''
-        reviewer = db_user.get(self.id_reviewer)
-        name: str = reviewer['full_name']
-        return name
+    # def get_reviewer(self) -> str:
+    #     if self.id_reviewer == '':
+    #         return ''
+    #     reviewer = db_user.get(self.id_reviewer)
+    #     name: str = reviewer['full_name']
+    #     return name
 
     def get_all_dict(self) -> typing.Dict[str, typing.Any]:
         data = super().dict()
         data['nama_admin'] = self.get_admin()
-        data['nama_reviewer'] = self.get_reviewer()
+        data['nama_reviewer'] = ''
         return data
 
 
@@ -169,28 +169,56 @@ class AssessmentEval(BaseModel):
     skor: typing.List[int]
 
 
-class Report(BaseModel):
-    revenue: float
-    cogs: float
-    sgae: float
-    depreciation: float
-    net_continuous: float
-    account_receivables: float
-    current_assets: float
-    ppe: float
-    securities: float
-    total_asset: float
-    current_liabilities: float
-    total_ltd: float
-    cash_flow_operate: float
-    dsri: float
-    gmi: float
-    aqi: float
-    sgi: float
-    depi: float
-    sgai: float
-    lvgi: float
-    tata: float
+class ReportInput(BaseModel):
+    revenue_1: float
+    cogs_1: float
+    sgae_1: float
+    depreciation_1: float
+    net_continuous_1: float
+    account_receivables_1: float
+    current_assets_1: float
+    ppe_1: float
+    securities_1: float
+    total_asset_1: float
+    current_liabilities_1: float
+    total_ltd_1: float
+    cash_flow_operate_1: float
+    dsri_1: float
+    gmi_1: float
+    aqi_1: float
+    sgi_1: float
+    depi_1: float
+    sgai_1: float
+    lvgi_1: float
+    tata_1: float
+    revenue_2: float
+    cogs_2: float
+    sgae_2: float
+    depreciation_2: float
+    net_continuous_2: float
+    account_receivables_2: float
+    current_assets_2: float
+    ppe_2: float
+    securities_2: float
+    total_asset_2: float
+    current_liabilities_2: float
+    total_ltd_2: float
+    cash_flow_operate_2: float
+    dsri_2: float
+    gmi_2: float
+    aqi_2: float
+    sgi_2: float
+    depi_2: float
+    sgai_2: float
+    lvgi_2: float
+    tata_2: float
+    tahun_1: float
+    tahun_2: float
+    id_institution: str
     beneish_m: float
 
+
+class Report(ReportInput):
+    id_institution: str
+    beneish_m: float
 
