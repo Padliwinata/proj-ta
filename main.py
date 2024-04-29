@@ -630,26 +630,33 @@ async def update_assessment(request: Request,
             success=False
         )
 
-    existing = db_proof.fetch({'bab': metadata.bab, 'sub_bab': metadata.sub_bab, 'point': metadata.point})
-    if existing.count == 0:
+    current_point = db_point.fetch({'bab': metadata.bab, 'sub_bab': metadata.sub_bab, 'point': metadata.point})
+    if current_point.count == 0:
         return create_response(
-            message="Data already exist",
-            success=False,
-            status_code=status.HTTP_400_BAD_REQUEST
+            message="Point not found",
+            status_code=status.HTTP_404_NOT_FOUND,
+            success=False
         )
-    key = existing.items[0]['key']
+
+    key = current_point.items[0]['key']
+    db_point.update({'answer': metadata.answer}, key)
 
     content = None
     if file:
         content = await file.read()
 
-    filename = ''
-    if file:
-        filename = f"{user.get_institution()['key']}_{metadata.bab}_{metadata.sub_bab.replace('.', '')}_{metadata.point}.pdf"
-
+    filename = f"{user.get_institution()['key']}_{metadata.bab}_{metadata.sub_bab.replace('.', '')}_{metadata.point}.pdf"
     drive.delete(filename)
-    drive.put(content, filename)
+    drive.put(filename, content)
 
+    res = db_point.get(key)
+
+    return create_response(
+        message='Update success',
+        status_code=status.HTTP_200_OK,
+        success=True,
+        data=res
+    )
 
 
 @router.post("/proofs", include_in_schema=False)
