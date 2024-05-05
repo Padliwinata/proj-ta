@@ -1,7 +1,7 @@
 import deta
 
 
-deta_obj = deta.Deta("c0YK3LGkSzAM_WPS5wNp7NafechQa2id7Q7Sd9Z8UaxmZ")
+deta_obj = deta.Deta("c0RpcWGk6yZe_SPvZvMUFeQUqoqoNj6tTfocaibRkMouJ")
 
 db_user = deta_obj.Base("user")
 db_institution = deta_obj.Base("institution")
