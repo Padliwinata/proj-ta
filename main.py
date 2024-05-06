@@ -659,8 +659,9 @@ async def update_assessment(request: Request,
         content = await file.read()
 
     filename = f"{user.get_institution()['key']}_{metadata.bab}_{metadata.sub_bab.replace('.', '')}_{metadata.point}.pdf"
-    drive.delete(filename)
-    drive.put(filename, content)
+    if file:
+        drive.delete(filename)
+        drive.put(filename, content)
 
     res = db_point.get(key)
 
@@ -683,13 +684,6 @@ async def upload_proofs_point(request: Request,
 
     # drive.put(filename, content)
 
-    # data = {
-    #     'id_user': user.key,
-    #     'url': f"{request.url}/{filename}",
-    #     'file_name': filename,
-    #     'length': len(file)
-    # }
-
     new_proof = Proof(
         id_user=user.key,
         url=f"{request.url.hostname}/file/{filename}",
@@ -706,13 +700,6 @@ async def upload_proofs_point(request: Request,
 
     data = json.loads(new_point.json())
     data['length'] = len(file)
-
-    # if not file.filename:
-    #     return create_response(
-    #         message="Failed",
-    #         status_code=status.HTTP_400_BAD_REQUEST,
-    #         success=False
-    #     )
 
     return create_response(
         message=filename,
