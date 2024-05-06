@@ -342,8 +342,6 @@ async def register_staff(data: AddUser, user: User = Depends(get_user)) -> JSONR
         return create_response("Credentials Not Found", False, status.HTTP_401_UNAUTHORIZED)
 
     parsed_data = data.dict()
-    if data.password:
-        parsed_data['password'] = data.password.get_secret_value()
 
     registered_user = db_user.fetch(parsed_data)
 
@@ -361,6 +359,20 @@ async def register_staff(data: AddUser, user: User = Depends(get_user)) -> JSONR
     del parsed_data['password']
 
     return create_response("User Created", True, status.HTTP_201_CREATED, parsed_data)
+
+
+@router.patch('/alter')
+async def alternate_staff_status(user_key: str, user: User = Depends(get_user)) -> JSONResponse:
+    if user.role != 'admin':
+        return create_response("Forbidden Access", False, status.HTTP_403_FORBIDDEN, {'role': user.role})
+    if not user_key:
+        return create_response("Missing user key", False, status.HTTP_400_BAD_REQUEST)
+
+    existing_user = db_user.get(user_key)
+    db_user.update({'is_active': not existing_user['is_active']}, key=user_key)
+    existing_user['is_active'] = not existing_user['is_active']
+
+    return create_response("Success altering user status", True, status.HTTP_200_OK, existing_user)
 
 
 @router.post('/document_1', include_in_schema=False)
@@ -468,6 +480,7 @@ async def get_staff(user: User = Depends(get_user)) -> JSONResponse:
     for user in fetch_response.items:
         parsed_user = dict(user)
         final_data.append({
+            'key': parsed_user['key'],
             'full_name': parsed_user['full_name'],
             'email': parsed_user['email'],
             'role': parsed_user['role'],
@@ -529,7 +542,7 @@ async def upload_proof_point(request: Request,
         )
 
     existing = db_proof.fetch({'bab': metadata.bab, 'sub_bab': metadata.sub_bab, 'point': metadata.point})
-    if existing.count >= 0:
+    if existing.count > 0:
         return create_response(
             message="Data already exist",
             success=False,

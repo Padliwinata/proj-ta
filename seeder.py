@@ -81,7 +81,8 @@ user_data: typing.List[typing.Dict[str, typing.Union[str, bool]]] = [
         "email": "username@example.com",
         "role": "super admin",
         "id_institution": "",
-        "is_active": True
+        "is_active": True,
+        "phone": "+6281111111111"
     },
     # {
     #     "username": "alice_smith",
@@ -99,7 +100,8 @@ user_data: typing.List[typing.Dict[str, typing.Union[str, bool]]] = [
         "email": "bob@example.com",
         "role": "staff",
         "id_institution": "gc8uupscjs0e",
-        "is_active": True
+        "is_active": True,
+        "phone": "+6281111111112"
     },
     {
         "username": "emma_jones",
@@ -108,7 +110,8 @@ user_data: typing.List[typing.Dict[str, typing.Union[str, bool]]] = [
         "email": "emma@example.com",
         "role": "reviewer",
         "id_institution": "gc8uupscjs0e",
-        "is_active": True
+        "is_active": True,
+        "phone": "+6281111111113"
     },
     {
         "username": "sam_smith",
@@ -117,7 +120,8 @@ user_data: typing.List[typing.Dict[str, typing.Union[str, bool]]] = [
         "email": "sam@example.com",
         "role": "admin",
         "id_institution": "uxalzb21mwcr",
-        "is_active": True
+        "is_active": True,
+        "phone": "+6281111111114"
     }
 ]
 
@@ -143,7 +147,8 @@ def seed() -> None:
         "email": "alice@example.com",
         "role": "admin",
         "id_institution": "gc8uupscjs0e",
-        "is_active": True
+        "is_active": True,
+        "phone": "+6281111111115"
     }, key="ev9ag3o7lxed")
 
 
