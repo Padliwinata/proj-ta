@@ -58,6 +58,7 @@ class User(BaseModel):
     role: UserRole = UserRole.admin
     id_institution: str
     is_active: bool
+    phone: str
 
     def get_institution(self) -> typing.Dict[str, typing.Any]:
         institution = db_institution.get(self.id_institution)
@@ -70,10 +71,13 @@ class UserDB(User):
 
 
 class AddUser(BaseModel):
+    full_name: str
+    role: UserRole
+    phone: str
+    email: str
     username: str
-    email: EmailStr
-    password: typing.Optional[SecretStr]
-    role: UserRole = UserRole.admin
+    password: str
+    password: str
 
 
 class Refresh(BaseModel):
@@ -144,13 +148,6 @@ class Assessment(BaseModel):
         data = db_user.get(self.id_admin)
         name: str = data['full_name']
         return name
-
-    # def get_reviewer(self) -> str:
-    #     if self.id_reviewer == '':
-    #         return ''
-    #     reviewer = db_user.get(self.id_reviewer)
-    #     name: str = reviewer['full_name']
-    #     return name
 
     def get_all_dict(self) -> typing.Dict[str, typing.Any]:
         data = super().dict()

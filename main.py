@@ -342,8 +342,6 @@ async def register_staff(data: AddUser, user: User = Depends(get_user)) -> JSONR
         return create_response("Credentials Not Found", False, status.HTTP_401_UNAUTHORIZED)
 
     parsed_data = data.dict()
-    if data.password:
-        parsed_data['password'] = data.password.get_secret_value()
 
     registered_user = db_user.fetch(parsed_data)
 
@@ -361,6 +359,20 @@ async def register_staff(data: AddUser, user: User = Depends(get_user)) -> JSONR
     del parsed_data['password']
 
     return create_response("User Created", True, status.HTTP_201_CREATED, parsed_data)
+
+
+@router.patch('/alter')
+async def alternate_staff_status(user_key: str, user: User = Depends(get_user)) -> JSONResponse:
+    if user.role != 'admin':
+        return create_response("Forbidden Access", False, status.HTTP_403_FORBIDDEN, {'role': user.role})
+    if not user_key:
+        return create_response("Missing user key", False, status.HTTP_400_BAD_REQUEST)
+
+    existing_user = db_user.get(user_key)
+    db_user.update({'is_active': not existing_user['is_active']}, key=user_key)
+    existing_user['is_active'] = not existing_user['is_active']
+
+    return create_response("Success altering user status", True, status.HTTP_200_OK, existing_user)
 
 
 @router.post('/document_1', include_in_schema=False)
@@ -468,6 +480,7 @@ async def get_staff(user: User = Depends(get_user)) -> JSONResponse:
     for user in fetch_response.items:
         parsed_user = dict(user)
         final_data.append({
+            'key': parsed_user['key'],
             'full_name': parsed_user['full_name'],
             'email': parsed_user['email'],
             'role': parsed_user['role'],
@@ -526,6 +539,14 @@ async def upload_proof_point(request: Request,
             message="Forbidden Access",
             status_code=status.HTTP_403_FORBIDDEN,
             success=False
+        )
+
+    existing = db_proof.fetch({'bab': metadata.bab, 'sub_bab': metadata.sub_bab, 'point': metadata.point})
+    if existing.count > 0:
+        return create_response(
+            message="Data already exist",
+            success=False,
+            status_code=status.HTTP_400_BAD_REQUEST
         )
 
     content = None
@@ -610,6 +631,48 @@ async def upload_proof_point(request: Request,
     )
 
 
+@router.patch('/point')
+async def update_assessment(request: Request,
+                            metadata: ProofMeta = Depends(),
+                            user: UserDB = Depends(get_user),
+                            file: UploadFile = File(None)) -> JSONResponse:
+    if user.role != 'admin':
+        return create_response(
+            message="Forbidden Access",
+            status_code=status.HTTP_403_FORBIDDEN,
+            success=False
+        )
+
+    current_point = db_point.fetch({'bab': metadata.bab, 'sub_bab': metadata.sub_bab, 'point': metadata.point})
+    if current_point.count == 0:
+        return create_response(
+            message="Point not found",
+            status_code=status.HTTP_404_NOT_FOUND,
+            success=False
+        )
+
+    key = current_point.items[0]['key']
+    db_point.update({'answer': metadata.answer}, key)
+
+    content = None
+    if file:
+        content = await file.read()
+
+    filename = f"{user.get_institution()['key']}_{metadata.bab}_{metadata.sub_bab.replace('.', '')}_{metadata.point}.pdf"
+    if file:
+        drive.delete(filename)
+        drive.put(filename, content)
+
+    res = db_point.get(key)
+
+    return create_response(
+        message='Update success',
+        status_code=status.HTTP_200_OK,
+        success=True,
+        data=res
+    )
+
+
 @router.post("/proofs", include_in_schema=False)
 async def upload_proofs_point(request: Request,
                               metadata: ProofMeta = Depends(),
@@ -620,13 +683,6 @@ async def upload_proofs_point(request: Request,
     filename = f"{user.get_institution()['key']}_{metadata.bab}_{metadata.sub_bab.replace('.', '')}_{metadata.point}.pdf"
 
     # drive.put(filename, content)
-
-    # data = {
-    #     'id_user': user.key,
-    #     'url': f"{request.url}/{filename}",
-    #     'file_name': filename,
-    #     'length': len(file)
-    # }
 
     new_proof = Proof(
         id_user=user.key,
@@ -644,13 +700,6 @@ async def upload_proofs_point(request: Request,
 
     data = json.loads(new_point.json())
     data['length'] = len(file)
-
-    # if not file.filename:
-    #     return create_response(
-    #         message="Failed",
-    #         status_code=status.HTTP_400_BAD_REQUEST,
-    #         success=False
-    #     )
 
     return create_response(
         message=filename,

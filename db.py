@@ -1,7 +1,8 @@
 import deta
+from settings import DATA_KEY
 
 
-deta_obj = deta.Deta("c0YK3LGkSzAM_WPS5wNp7NafechQa2id7Q7Sd9Z8UaxmZ")
+deta_obj = deta.Deta(DATA_KEY)
 
 db_user = deta_obj.Base("user")
 db_institution = deta_obj.Base("institution")
