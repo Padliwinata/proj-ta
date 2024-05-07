@@ -154,6 +154,7 @@ async def register(data: RegisterForm) -> JSONResponse:
     user_data = dict()
     user_data['username'] = new_data['username']
     user_data['full_name'] = new_data['full_name']
+    user_data['phone'] = new_data['phone']
     user_data['email'] = new_data['email']
     user_data['password'] = new_data['password']
 
