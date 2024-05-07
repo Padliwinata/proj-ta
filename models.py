@@ -77,7 +77,6 @@ class AddUser(BaseModel):
     email: str
     username: str
     password: str
-    password: str
 
 
 class Refresh(BaseModel):

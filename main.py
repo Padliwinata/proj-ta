@@ -505,7 +505,8 @@ async def get_login_log(user: User = Depends(get_user)) -> JSONResponse:
 
     log_data = db_log.fetch([
         {'role': 'staff', 'id_institution': id_institution},
-        {'role': 'reviewer', 'id_institution': id_institution}
+        {'role': 'reviewer', 'id_institution': id_institution},
+        {'role': 'admin', 'id_institution': id_institution}
     ])
 
     if log_data.count == 0:
@@ -1039,6 +1040,17 @@ async def get_beneish_score(data: Report, user: UserDB = Depends(get_user)) -> J
         status_code=status.HTTP_201_CREATED,
         data=report_object.dict()
     )
+
+
+@app.post("/deactivate")
+async def deactivate_institution(id_institution: str, user: UserDB = Depends(get_user)) -> JSONResponse:
+    if user.role != 'super admin':
+        return create_response(
+            message="Forbidden access",
+            success=False,
+            status_code=status.HTTP_403_FORBIDDEN
+        )
+
 
 app.include_router(router)
 
