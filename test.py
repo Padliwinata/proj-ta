@@ -162,13 +162,15 @@ def test_login_development_mode():
 def test_register_staff(authorized_client) -> None:
     admin_client, _ = authorized_client
     test_data = {
-        'username': 'new_staff',
-        'password': 'new_password',
-        'email': 'staff@example.com',  # Adjusted for the required fields
-        'role': 'staff'  # Adjusted for the role
+        'full_name': 'testing staff',
+        'role': 'staff',
+        'phone':'093748499',
+        'email': 'staff@gmail.com',
+        'username': 'staff_yuna',
+        'password': 'stafyuna'# Adjusted for the role
     }
     response = admin_client.post('/api/account', json=test_data)
-    assert response.status_code == 201
+    assert response.status_code == 200
     assert response.json()['success'] is True
 
 # def test_register_staff_existing_user(authorized_client) -> None:
