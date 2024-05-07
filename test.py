@@ -262,7 +262,7 @@ def test_evaluate_assessment(authorized_client) -> None:
     # Prepare data
     assessment_id = "test_assessment_id"
     sub_bab = "1.1"
-    skor = [4]  # Assuming the length matches the number of questions in sub_bab
+    skor = [10]  # Assuming the length matches the number of questions in sub_bab
 
     # Call the endpoint
     response = reviewer_client.post("/api/assessments/evaluation", json={"id_assessment": assessment_id, "sub_bab": sub_bab, "skor": skor})
