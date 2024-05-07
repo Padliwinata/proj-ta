@@ -256,6 +256,21 @@ def test_get_all_assessment(authorized_client) -> None:
     assert response.json()["success"] == True
     assert len(response.json()["data"]) == 1  # Assuming only one assessment is created
 
+def test_evaluate_assessment(authorized_client) -> None:
+    _, reviewer_client = authorized_client
+
+    # Prepare data
+    assessment_id = "test_assessment_id"
+    sub_bab = "1.1"
+    skor = [4]  # Assuming the length matches the number of questions in sub_bab
+
+    # Call the endpoint
+    response = reviewer_client.post("/api/assessments/evaluation", json={"id_assessment": assessment_id, "sub_bab": sub_bab, "skor": skor})
+
+    # Assertions
+    assert response.status_code == 200
+    assert response.json()['success'] is True
+  
 
 
 
