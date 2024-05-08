@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 
 from cryptography.fernet import Fernet
 from fastapi import FastAPI, Depends, status, File, UploadFile, Request, APIRouter
-from fastapi.responses import JSONResponse, FileResponse, StreamingResponse
+from fastapi.responses import JSONResponse, StreamingResponse, Response
 from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
 from fastapi.middleware.cors import CORSMiddleware
 from jose import jwt, JWTError
@@ -33,10 +33,10 @@ from db import (
 from exceptions import DependencyException
 from models import (
     RegisterForm,
-    Response,
+    CustomResponse,
     User,
     Refresh,
-    ResponseDev,
+    CustomResponseDev,
     AddUser,
     Institution,
     Log,
@@ -91,7 +91,7 @@ question_number = [10, 10, 10, 10, 8, 7, 7, 8, 15, 15]
 
 def get_user(access_token: str = Depends(oauth2_scheme)) -> Union[UserDB, None]:
     if not access_token:
-        response_error = Response(
+        response_error = CustomResponse(
             success=False,
             code=status.HTTP_401_UNAUTHORIZED,
             message="Unauthorized",
@@ -101,7 +101,7 @@ def get_user(access_token: str = Depends(oauth2_scheme)) -> Union[UserDB, None]:
     try:
         payload = get_payload_from_token(access_token)
     except JWTError:
-        response_error = Response(
+        response_error = CustomResponse(
             success=False,
             code=status.HTTP_400_BAD_REQUEST,
             message="Invalid Token",
@@ -111,7 +111,7 @@ def get_user(access_token: str = Depends(oauth2_scheme)) -> Union[UserDB, None]:
 
     response = db_user.fetch({'username': payload.sub})
     if response.count == 0:
-        response_error = Response(
+        response_error = CustomResponse(
             success=False,
             code=status.HTTP_400_BAD_REQUEST,
             message="Invalid Token",
@@ -172,7 +172,7 @@ async def register(data: RegisterForm) -> JSONResponse:
         'institution': institution_data['name']
     }
 
-    response = Response(
+    response = CustomResponse(
         success=True,
         code=status.HTTP_201_CREATED,
         message="User registered successfully",
@@ -188,7 +188,7 @@ async def register(data: RegisterForm) -> JSONResponse:
 async def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]) -> JSONResponse:
     user = authenticate_user(db_user, form_data.username, form_data.password)
     if not user:
-        response = ResponseDev(
+        response = CustomResponseDev(
             success=False,
             code=status.HTTP_401_UNAUTHORIZED,
             message="User not found",
@@ -216,7 +216,7 @@ async def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]) -> J
     db_log.put(log_data_dict)
 
     if DEVELOPMENT:
-        resp_dev = ResponseDev(
+        resp_dev = CustomResponseDev(
             success=True,
             code=status.HTTP_200_OK,
             message="Authenticated",
@@ -228,7 +228,7 @@ async def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]) -> J
             status_code=status.HTTP_200_OK
         )
     else:
-        resp = Response(
+        resp = CustomResponse(
             success=True,
             code=status.HTTP_200_OK,
             message="Authenticated",
@@ -244,7 +244,7 @@ async def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]) -> J
 async def check(access_token: str = Depends(oauth2_scheme)) -> JSONResponse:
     try:
         if not access_token:
-            response = Response(
+            response = CustomResponse(
                 success=False,
                 code=status.HTTP_401_UNAUTHORIZED,
                 message="Credentials not found",
@@ -258,7 +258,7 @@ async def check(access_token: str = Depends(oauth2_scheme)) -> JSONResponse:
         payload = get_payload_from_token(access_token)
         res = db_user.fetch({'username': payload.sub})
         if res.count == 0:
-            response = Response(
+            response = CustomResponse(
                 success=False,
                 code=status.HTTP_404_NOT_FOUND,
                 message="User not found",
@@ -272,7 +272,7 @@ async def check(access_token: str = Depends(oauth2_scheme)) -> JSONResponse:
         data = res.items[0]
         data['payload'] = payload.dict()
 
-        response = Response(
+        response = CustomResponse(
             success=True,
             code=status.HTTP_200_OK,
             message="Authenticated",
@@ -283,7 +283,7 @@ async def check(access_token: str = Depends(oauth2_scheme)) -> JSONResponse:
             status_code=status.HTTP_200_OK
         )
     except JWTError:
-        response = Response(
+        response = CustomResponse(
             success=False,
             code=status.HTTP_401_UNAUTHORIZED,
             message="Invalid token",
@@ -298,7 +298,7 @@ async def check(access_token: str = Depends(oauth2_scheme)) -> JSONResponse:
 
 
 @router.put("/auth", tags=['General'])
-async def refresh(refresh_token: Refresh, access_token: str = Depends(oauth2_scheme)) -> Response:
+async def refresh(refresh_token: Refresh, access_token: str = Depends(oauth2_scheme)) -> CustomResponse:
     try:
         refresh_payload = get_payload_from_token(refresh_token.refresh_token)
         access_payload = get_payload_from_token(access_token)
@@ -313,13 +313,13 @@ async def refresh(refresh_token: Refresh, access_token: str = Depends(oauth2_sch
                 refresh_token=new_refresh_token,
                 token_type="bearer"
             ).dict()
-            return Response(
+            return CustomResponse(
                 success=True,
                 code=status.HTTP_200_OK,
                 message="Authenticated",
                 data=data
             )
-        return Response(
+        return CustomResponse(
             success=False,
             code=status.HTTP_401_UNAUTHORIZED,
             message="Token issued time invalid",
@@ -327,7 +327,7 @@ async def refresh(refresh_token: Refresh, access_token: str = Depends(oauth2_sch
         )
 
     except JWTError:
-        return Response(
+        return CustomResponse(
             success=False,
             code=status.HTTP_401_UNAUTHORIZED,
             message="Invalid token",
@@ -377,11 +377,11 @@ async def alternate_staff_status(user_key: str, user: User = Depends(get_user)) 
 
 
 @router.post('/document_1', include_in_schema=False)
-async def upload_document_1(access_token: str = Depends(oauth2_scheme), file: UploadFile = File(...)) -> Response:
+async def upload_document_1(access_token: str = Depends(oauth2_scheme), file: UploadFile = File(...)) -> CustomResponse:
     try:
         payload = jwt.decode(access_token, SECRET_KEY, algorithms=ALGORITHM)
     except JWTError:
-        return Response(
+        return CustomResponse(
             success=False,
             code=status.HTTP_401_UNAUTHORIZED,
             message="Invalid token",
@@ -393,7 +393,7 @@ async def upload_document_1(access_token: str = Depends(oauth2_scheme), file: Up
     content = await file.read()
     drive.put(f'{payload["sub"]}_1.pdf', content)
 
-    return Response(
+    return CustomResponse(
         success=True,
         code=status.HTTP_200_OK,
         message="Successfully stored",
@@ -405,11 +405,11 @@ async def upload_document_1(access_token: str = Depends(oauth2_scheme), file: Up
 
 
 @router.delete("/test", include_in_schema=False)
-async def delete_test_data() -> Response:
+async def delete_test_data() -> CustomResponse:
     data = db_user.fetch(test_data)
     db_user.delete(data.items[0]['key'])
 
-    return Response(
+    return CustomResponse(
         success=True,
         code=status.HTTP_200_OK,
         message="Successfully deleted",
@@ -424,7 +424,7 @@ async def get_admin_list(user: User = Depends(get_user)) -> JSONResponse:
 
     fetch_data = db_user.fetch({'role': 'admin'})
     if fetch_data.count == 0:
-        response = Response(
+        response = CustomResponse(
             success=True,
             code=status.HTTP_200_OK,
             message="Fetch Data Success",
@@ -445,7 +445,7 @@ async def get_admin_list(user: User = Depends(get_user)) -> JSONResponse:
             'is_active': data['is_active']
         })
 
-    response = Response(
+    response = CustomResponse(
         success=True,
         code=status.HTTP_200_OK,
         message="Fetch Data Success",
@@ -765,16 +765,17 @@ async def get_file(filename: str, request: Request) -> JSONResponse:
 
 
 @router.get("/actualfile/{filename}", include_in_schema=False)
-async def get_actual_file(filename: str) -> StreamingResponse:
+async def get_actual_file(filename: str) -> Response:
     response = drive.get(filename)
     content = response.read()
 
-    file_like = io.BytesIO(content)
+    file_like = io.BytesIO(content).getvalue()
 
-    headers = {
-        'Content-Disposition': f'attachment; filename="{filename}.pdf"'
-    }
-    return StreamingResponse(file_like, headers=headers)
+    # headers = {
+    #     'Content-Disposition': f'attachment; filename="{filename}"'
+    # }
+    # return StreamingResponse(file_like, headers=headers)
+    return Response(content=file_like, media_type='application/pdf')
 
 
 @router.get("/verify/{userid}", tags=['Auth'])

@@ -39,14 +39,14 @@ class InstitutionDB(Institution):
     key: str
 
 
-class Response(BaseModel):
+class CustomResponse(BaseModel):
     success: bool
     code: int
     message: str
     data: typing.Union[typing.Dict[str, typing.Any], typing.List[typing.Any], None]
 
 
-class ResponseDev(Response):
+class CustomResponseDev(CustomResponse):
     access_token: typing.Optional[str]
 
 
