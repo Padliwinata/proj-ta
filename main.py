@@ -858,7 +858,8 @@ async def get_current_assessment(sub_bab: str, user: UserDB = Depends(get_user))
         )
 
     data = [Point(**x) for x in existing_point_data.items]
-    response_data = [x.dict() for x in data]
+    dict_data = [x.dict() for x in data]
+    response_data = sorted(dict_data, key=lambda x: x['point'])
 
     return create_response(
         message="Fetch data success",
