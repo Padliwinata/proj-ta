@@ -376,34 +376,6 @@ async def alternate_staff_status(user_key: str, user: User = Depends(get_user)) 
     return create_response("Success altering user status", True, status.HTTP_200_OK, existing_user)
 
 
-@router.post('/document_1', include_in_schema=False)
-async def upload_document_1(access_token: str = Depends(oauth2_scheme), file: UploadFile = File(...)) -> CustomResponse:
-    try:
-        payload = jwt.decode(access_token, SECRET_KEY, algorithms=ALGORITHM)
-    except JWTError:
-        return CustomResponse(
-            success=False,
-            code=status.HTTP_401_UNAUTHORIZED,
-            message="Invalid token",
-            data={
-                'headers': {'WWW-Authenticate': 'Bearer'}
-            }
-        )
-
-    content = await file.read()
-    drive.put(f'{payload["sub"]}_1.pdf', content)
-
-    return CustomResponse(
-        success=True,
-        code=status.HTTP_200_OK,
-        message="Successfully stored",
-        data={
-            'filename': f'{payload["sub"]}_1.pdf',
-            'issuer': f'{payload["sub"]}'
-        }
-    )
-
-
 @router.delete("/test", include_in_schema=False)
 async def delete_test_data() -> CustomResponse:
     data = db_user.fetch(test_data)
@@ -611,19 +583,21 @@ async def upload_proof_point(request: Request,
             status_code=status.HTTP_404_NOT_FOUND
         )
 
-    assessment = existing_assessment_data.items[0]
-
-    existing_points = [db_point.fetch({'id_assessment': assessment['key'], 'sub_bab': sub_bab}) for sub_bab in bab]
-    points_status = [point.count for point in existing_points]
-
-    point_finished = []
-    for i in range(len(bab)):
-        if points_status[i] >= question_number[i]:
-            point_finished.append(bab[i])
-
-    if len(point_finished) == 10:
-        assessment['selesai'] = True
-        db_assessment.update(assessment, key=assessment['key'])
+    # assessment = existing_assessment_data.items[0]
+    #
+    # existing_points = [db_point.fetch({'id_assessment': assessment['key'], 'sub_bab': sub_bab}) for sub_bab in bab]
+    # points_status = [point.count for point in existing_points]
+    #
+    # point_finished = []
+    # for i in range(len(bab)):
+    #     if points_status[i] >= question_number[i]:
+    #         point_finished.append(bab[i])
+    #
+    # if len(point_finished) == 10:
+    #     assessment['selesai'] = True
+    #     key = assessment['key']
+    #     del assessment['key']
+    #     db_assessment.update(assessment, key=key)
 
     return create_response(
         message=filename,
@@ -645,7 +619,18 @@ async def update_assessment(request: Request,
             success=False
         )
 
-    current_point = db_point.fetch({'bab': metadata.bab, 'sub_bab': metadata.sub_bab, 'point': metadata.point})
+    existing_assessment_data = db_assessment.fetch({'id_admin': user.key, 'selesai': False})
+    if existing_assessment_data.count == 0:
+        return create_response(
+            message="No active assessment",
+            success=False,
+            status_code=status.HTTP_404_NOT_FOUND
+        )
+
+    assessment = AssessmentDB(**existing_assessment_data.items[0])
+
+    # current_point = db_point.fetch({'bab': metadata.bab, 'sub_bab': metadata.sub_bab, 'point': metadata.point})
+    current_point = db_point.fetch({'id_assessment': assessment.key, 'bab': metadata.bab, 'sub_bab': metadata.sub_bab, 'point': metadata.point})
     if current_point.count == 0:
         return create_response(
             message="Point not found",
@@ -654,7 +639,8 @@ async def update_assessment(request: Request,
         )
 
     key = current_point.items[0]['key']
-    db_point.update({'answer': metadata.answer}, key)
+    res = db_point.get(key)
+    actual_point = Point(**res)
 
     content = None
     if file:
@@ -664,14 +650,80 @@ async def update_assessment(request: Request,
     if file:
         drive.delete(filename)
         drive.put(filename, content)
+        if not actual_point.proof:
+            new_proof = Proof(
+                id_user=user.key,
+                url=f"{request.url.hostname}/api/actualfile/{filename}",
+                file_name=filename
+            )
 
-    res = db_point.get(key)
+            actual_point.proof = new_proof
+            db_proof.put(new_proof.dict())
+
+    actual_point.answer = metadata.answer
+    db_point.update(actual_point.dict(), key)
 
     return create_response(
         message='Update success',
         status_code=status.HTTP_200_OK,
         success=True,
         data=res
+    )
+
+
+@app.delete("/file/{filename}")
+async def delete_proof(filename: str, user: UserDB = Depends(get_user)) -> JSONResponse:
+    if user.role not in ['admin', 'staff']:
+        return create_response(
+            message="Forbidden Access",
+            status_code=status.HTTP_403_FORBIDDEN,
+            success=False
+        )
+
+    existing_proof = db_proof.fetch({'file_name': filename})
+    if existing_proof.count == 0:
+        return create_response(
+            message="Proof not found",
+            status_code=status.HTTP_404_NOT_FOUND,
+            success=False
+        )
+
+    actual_proof = existing_proof.items[0]
+    db_proof.delete(actual_proof['key'])
+    drive.delete(filename)
+
+    existing_point = db_point.fetch({'proof.file_name': filename})
+    if existing_point.count == 0:
+        return create_response(
+            message="Proof successfully deleted without updating point",
+            status_code=status.HTTP_200_OK,
+            success=True,
+            data=actual_proof
+        )
+
+    actual_point = existing_point.items[0]
+    actual_point['proof'] = None
+
+    key = actual_point['key']
+    del actual_point['key']
+
+    db_point.update(actual_point, key)
+
+    return create_response(
+        message="Proof successfully deleted with updating point",
+        status_code=status.HTTP_200_OK,
+        success=True,
+        data=actual_proof
+    )
+
+
+@app.get('/entitas')
+async def get_entitas(user: UserDB = Depends(get_user)) -> JSONResponse:
+    return create_response(
+        message="Get entity success",
+        status_code=status.HTTP_200_OK,
+        success=True,
+        data=user.get_institution()
     )
 
 
@@ -683,8 +735,6 @@ async def upload_proofs_point(request: Request,
 
     # content = await file.read()
     filename = f"{user.get_institution()['key']}_{metadata.bab}_{metadata.sub_bab.replace('.', '')}_{metadata.point}.pdf"
-
-    # drive.put(filename, content)
 
     new_proof = Proof(
         id_user=user.key,
@@ -1015,6 +1065,20 @@ async def selesai_isi(id_assessment: str, user: UserDB = Depends(get_user)) -> J
     key = assessment['key']
     del assessment['key']
     db_assessment.update(assessment, key=key)
+
+    # existing_points = [db_point.fetch({'id_assessment': assessment['key'], 'sub_bab': sub_bab}) for sub_bab in bab]
+    # points_status = [point.count for point in existing_points]
+    #
+    # point_finished = []
+    # for i in range(len(bab)):
+    #     if points_status[i] >= question_number[i]:
+    #         point_finished.append(bab[i])
+    #
+    # if len(point_finished) == 10:
+    #     assessment['selesai'] = True
+    #     key = assessment['key']
+    #     del assessment['key']
+    #     db_assessment.update(assessment, key=key)
 
     return create_response(
         message="Assessment finished",

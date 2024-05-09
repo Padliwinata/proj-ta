@@ -141,8 +141,8 @@ def seed() -> None:
     password_alice = f.encrypt('another_secure_password'.encode('utf-8'))
 
     db_user.put({
-        "username": "alice_smith",
-        "full_name": "Alice Smith",
+        "username": "adminperusahaan",
+        "full_name": "Admin Perusahaan",
         "password": password_alice.decode('utf-8'),
         "email": "alice@example.com",
         "role": "admin",
