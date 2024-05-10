@@ -131,7 +131,7 @@ async def custom_handler(request: Request, exc: DependencyException) -> JSONResp
     )
 
 
-@router.post('/register', tags=['General', 'Auth'])
+@router.post('/register', tags=['Auth'])
 async def register(data: RegisterForm) -> JSONResponse:
     existing_data = db_user.fetch([{'username': data.username}, {'email': data.email}])
     if existing_data.count > 0:
@@ -184,7 +184,7 @@ async def register(data: RegisterForm) -> JSONResponse:
     )
 
 
-@router.post("/auth", tags=['General', 'Auth'])
+@router.post("/auth", tags=['Auth'])
 async def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]) -> JSONResponse:
     user = authenticate_user(db_user, form_data.username, form_data.password)
     if not user:
@@ -240,7 +240,7 @@ async def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]) -> J
         )
 
 
-@router.get("/auth", tags=['General'])
+@router.get("/auth", tags=['Auth'])
 async def check(access_token: str = Depends(oauth2_scheme)) -> JSONResponse:
     try:
         if not access_token:
@@ -297,7 +297,7 @@ async def check(access_token: str = Depends(oauth2_scheme)) -> JSONResponse:
         )
 
 
-@router.put("/auth", tags=['General'])
+@router.put("/auth", tags=['Auth'])
 async def refresh(refresh_token: Refresh, access_token: str = Depends(oauth2_scheme)) -> CustomResponse:
     try:
         refresh_payload = get_payload_from_token(refresh_token.refresh_token)
@@ -337,7 +337,7 @@ async def refresh(refresh_token: Refresh, access_token: str = Depends(oauth2_sch
         )
 
 
-@router.post("/account", tags=['Admin'])
+@router.post("/account", tags=['Auth'])
 async def register_staff(data: AddUser, user: User = Depends(get_user)) -> JSONResponse:
     if not user:
         return create_response("Credentials Not Found", False, status.HTTP_401_UNAUTHORIZED)
@@ -362,7 +362,7 @@ async def register_staff(data: AddUser, user: User = Depends(get_user)) -> JSONR
     return create_response("User Created", True, status.HTTP_201_CREATED, parsed_data)
 
 
-@router.patch('/alter')
+@router.patch('/alter', tags=['General - Admin'])
 async def alternate_staff_status(user_key: str, user: User = Depends(get_user)) -> JSONResponse:
     if user.role != 'admin':
         return create_response("Forbidden Access", False, status.HTTP_403_FORBIDDEN, {'role': user.role})
@@ -376,20 +376,7 @@ async def alternate_staff_status(user_key: str, user: User = Depends(get_user)) 
     return create_response("Success altering user status", True, status.HTTP_200_OK, existing_user)
 
 
-@router.delete("/test", include_in_schema=False)
-async def delete_test_data() -> CustomResponse:
-    data = db_user.fetch(test_data)
-    db_user.delete(data.items[0]['key'])
-
-    return CustomResponse(
-        success=True,
-        code=status.HTTP_200_OK,
-        message="Successfully deleted",
-        data=None
-    )
-
-
-@router.get("/admin", tags=['Super Admin'])
+@router.get("/admin", tags=['General - Super Admin'])
 async def get_admin_list(user: User = Depends(get_user)) -> JSONResponse:
     if user.role != 'super admin':
         return create_response("Forbidden Access", False, status.HTTP_403_FORBIDDEN, {'role': user.role})
@@ -430,7 +417,7 @@ async def get_admin_list(user: User = Depends(get_user)) -> JSONResponse:
     )
 
 
-@router.get("/staff")
+@router.get("/staff", tags=['General - Admin'])
 async def get_staff(user: User = Depends(get_user)) -> JSONResponse:
     if user.role != 'admin':
         return create_response("Forbidden Access", False, status.HTTP_403_FORBIDDEN, {'role': user.role})
@@ -469,7 +456,7 @@ async def get_staff(user: User = Depends(get_user)) -> JSONResponse:
     # for data in fetch_response.items:
 
 
-@router.get("/log", tags=['Admin'])
+@router.get("/log", tags=['General - Admin'])
 async def get_login_log(user: User = Depends(get_user)) -> JSONResponse:
     if user.role != 'admin':
         return create_response("Forbidden Access", False, status.HTTP_403_FORBIDDEN, {'role': user.role})
@@ -502,7 +489,7 @@ async def get_login_log(user: User = Depends(get_user)) -> JSONResponse:
     return create_response("Fetch Data Success", True, status.HTTP_200_OK, data=final_data)
 
 
-@router.post("/point")
+@router.post("/point", tags=['Deterrence - Admin'])
 async def upload_proof_point(request: Request,
                              metadata: ProofMeta = Depends(),
                              user: UserDB = Depends(get_user),
@@ -583,22 +570,6 @@ async def upload_proof_point(request: Request,
             status_code=status.HTTP_404_NOT_FOUND
         )
 
-    # assessment = existing_assessment_data.items[0]
-    #
-    # existing_points = [db_point.fetch({'id_assessment': assessment['key'], 'sub_bab': sub_bab}) for sub_bab in bab]
-    # points_status = [point.count for point in existing_points]
-    #
-    # point_finished = []
-    # for i in range(len(bab)):
-    #     if points_status[i] >= question_number[i]:
-    #         point_finished.append(bab[i])
-    #
-    # if len(point_finished) == 10:
-    #     assessment['selesai'] = True
-    #     key = assessment['key']
-    #     del assessment['key']
-    #     db_assessment.update(assessment, key=key)
-
     return create_response(
         message=filename,
         status_code=status.HTTP_200_OK,
@@ -607,7 +578,7 @@ async def upload_proof_point(request: Request,
     )
 
 
-@router.patch('/point')
+@router.patch('/point', tags=['Deterrence - Admin'])
 async def update_assessment(request: Request,
                             metadata: ProofMeta = Depends(),
                             user: UserDB = Depends(get_user),
@@ -671,7 +642,7 @@ async def update_assessment(request: Request,
     )
 
 
-@app.delete("/file/{filename}")
+@app.delete("/file/{filename}", tags=['Deterrence - Admin'])
 async def delete_proof(filename: str, user: UserDB = Depends(get_user)) -> JSONResponse:
     if user.role not in ['admin', 'staff']:
         return create_response(
@@ -717,7 +688,7 @@ async def delete_proof(filename: str, user: UserDB = Depends(get_user)) -> JSONR
     )
 
 
-@app.get('/entitas')
+@app.get('/entitas', tags=['General'])
 async def get_entitas(user: UserDB = Depends(get_user)) -> JSONResponse:
     return create_response(
         message="Get entity success",
@@ -761,7 +732,7 @@ async def upload_proofs_point(request: Request,
     )
 
 
-@router.get("/seed", tags=['Testing'])
+@router.get("/seed", tags=['Development'])
 async def seed_database() -> JSONResponse:
     seed()
     return create_response(
@@ -771,7 +742,7 @@ async def seed_database() -> JSONResponse:
     )
 
 
-@router.get("/seed/assessment")
+@router.get("/seed/assessment", tags=['Development'])
 async def assessment_seeder(password: str) -> JSONResponse:
     if password != "iya":
         return create_response(
@@ -787,7 +758,7 @@ async def assessment_seeder(password: str) -> JSONResponse:
     )
 
 
-@router.get("/delete", tags=['Testing'])
+@router.get("/delete", tags=['Development'])
 async def delete_database() -> JSONResponse:
     delete_db()
     return create_response(
@@ -797,7 +768,7 @@ async def delete_database() -> JSONResponse:
     )
 
 
-@router.get("/file/{filename}", tags=["General"])
+@router.get("/file/{filename}", tags=['General'])
 async def get_file(filename: str, request: Request) -> JSONResponse:
     response = drive.get(filename)
     if not response:
@@ -828,7 +799,7 @@ async def get_actual_file(filename: str) -> Response:
     return Response(content=file_like, media_type='application/pdf')
 
 
-@router.get("/verify/{userid}", tags=['Auth'])
+@router.get("/verify/{userid}", tags=['General - Super Admin'])
 async def verify_user(userid: str) -> JSONResponse:
     resp = db_user.get(userid)
     if not resp:
@@ -855,7 +826,7 @@ async def verify_user(userid: str) -> JSONResponse:
     )
 
 
-@router.post("/assessment")
+@router.post("/assessment", tags=['Deterrence - Admin'])
 async def start_assessment(user: UserDB = Depends(get_user)) -> JSONResponse:
     existing_data = db_assessment.fetch({'id_admin': user.key, 'selesai': False})
     if existing_data.count > 0:
@@ -871,7 +842,8 @@ async def start_assessment(user: UserDB = Depends(get_user)) -> JSONResponse:
     new_assessment = {
         'id_institution': user.id_institution,
         'id_admin': user.key,
-        'id_reviewer': '',
+        'id_reviewer_internal': '',
+        'id_reviewer_external': '',
         'tanggal': extra_datetime.strftime('%-d %B %Y, %H:%M'),
         'hasil': 0,
         'selesai': False
@@ -887,7 +859,7 @@ async def start_assessment(user: UserDB = Depends(get_user)) -> JSONResponse:
     )
 
 
-@router.get("/assessment")
+@router.get("/assessment", tags=['Deterrence - Admin'])
 async def get_current_assessment(sub_bab: str, user: UserDB = Depends(get_user)) -> JSONResponse:
     existing_assessment_data = db_assessment.fetch({'id_admin': user.key, 'selesai': False})
     if existing_assessment_data.count == 0:
@@ -919,7 +891,7 @@ async def get_current_assessment(sub_bab: str, user: UserDB = Depends(get_user))
     )
 
 
-@router.get("/assessments")
+@router.get("/assessments", tags=['Deterrence - Admin'])
 async def get_all_assessment(user: UserDB = Depends(get_user)) -> JSONResponse:
     if user.role not in ['admin', 'reviewer']:
         return create_response(
@@ -947,7 +919,7 @@ async def get_all_assessment(user: UserDB = Depends(get_user)) -> JSONResponse:
     )
 
 
-@router.get("/assessments/progress")
+@router.get("/assessments/progress", tags=['Deterrence - Admin'])
 async def get_finished_assessments(user: UserDB = Depends(get_user)) -> JSONResponse:
     if user.role != 'admin':
         return create_response(
@@ -982,7 +954,7 @@ async def get_finished_assessments(user: UserDB = Depends(get_user)) -> JSONResp
     )
 
 
-@router.post("/assessments/evaluation", tags=['Reviewer'])
+@router.post("/assessments/evaluation", tags=['Deterrence - Reviewer'])
 async def evaluate_assessment(data: AssessmentEval, user: UserDB = Depends(get_user)) -> JSONResponse:
     if user.role != 'reviewer':
         return create_response(
@@ -1030,11 +1002,6 @@ async def evaluate_assessment(data: AssessmentEval, user: UserDB = Depends(get_u
         to_update = Point(**point)
         db_point.update(to_update.dict(), point['key'])
 
-    # existing_assessment['hasil'] = sum([point['skor'] for point in sorted_points]) + existing_assessment['hasil']
-    # key = existing_assessment['key']
-    # del existing_assessment['key']
-    # db_assessment.update(existing_assessment, key=key)
-
     return create_response(
         message="Success update data",
         success=True,
@@ -1043,7 +1010,7 @@ async def evaluate_assessment(data: AssessmentEval, user: UserDB = Depends(get_u
     )
 
 
-@router.post("/selesai")
+@router.post("/selesai", tags=['Deterrence - Admin'])
 async def selesai_isi(id_assessment: str, user: UserDB = Depends(get_user)) -> JSONResponse:
     if user.role != 'admin':
         return create_response(
@@ -1066,20 +1033,6 @@ async def selesai_isi(id_assessment: str, user: UserDB = Depends(get_user)) -> J
     del assessment['key']
     db_assessment.update(assessment, key=key)
 
-    # existing_points = [db_point.fetch({'id_assessment': assessment['key'], 'sub_bab': sub_bab}) for sub_bab in bab]
-    # points_status = [point.count for point in existing_points]
-    #
-    # point_finished = []
-    # for i in range(len(bab)):
-    #     if points_status[i] >= question_number[i]:
-    #         point_finished.append(bab[i])
-    #
-    # if len(point_finished) == 10:
-    #     assessment['selesai'] = True
-    #     key = assessment['key']
-    #     del assessment['key']
-    #     db_assessment.update(assessment, key=key)
-
     return create_response(
         message="Assessment finished",
         success=True,
@@ -1088,7 +1041,7 @@ async def selesai_isi(id_assessment: str, user: UserDB = Depends(get_user)) -> J
     )
 
 
-@app.post("/report")
+@app.post("/report", tags=['Detection - Staff'])
 async def get_beneish_score(data: Report, user: UserDB = Depends(get_user)) -> JSONResponse:
     if user.role != 'staff':
         return create_response(
@@ -1109,7 +1062,7 @@ async def get_beneish_score(data: Report, user: UserDB = Depends(get_user)) -> J
     )
 
 
-@app.post("/deactivate")
+@app.post("/deactivate", tags=['General - Super Admin'])
 async def deactivate_institution(id_institution: str, user: UserDB = Depends(get_user)) -> JSONResponse:
     if user.role != 'super admin':
         return create_response(

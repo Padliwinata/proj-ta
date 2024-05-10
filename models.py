@@ -138,7 +138,8 @@ class FileMeta(BaseModel):
 class Assessment(BaseModel):
     id_institution: str
     id_admin: str
-    id_reviewer: typing.Optional[str]
+    id_reviewer_internal: typing.Optional[str]
+    id_reviewer_external: typing.Optional[str]
     tanggal: str
     hasil: int
     selesai: bool
