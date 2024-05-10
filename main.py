@@ -954,62 +954,6 @@ async def get_finished_assessments(user: UserDB = Depends(get_user)) -> JSONResp
     )
 
 
-@router.post("/assessments/evaluation", tags=['Deterrence - Reviewer'])
-async def evaluate_assessment(data: AssessmentEval, user: UserDB = Depends(get_user)) -> JSONResponse:
-    if user.role != 'reviewer':
-        return create_response(
-            message="Forbidden access",
-            success=False,
-            status_code=status.HTTP_403_FORBIDDEN
-        )
-
-    existing_assessment = db_assessment.get(data.id_assessment)
-    if not existing_assessment:
-        return create_response(
-            message="Assessment not found",
-            success=False,
-            status_code=status.HTTP_404_NOT_FOUND
-        )
-
-    if existing_assessment['id_reviewer'] != '':
-        return create_response(
-            message="Already reviewed by another reviewer",
-            success=False,
-            status_code=status.HTTP_400_BAD_REQUEST
-        )
-
-    if question_number[bab.index(data.sub_bab)] != len(data.skor):
-        return create_response(
-            message="Number of score didn't match",
-            success=False,
-            status_code=status.HTTP_400_BAD_REQUEST
-        )
-
-    existing_points = db_point.fetch({'id_assessment': data.id_assessment, 'sub_bab': data.sub_bab})
-
-    if existing_points.count < question_number[bab.index(data.sub_bab)]:
-        return create_response(
-            message="Please finish the assessment before evaluation",
-            success=False,
-            status_code=status.HTTP_400_BAD_REQUEST
-        )
-
-    sorted_points = sorted(existing_points.items, key=lambda x: x['point'])
-    for i in range(len(sorted_points)):
-        sorted_points[i]['skor'] = data.skor[i]
-
-    for point in sorted_points:
-        to_update = Point(**point)
-        db_point.update(to_update.dict(), point['key'])
-
-    return create_response(
-        message="Success update data",
-        success=True,
-        status_code=status.HTTP_200_OK,
-        data=sorted_points
-    )
-
-
 @router.post("/selesai", tags=['Deterrence - Admin'])
 async def selesai_isi(id_assessment: str, user: UserDB = Depends(get_user)) -> JSONResponse:
     if user.role != 'admin':
@@ -1062,18 +1006,138 @@ async def get_beneish_score(data: Report, user: UserDB = Depends(get_user)) -> J
     )
 
 
-@app.post("/deactivate", tags=['General - Super Admin'])
-async def deactivate_institution(id_institution: str, user: UserDB = Depends(get_user)) -> JSONResponse:
-    if user.role != 'super admin':
+# @app.post("/deactivate", tags=['General - Super Admin'])
+# async def deactivate_institution(id_institution: str, user: UserDB = Depends(get_user)) -> JSONResponse:
+#     if user.role != 'super admin':
+#         return create_response(
+#             message="Forbidden access",
+#             success=False,
+#             status_code=status.HTTP_403_FORBIDDEN
+#         )
+
+
+@router.get("/assessments/evaluation", tags=['Deterrence - Reviewer'])
+async def start_evaluation(id_assessment: str, user: UserDB = Depends(get_user)) -> JSONResponse:
+    if user.role != 'reviewer':
         return create_response(
             message="Forbidden access",
             success=False,
             status_code=status.HTTP_403_FORBIDDEN
         )
 
+    existing_assessment = db_assessment.get(id_assessment)
+    if not existing_assessment:
+        return create_response(
+            message="Assessment not found",
+            success=False,
+            status_code=status.HTTP_404_NOT_FOUND
+        )
+
+    external = user.get_institution()['key'] == 'external'
+    key = existing_assessment['key']
+    del existing_assessment['key']
+
+    if not external and existing_assessment['id_reviewer_internal'] != '':
+        return create_response(
+            message="Already reviewed by another internal reviewer",
+            success=False,
+            status_code=status.HTTP_400_BAD_REQUEST
+        )
+
+    if external and existing_assessment['id_reviewer_internal'] == '':
+        return create_response(
+            message="Internal reviewer should review first",
+            success=False,
+            status_code=status.HTTP_400_BAD_REQUEST
+        )
+
+    if external and existing_assessment['id_reviewer_external'] != '':
+        return create_response(
+            message="Already reviewed by another external reviewer",
+            success=False,
+            status_code=status.HTTP_400_BAD_REQUEST
+        )
+
+    if external:
+        existing_assessment['id_reviewer_external'] = user.key
+    existing_assessment['id_reviewer_internal'] = user.key
+
+    db_assessment.update(existing_assessment, key)
+
+    return create_response(
+        message="Start reviewing success",
+        success=True,
+        status_code=status.HTTP_200_OK,
+        data=existing_assessment
+    )
+
+
+@router.post("/assessments/evaluation", tags=['Deterrence - Reviewer'])
+async def evaluate_assessment(data: AssessmentEval, user: UserDB = Depends(get_user)) -> JSONResponse:
+    if user.role != 'reviewer':
+        return create_response(
+            message="Forbidden access",
+            success=False,
+            status_code=status.HTTP_403_FORBIDDEN
+        )
+
+    existing_assessment = db_assessment.get(data.id_assessment)
+    if not existing_assessment:
+        return create_response(
+            message="Assessment not found",
+            success=False,
+            status_code=status.HTTP_404_NOT_FOUND
+        )
+
+    external = user.get_institution()['key'] == 'external'
+
+    reviewer_key = 'id_reviewer_external' if external else 'id_reviewer_internal'
+
+    if existing_assessment[reviewer_key] == '':
+        return create_response(
+            message="Assessment review not started yet",
+            success=False,
+            status_code=status.HTTP_400_BAD_REQUEST
+        )
+
+    if existing_assessment[reviewer_key] != user.key:
+        return create_response(
+            message="Assessment started by someone else",
+            success=False,
+            status_code=status.HTTP_400_BAD_REQUEST
+        )
+
+    if question_number[bab.index(data.sub_bab)] != len(data.skor):
+        return create_response(
+            message="Number of score didn't match",
+            success=False,
+            status_code=status.HTTP_400_BAD_REQUEST
+        )
+
+    existing_points = db_point.fetch({'id_assessment': data.id_assessment, 'sub_bab': data.sub_bab})
+
+    if existing_points.count < question_number[bab.index(data.sub_bab)]:
+        return create_response(
+            message="Please finish the assessment before evaluation",
+            success=False,
+            status_code=status.HTTP_400_BAD_REQUEST
+        )
+
+    sorted_points = sorted(existing_points.items, key=lambda x: x['point'])
+    for i in range(len(sorted_points)):
+        sorted_points[i]['skor'] = int(data.skor[i]) if data.skor[i] != '-' else None
+
+    for point in sorted_points:
+        to_update = Point(**point)
+        db_point.update(to_update.dict(), point['key'])
+
+    return create_response(
+        message="Success update data",
+        success=True,
+        status_code=status.HTTP_200_OK,
+        data=sorted_points
+    )
 
 app.include_router(router)
-
-
 
 

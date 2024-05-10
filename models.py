@@ -163,7 +163,7 @@ class AssessmentDB(Assessment):
 class AssessmentEval(BaseModel):
     id_assessment: str
     sub_bab: str
-    skor: typing.List[int]
+    skor: typing.List[str]
 
 
 class ReportInput(BaseModel):
