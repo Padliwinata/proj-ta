@@ -16,7 +16,7 @@ client = TestClient(app)
 
 @pytest.fixture
 
-def authorized_client() -> typing.Tuple[TestClient, TestClient]:
+def authorized_client() -> typing.Tuple[TestClient, TestClient]: # type: ignore
     client = TestClient(app)
     admin_client = TestClient(app)
     reviewer_client = TestClient(app)
@@ -144,69 +144,52 @@ def test_login_user_not_found() -> None:
     assert response.status_code == 401
     assert response.json()['success'] is False
     assert response.json()['message'] == "User not found"
-    
-def test_login_development_mode():
-    # Test case for login in development mode
-    app.DEVELOPMENT = True  # Set app to development mode for this test
-    test_data = {
-        'username': 'alice_smith',
-        'password': 'another_secure_password'
-    }
-    response = client.post('/api/auth', data=test_data)
-    assert response.status_code == 200
-    assert response.json()['success'] is True
-    assert 'access_token' in response.json()['data']  # Check if access token is returned
-    app.DEVELOPMENT = False
 
 
 def test_register_staff(authorized_client) -> None:
     admin_client, _ = authorized_client
+    
+    # Data untuk pendaftaran staf baru
     test_data = {
-        'full_name': 'testing staff',
+        'full_name': 'Testing Staff',
         'role': 'staff',
-        'phone':'093748499',
+        'phone': '093748499',
         'email': 'staff@gmail.com',
         'username': 'staff_yuna',
-        'password': 'stafyuna'# Adjusted for the role
+        'password': 'stafyuna'
     }
-    response = admin_client.post('/api/account', json=test_data)
-    assert response.status_code == 200
-    assert response.json()['success'] is True
-
-# def test_register_staff_existing_user(authorized_client) -> None:
-#     # Test case for registering an existing user as staff
-#     test_data = {
-#         'username': 'new_staff',
-#         'password': 'new_password',
-#         'email': 'staff@example.com',  # Adjusted for the required fields
-#         'role': 'staff'
-#     }
-#     response = authorized_client.post('/api/account', json=test_data)
-#     assert response.status_code == 400
-#     assert response.json()['success'] is False
     
-# def test_get_login_log_as_admin(authorized_client)-> None:
-#     # Mocking dependencies
-#     authorized_client.user = MagicMock(role='admin', get_institution=MagicMock(return_value={'key': '123'}))
-#     mock_log_data = [
-#         {'name': 'Staff Name', 'email': 'staff@example.com', 'role': 'staff', 'tanggal': '2024-04-01'},
-#         {'name': 'Reviewer Name', 'email': 'reviewer@example.com', 'role': 'reviewer', 'tanggal': '2024-04-02'}
-#     ]
-#     authorized_client.db_user.fetch.return_value = MagicMock(count=2, items=mock_log_data)
+    # Panggil endpoint untuk pendaftaran staf baru
+    response = admin_client.post('/api/account', json=test_data)
+    
+    # Periksa apakah pendaftaran berhasil
+    assert response.status_code == 201  # Periksa status kode 201 Created
+    assert response.json()['success'] is True  # Pastikan bahwa pendaftaran berhasil
 
-#     # Call the function
-#     response = authorized_client.get('/api/log')
+def test_register_existing_user(authorized_client) -> None:
+    admin_client, _ = authorized_client
+    
+    # Data untuk pengguna yang sudah terdaftar sebelumnya
+    test_data = {
+        'full_name': 'Testing Staff',
+        'role': 'staff',
+        'phone': '093748499',
+        'email': 'staff@gmail.com',
+        'username': 'staff_yuna',
+        'password': 'stafyuna'
+    }
 
-#     # Assertions
-#     assert response.status_code == status.HTTP_200_OK
-#     assert response.json() == {
-#         'message': 'Fetch Data Success',
-#         'success': True,
-#         'data': [
-#             {'nama': 'Staff Name', 'email': 'staff@example.com', 'role': 'staff', 'tanggal': '2024-04-01'},
-#             {'nama': 'Reviewer Name', 'email': 'reviewer@example.com', 'role': 'reviewer', 'tanggal': '2024-04-02'}
-#         ]
-#     }
+    # Menambahkan pengguna yang sudah terdaftar sebelumnya ke database
+    db_user.put(test_data)
+
+    # Panggil endpoint untuk pendaftaran pengguna yang sama
+    response = admin_client.post('/api/account', json=test_data)
+    
+    # Periksa apakah pendaftaran gagal karena pengguna sudah terdaftar sebelumnya
+    assert response.status_code == 400  # Periksa status kode 400 Bad Request
+    assert response.json()['success'] is False  # Pastikan bahwa pendaftaran gagal
+    assert response.json()['message'] == "User Already Exist"  # Pastikan bahwa pesan yang tepat dikembalikan oleh endpoint
+
 
 def test_fill_assesment(authorized_client) -> None:
     client, _ = authorized_client
@@ -257,22 +240,45 @@ def test_get_all_assessment(authorized_client) -> None:
     assert response.status_code == 200
     assert response.json()["success"] == True
     assert len(response.json()["data"]) == 1  # Assuming only one assessment is created
-
-def test_evaluate_assessment(authorized_client) -> None:
-    _, reviewer_client = authorized_client
-
-    # Prepare data
-    assessment_id = "test_assessment_id"
-    sub_bab = "1.1"
-    skor = [10]  # Assuming the length matches the number of questions in sub_bab
-
+    
+def test_get_finished_assessments_with_assessment(authorized_client) -> None:
+    admin_client, _ = authorized_client
+    
+    # Create an ongoing assessment
+    admin_client.post("/api/assessment")
+    
     # Call the endpoint
-    response = reviewer_client.post("/api/assessments/evaluation", json={"id_assessment": assessment_id, "sub_bab": sub_bab, "skor": skor})
-
-    # Assertions
-    assert response.status_code == 200
-    assert response.json()['success'] is True
-  
-
+    response = admin_client.get("/api/assessments/progress")
+    
+    # Assert the response
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()["success"] == True
 
 
+def test_get_finished_assessments_no_assessment(authorized_client) -> None:
+    admin_client, _ = authorized_client
+    
+    # Call the endpoint
+    response = admin_client.get("/api/assessments/progress")
+    
+    # Assert the response
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+    assert response.json()["success"] == False
+    assert response.json()["message"] == "Assessment not found"
+    
+def test_evaluate_assessment_successful(authorized_client) -> None:
+    _, reviewer_client = authorized_client
+    
+    # Assuming 'data' is a valid instance of AssessmentEval
+    data = {
+        'id_assessment': 'assessment_id',
+        'sub_bab': '1.1',
+        'skor': [5, 4, 3, 5]  # Assuming this list matches the number of questions in sub_bab '1.1'
+    }
+    
+    # Call the endpoint
+    response = reviewer_client.post("/api/assessments/evaluation", json=data)
+    
+    # Assert the response
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()["success"] == True

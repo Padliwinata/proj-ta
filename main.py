@@ -337,13 +337,15 @@ async def refresh(refresh_token: Refresh, access_token: str = Depends(oauth2_sch
         )
 
 
+from pydantic import SecretStr
+
 @router.post("/account", tags=['Admin'])
 async def register_staff(data: AddUser, user: User = Depends(get_user)) -> JSONResponse:
     if not user:
         return create_response("Credentials Not Found", False, status.HTTP_401_UNAUTHORIZED)
 
     parsed_data = data.dict()
-    if data.password:
+    if isinstance(data.password, SecretStr):  # Periksa apakah password adalah SecretStr
         parsed_data['password'] = data.password.get_secret_value()
 
     registered_user = db_user.fetch(parsed_data)
@@ -362,6 +364,7 @@ async def register_staff(data: AddUser, user: User = Depends(get_user)) -> JSONR
     del parsed_data['password']
 
     return create_response("User Created", True, status.HTTP_201_CREATED, parsed_data)
+
 
 
 @router.post('/document_1', include_in_schema=False)
