@@ -11,7 +11,7 @@ from jose import jwt
 from pydantic import BaseModel
 
 from settings import SECRET_KEY, ALGORITHM, JWT_EXPIRED
-from models import User, Payload, Response
+from models import User, Payload, CustomResponse
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='auth')
 f = Fernet(SECRET_KEY)
@@ -61,7 +61,7 @@ def create_response(
         status_code: int = 400,
         data: typing.Union[typing.Dict[str, typing.Any], typing.List[typing.Any], None] = None
 ) -> JSONResponse:
-    response = Response(
+    response = CustomResponse(
         success=success,
         code=status_code,
         message=message,
