@@ -13,10 +13,9 @@ from seeder import seed, seed_assessment
 
 client = TestClient(app)
 
-
 @pytest.fixture
 
-def authorized_client() -> typing.Tuple[TestClient, TestClient]: # type: ignore
+def authorized_client() -> typing.Tuple[TestClient, TestClient]: 
     client = TestClient(app)
     admin_client = TestClient(app)
     reviewer_client = TestClient(app)
@@ -144,6 +143,71 @@ def test_login_user_not_found() -> None:
     assert response.status_code == 401
     assert response.json()['success'] is False
     assert response.json()['message'] == "User not found"
+    
+def test_register_reviewer() -> None:
+    client = TestClient(app)
+    rev_data = {
+        'username': 'testrev',
+        'email': 'revwer@gmail.com',
+        'password': 'testrev',
+        'full_name': 'testing full name',
+        'role': 'reviewer',
+        'phone': '081357516553',
+        'institution_name': 'Testing Institution',
+        'institution_address': '123 Testing St',
+        'institution_phone': '123456789',
+        'institution_email': 'institution@example.com'
+    }
+    response = client.post('/api/register', json=rev_data)
+    user = db_user.fetch({'username': 'testrev'})
+    db_user.delete(user.items[0]['key'])
+    assert response.status_code == 201
+    assert response.json()['success'] is True
+
+
+def test_register_reviewer_invalid_data() -> None:
+    client = TestClient(app)
+    # Test case for registering a user with invalid data
+    invalid_rev_data = {
+        'username': 'testrev',
+        'email': 'revwer@gmail.com',
+        'password': 'testrev',
+        'full_name': 'testing full name',
+        'role': 'reviewer',
+        'phone': '081357516553',
+        'institution_name': 'Testing Institution',
+        'institution_address': '123 Testing St',
+        'institution_phone': '123456789',
+        'institution_email': 'institutionexamplecom' #invalid email  format
+    }
+    response = client.post('/api/register', json=invalid_rev_data)
+    assert response.status_code == 422
+    assert 'detail' in response.json()
+    assert 'value is not a valid email address' in response.json()['detail'][0]['msg']
+
+def test_login_reviewer(authorized_client) -> None:
+    # Test case for successful user login
+    rev_data = {
+        'username': 'testrev',
+        'password': 'testrev'
+    }
+    client, _ = authorized_client
+    response = client.post('/api/auth', data=rev_data)
+    assert response.status_code == 200
+    assert response.json()['success'] is True
+    
+
+def test_login_rev_not_found() -> None:
+    # Test case for user not found scenario
+    rev_data = {
+        'username': 'non_existent_rev',
+        'password': 'some_password'
+    }
+    response = client.post('/api/auth', data=rev_data)
+    assert response.status_code == 401
+    assert response.json()['success'] is False
+    assert response.json()['message'] == "User not found"
+    
 
 
 def test_register_staff(authorized_client) -> None:
@@ -265,20 +329,25 @@ def test_get_finished_assessments_no_assessment(authorized_client) -> None:
     assert response.status_code == status.HTTP_404_NOT_FOUND
     assert response.json()["success"] == False
     assert response.json()["message"] == "Assessment not found"
+
+def test_start_evaluation_not_reviewer(authorized_client) -> None:
+    admin_client, _ = authorized_client
+
+    # Kirim permintaan untuk memulai evaluasi oleh reviewer internal
+    response = admin_client.get("/api/assessments/evaluation?id_assessment=1234")
+
+    # Periksa apakah permintaan berhasil
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+    assert response.json()["success"] == False
+    assert response.json()["message"] == "Forbidden access"
     
-def test_evaluate_assessment_successful(authorized_client) -> None:
+def test_start_evaluation_internal_reviewer(authorized_client) -> None:
     _, reviewer_client = authorized_client
-    
-    # Assuming 'data' is a valid instance of AssessmentEval
-    data = {
-        'id_assessment': 'assessment_id',
-        'sub_bab': '1.1',
-        'skor': [5, 4, 3, 5]  # Assuming this list matches the number of questions in sub_bab '1.1'
-    }
-    
-    # Call the endpoint
-    response = reviewer_client.post("/api/assessments/evaluation", json=data)
-    
-    # Assert the response
+
+    # Kirim permintaan untuk memulai evaluasi oleh reviewer eksternal
+    response = reviewer_client.get("/api/assessments/evaluation?id_assessment=1234")
+
+    # Periksa apakah permintaan berhasil
     assert response.status_code == status.HTTP_200_OK
     assert response.json()["success"] == True
+    assert response.json()["message"] == "Start reviewing success"
