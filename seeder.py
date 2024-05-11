@@ -21,7 +21,13 @@ institution_data = [
         'email': 'company@email.com',
         'name': 'asprak',
         'phone': '+6285179762170'
-    }, 'uxalzb21mwcr')
+    }, 'uxalzb21mwcr'),
+    ({
+        'address': '',
+        'email': 'external@gmail.com',
+        'name': 'External Reviewer',
+        'phone': ''
+    }, 'external')
 ]
 
 beneish_report = {
@@ -122,6 +128,16 @@ user_data: typing.List[typing.Dict[str, typing.Union[str, bool]]] = [
         "id_institution": "uxalzb21mwcr",
         "is_active": True,
         "phone": "+6281111111114"
+    },
+    {
+        "username": "reviewer",
+        "full_name": "Reviewer Account",
+        "password": "reviewer",
+        "email": "reviewer@gmail.com",
+        "role": "reviewer",
+        "id_institution": "external",
+        "is_active": True,
+        "phone": "+6281111111116"
     }
 ]
 
@@ -138,11 +154,11 @@ def seed() -> None:
 
         db_user.put(data)
 
-    password_alice = f.encrypt('another_secure_password'.encode('utf-8'))
+    password_alice = f.encrypt('admin'.encode('utf-8'))
 
     db_user.put({
-        "username": "alice_smith",
-        "full_name": "Alice Smith",
+        "username": "adminperusahaan",
+        "full_name": "Admin Perusahaan",
         "password": password_alice.decode('utf-8'),
         "email": "alice@example.com",
         "role": "admin",

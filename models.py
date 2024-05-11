@@ -39,14 +39,14 @@ class InstitutionDB(Institution):
     key: str
 
 
-class Response(BaseModel):
+class CustomResponse(BaseModel):
     success: bool
     code: int
     message: str
     data: typing.Union[typing.Dict[str, typing.Any], typing.List[typing.Any], None]
 
 
-class ResponseDev(Response):
+class CustomResponseDev(CustomResponse):
     access_token: typing.Optional[str]
 
 
@@ -138,7 +138,8 @@ class FileMeta(BaseModel):
 class Assessment(BaseModel):
     id_institution: str
     id_admin: str
-    id_reviewer: typing.Optional[str]
+    id_reviewer_internal: typing.Optional[str]
+    id_reviewer_external: typing.Optional[str]
     tanggal: str
     hasil: int
     selesai: bool
@@ -162,7 +163,7 @@ class AssessmentDB(Assessment):
 class AssessmentEval(BaseModel):
     id_assessment: str
     sub_bab: str
-    skor: typing.List[int]
+    skor: typing.List[str]
 
 
 class ReportInput(BaseModel):
