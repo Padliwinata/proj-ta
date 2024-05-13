@@ -1138,6 +1138,9 @@ async def evaluate_assessment(data: AssessmentEval, user: UserDB = Depends(get_u
         data=sorted_points
     )
 
+
+
+
 app.include_router(router)
 
 
