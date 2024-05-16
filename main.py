@@ -45,11 +45,9 @@ from models import (
     Proof,
     UserDB,
     AssessmentDB,
-    Assessment,
     AssessmentEval,
-    PointDB,
     Report,
-    ReportInput
+    ResetPassword
 )
 from mailer import send_confirmation
 from settings import SECRET_KEY, ALGORITHM, DEVELOPMENT
@@ -87,6 +85,12 @@ bab = [
 ]
 
 question_number = [10, 10, 10, 10, 8, 7, 7, 8, 15, 15]
+
+
+def encrypt_password(raw_password: str) -> str:
+    encoded_password = raw_password.encode('utf-8')
+    encrypted_password = f.encrypt(encoded_password).decode('utf-8')
+    return encrypted_password
 
 
 def get_user(access_token: str = Depends(oauth2_scheme)) -> Union[UserDB, None]:
@@ -139,8 +143,7 @@ async def register(data: RegisterForm) -> JSONResponse:
             message="Username or email already "
         )
 
-    encrypted_password = data.password.get_secret_value().encode('utf-8')
-    data.password = SecretStr(f.encrypt(encrypted_password).decode('utf-8'))
+    data.password = SecretStr(encrypt_password(data.password.get_secret_value()))
     new_data = data.dict()
 
     institution_data = dict()
@@ -349,8 +352,7 @@ async def register_staff(data: AddUser, user: User = Depends(get_user)) -> JSONR
     if registered_user.count != 0:
         return create_response("User Already Exist", False, status.HTTP_400_BAD_REQUEST)
 
-    encoded_password = parsed_data['password'].encode('utf-8')
-    encrypted_password = f.encrypt(encoded_password).decode('utf-8')
+    encrypted_password = encrypt_password(parsed_data['password'])
 
     parsed_data['password'] = encrypted_password
     parsed_data['is_active'] = False
@@ -1006,16 +1008,6 @@ async def get_beneish_score(data: Report, user: UserDB = Depends(get_user)) -> J
     )
 
 
-# @app.post("/deactivate", tags=['General - Super Admin'])
-# async def deactivate_institution(id_institution: str, user: UserDB = Depends(get_user)) -> JSONResponse:
-#     if user.role != 'super admin':
-#         return create_response(
-#             message="Forbidden access",
-#             success=False,
-#             status_code=status.HTTP_403_FORBIDDEN
-#         )
-
-
 @router.get("/assessments/evaluation", tags=['Deterrence - Reviewer'])
 async def start_evaluation(id_assessment: str, user: UserDB = Depends(get_user)) -> JSONResponse:
     if user.role != 'reviewer':
@@ -1139,6 +1131,27 @@ async def evaluate_assessment(data: AssessmentEval, user: UserDB = Depends(get_u
     )
 
 
+@router.patch("/password")
+async def change_password(data: ResetPassword, user: UserDB = Depends(get_user)) -> JSONResponse:
+    if isinstance(user.password, SecretStr):
+        if user.password.get_secret_value() != encrypt_password(data.current_password):
+            return create_response(
+                message="Password doesn't match",
+                success=False,
+                status_code=status.HTTP_400_BAD_REQUEST
+            )
+
+    key = user.key
+    new_data = user.dict()
+    new_data['password'] = encrypt_password(data.new_password)
+    del new_data['key']
+
+    db_user.update(new_data, key)
+    return create_response(
+        message="Successfully update password",
+        success=True,
+        status_code=status.HTTP_200_OK
+    )
 
 
 app.include_router(router)

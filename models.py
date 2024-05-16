@@ -219,3 +219,8 @@ class Report(ReportInput):
     id_institution: str
     beneish_m: float
 
+
+class ResetPassword(BaseModel):
+    current_password: str
+    new_password: str
+
