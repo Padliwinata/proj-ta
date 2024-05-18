@@ -1131,10 +1131,10 @@ async def evaluate_assessment(data: AssessmentEval, user: UserDB = Depends(get_u
     )
 
 
-@router.patch("/password")
+@router.patch("/password", tags=['General'])
 async def change_password(data: ResetPassword, user: UserDB = Depends(get_user)) -> JSONResponse:
     if isinstance(user.password, SecretStr):
-        if user.password.get_secret_value() != encrypt_password(data.current_password):
+        if not authenticate_user(db_user, user.username, data.current_password):
             return create_response(
                 message="Password doesn't match",
                 success=False,
