@@ -1008,6 +1008,37 @@ async def get_beneish_score(data: Report, user: UserDB = Depends(get_user)) -> J
     )
 
 
+@router.get("/assessments/list", tags=['Deterrence - Reviewer'])
+async def get_evaluation(user: UserDB = Depends(get_user)) -> JSONResponse:
+    if user.role != 'reviewer':
+        return create_response(
+            message="Forbidden access",
+            success=False,
+            status_code=status.HTTP_403_FORBIDDEN
+        )
+
+    external = user.get_institution()['key'] == 'external'
+
+    if external:
+        existing_assessments = db_assessment.fetch({'id_reviewer_external': '', 'id_reviewer_internal?not_contains': '', 'selesai': False})
+    else:
+        existing_assessments = db_assessment.fetch({'id_institution': user.id_institution, 'id_reviewer_internal?not_contains': '', 'selesai': False})
+
+    if existing_assessments.count == 0:
+        return create_response(
+            message='Empty data',
+            success=True,
+            status_code=status.HTTP_200_OK
+        )
+
+    return create_response(
+        message="Successfully fetch assessments",
+        success=True,
+        status_code=status.HTTP_200_OK,
+        data=existing_assessments.items
+    )
+
+
 @router.get("/assessments/evaluation", tags=['Deterrence - Reviewer'])
 async def start_evaluation(id_assessment: str, user: UserDB = Depends(get_user)) -> JSONResponse:
     if user.role != 'reviewer':
