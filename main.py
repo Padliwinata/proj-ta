@@ -1020,9 +1020,9 @@ async def get_evaluation(user: UserDB = Depends(get_user)) -> JSONResponse:
     external = user.get_institution()['key'] == 'external'
 
     if external:
-        existing_assessments = db_assessment.fetch({'id_reviewer_external': '', 'id_reviewer_internal?not_contains': '', 'selesai': False})
+        existing_assessments = db_assessment.fetch({'id_reviewer_external': '', 'id_reviewer_internal?not_contains': '', 'selesai': True})
     else:
-        existing_assessments = db_assessment.fetch({'id_institution': user.id_institution, 'id_reviewer_internal?not_contains': '', 'selesai': False})
+        existing_assessments = db_assessment.fetch({'id_institution': user.id_institution, 'id_reviewer_internal?not_contains': '', 'selesai': True})
 
     if existing_assessments.count == 0:
         return create_response(
