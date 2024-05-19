@@ -1040,6 +1040,45 @@ async def get_evaluation(user: UserDB = Depends(get_user)) -> JSONResponse:
     )
 
 
+@router.get("/assessments/finish", tags=['Deterrence - Reviewer'])
+async def finish_reviewing(id_assessment: str, user:UserDB = Depends(get_user)) -> JSONResponse:
+    if user.role != 'reviewer':
+        return create_response(
+            message="Forbidden access",
+            success=False,
+            status_code=status.HTTP_403_FORBIDDEN
+        )
+
+    existing_assessment = db_assessment.get(id_assessment)
+    if not existing_assessment:
+        return create_response(
+            message="Assessment not found",
+            success=False,
+            status_code=status.HTTP_400_BAD_REQUEST
+        )
+
+    external = user.get_institution()['key'] == 'external'
+
+    existing_points = db_point.fetch({'id_assessment': id_assessment})
+    total = sum([skor['skor'] for skor in existing_points.items])
+
+    if external:
+        existing_assessment['hasil_external'] = total
+    else:
+        existing_assessment['hasil_internal'] = total
+
+    key = existing_assessment['key']
+    del existing_assessment['key']
+    db_assessment.update(existing_assessment, key)
+
+    return create_response(
+        message="Reviewer finished",
+        success=True,
+        status_code=status.HTTP_200_OK,
+        data=existing_assessment
+    )
+
+
 @router.get("/assessments/evaluation", tags=['Deterrence - Reviewer'])
 async def start_evaluation(id_assessment: str, user: UserDB = Depends(get_user)) -> JSONResponse:
     if user.role != 'reviewer':
@@ -1106,6 +1145,13 @@ async def evaluate_assessment(data: AssessmentEval, user: UserDB = Depends(get_u
             status_code=status.HTTP_403_FORBIDDEN
         )
 
+    if data.sub_bab not in bab:
+        return create_response(
+            message="Invalid sub bab",
+            success=False,
+            status_code=status.HTTP_400_BAD_REQUEST
+        )
+
     existing_assessment = db_assessment.get(data.id_assessment)
     if not existing_assessment:
         return create_response(
@@ -1156,26 +1202,11 @@ async def evaluate_assessment(data: AssessmentEval, user: UserDB = Depends(get_u
         to_update = Point(**point)
         db_point.update(to_update.dict(), point['key'])
 
-    skors = [int(skor) if skor != '-' else 0 for skor in data.skor if skor != '-']
-    if external:
-        existing_assessment['hasil_external'] = sum(skors)
-    else:
-        existing_assessment['hasil_internal'] = sum(skors)
-
-    assessment_key = existing_assessment['key']
-    del existing_assessment['key']
-    db_assessment.update(existing_assessment, key=assessment_key)
-
-    data = {
-        'points': sorted_points,
-        'assessment': existing_assessment
-    }
-
     return create_response(
         message="Success update data",
         success=True,
         status_code=status.HTTP_200_OK,
-        data=data
+        data=sorted_points
     )
 
 
