@@ -847,7 +847,8 @@ async def start_assessment(user: UserDB = Depends(get_user)) -> JSONResponse:
         'id_reviewer_internal': '',
         'id_reviewer_external': '',
         'tanggal': extra_datetime.strftime('%-d %B %Y, %H:%M'),
-        'hasil': 0,
+        'hasil_internal': 0,
+        'hasil_external': 0,
         'selesai': False
     }
 
@@ -1020,9 +1021,9 @@ async def get_evaluation(user: UserDB = Depends(get_user)) -> JSONResponse:
     external = user.get_institution()['key'] == 'external'
 
     if external:
-        existing_assessments = db_assessment.fetch({'id_reviewer_external': '', 'id_reviewer_internal?not_contains': '', 'selesai': True})
+        existing_assessments = db_assessment.fetch({'id_reviewer_internal?ne': None, 'selesai': True})
     else:
-        existing_assessments = db_assessment.fetch({'id_institution': user.id_institution, 'id_reviewer_internal?not_contains': '', 'selesai': True})
+        existing_assessments = db_assessment.fetch({'id_institution': user.id_institution, 'id_reviewer_internal': None, 'selesai': True})
 
     if existing_assessments.count == 0:
         return create_response(
@@ -1060,21 +1061,21 @@ async def start_evaluation(id_assessment: str, user: UserDB = Depends(get_user))
     key = existing_assessment['key']
     del existing_assessment['key']
 
-    if not external and existing_assessment['id_reviewer_internal'] != '':
+    if not external and existing_assessment['id_reviewer_internal']:
         return create_response(
             message="Already reviewed by another internal reviewer",
             success=False,
             status_code=status.HTTP_400_BAD_REQUEST
         )
 
-    if external and existing_assessment['id_reviewer_internal'] == '':
+    if external and not existing_assessment['id_reviewer_internal']:
         return create_response(
             message="Internal reviewer should review first",
             success=False,
             status_code=status.HTTP_400_BAD_REQUEST
         )
 
-    if external and existing_assessment['id_reviewer_external'] != '':
+    if external and existing_assessment['id_reviewer_external']:
         return create_response(
             message="Already reviewed by another external reviewer",
             success=False,
@@ -1083,7 +1084,8 @@ async def start_evaluation(id_assessment: str, user: UserDB = Depends(get_user))
 
     if external:
         existing_assessment['id_reviewer_external'] = user.key
-    existing_assessment['id_reviewer_internal'] = user.key
+    else:
+        existing_assessment['id_reviewer_internal'] = user.key
 
     db_assessment.update(existing_assessment, key)
 
@@ -1116,7 +1118,7 @@ async def evaluate_assessment(data: AssessmentEval, user: UserDB = Depends(get_u
 
     reviewer_key = 'id_reviewer_external' if external else 'id_reviewer_internal'
 
-    if existing_assessment[reviewer_key] == '':
+    if not existing_assessment[reviewer_key]:
         return create_response(
             message="Assessment review not started yet",
             success=False,
@@ -1154,11 +1156,26 @@ async def evaluate_assessment(data: AssessmentEval, user: UserDB = Depends(get_u
         to_update = Point(**point)
         db_point.update(to_update.dict(), point['key'])
 
+    skors = [int(skor) if skor != '-' else 0 for skor in data.skor if skor != '-']
+    if external:
+        existing_assessment['hasil_external'] = sum(skors)
+    else:
+        existing_assessment['hasil_internal'] = sum(skors)
+
+    assessment_key = existing_assessment['key']
+    del existing_assessment['key']
+    db_assessment.update(existing_assessment, key=assessment_key)
+
+    data = {
+        'points': sorted_points,
+        'assessment': existing_assessment
+    }
+
     return create_response(
         message="Success update data",
         success=True,
         status_code=status.HTTP_200_OK,
-        data=sorted_points
+        data=data
     )
 
 

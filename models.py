@@ -116,7 +116,7 @@ class Point(BaseModel):
     sub_bab: str
     point: int
     answer: int
-    skor: int
+    skor: typing.Optional[int]
     proof: typing.Optional[Proof]
 
 
@@ -141,7 +141,8 @@ class Assessment(BaseModel):
     id_reviewer_internal: typing.Optional[str]
     id_reviewer_external: typing.Optional[str]
     tanggal: str
-    hasil: int
+    hasil_internal: typing.Optional[int]
+    hasil_external: typing.Optional[int]
     selesai: bool
 
     def get_admin(self) -> str:
