@@ -49,7 +49,6 @@ from models import (
     Report,
     ResetPassword
 )
-from mailer import send_confirmation
 from settings import SECRET_KEY, ALGORITHM, DEVELOPMENT
 from seeder import seed, delete_db, seed_assessment
 
@@ -167,8 +166,8 @@ async def register(data: RegisterForm) -> JSONResponse:
     new_user.password = data.password.get_secret_value().encode('utf-8')
     res = db_user.put(json.loads(new_user.json()))
 
-    userid: str = res['key']
-    send_confirmation(userid, new_user.email, new_user.full_name)
+    # userid: str = res['key']
+    # send_confirmation(userid, new_user.email, new_user.full_name)
 
     payload = {
         'user': data.username,
