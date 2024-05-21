@@ -348,7 +348,10 @@ async def register_staff(data: AddUser, user: User = Depends(get_user)) -> JSONR
 
     parsed_data = data.dict()
 
-    registered_user = db_user.fetch(parsed_data)
+    registered_username = data.username
+    registered_email = data.email
+
+    registered_user = db_user.fetch({'username': registered_username, 'email': registered_email})
 
     if registered_user.count != 0:
         return create_response("User Already Exist", False, status.HTTP_400_BAD_REQUEST)
@@ -814,13 +817,10 @@ async def verify_user(userid: str) -> JSONResponse:
             success=False,
             status_code=status.HTTP_404_NOT_FOUND
         )
-
-    user = UserDB(**resp)
-    user.is_active = True
-
+    reverse = not resp['is_active']
     db_user.update(
-        {'is_active': True},
-        user.key
+        {'is_active': reverse},
+        userid
     )
 
     # user_data = json.loads(user.json())
