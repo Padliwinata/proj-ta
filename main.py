@@ -211,7 +211,8 @@ async def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]) -> J
         token_type="bearer"
     ).dict()
 
-    log_data = Log(name=form_data.username, email=user.email, role=user.role, tanggal=datetime.now().strftime('%-d %B %Y, %H:%M'), id_institution=user.id_institution)
+    login_time = datetime.now() + timedelta(hours=7)
+    log_data = Log(name=form_data.username, email=user.email, role=user.role, tanggal=login_time.strftime('%-d %B %Y, %H:%M'), id_institution=user.id_institution)
     log_data_json = log_data.json()
     log_data_dict = json.loads(log_data_json)
 
@@ -476,6 +477,9 @@ async def get_login_log(user: User = Depends(get_user)) -> JSONResponse:
             success=True,
             status_code=status.HTTP_200_OK
         )
+
+    # print(log_data.items[0])
+    # print(type(log_data.items[0]['tanggal']))
 
     final_data = []
     for data in log_data.items:
@@ -1040,7 +1044,7 @@ async def get_evaluation(user: UserDB = Depends(get_user)) -> JSONResponse:
 
 
 @router.get("/assessments/finish", tags=['Deterrence - Reviewer'])
-async def finish_reviewing(id_assessment: str, user:UserDB = Depends(get_user)) -> JSONResponse:
+async def finish_reviewing(id_assessment: str, user: UserDB = Depends(get_user)) -> JSONResponse:
     if user.role != 'reviewer':
         return create_response(
             message="Forbidden access",
