@@ -631,6 +631,12 @@ async def update_assessment(request: Request,
     content = None
     if file:
         content = await file.read()
+        if len(content) > MAX_FILE_SIZE:
+            return create_response(
+                message="File too big",
+                success=False,
+                status_code=status.HTTP_400_BAD_REQUEST
+            )
 
     filename = f"{user.get_institution()['key']}_{metadata.bab}_{metadata.sub_bab.replace('.', '')}_{metadata.point}.pdf"
     if file:
