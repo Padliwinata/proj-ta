@@ -49,6 +49,7 @@ from models import (
     Report,
     ResetPassword
 )
+from mailer import send_simple_message
 from settings import SECRET_KEY, ALGORITHM, DEVELOPMENT
 from seeder import seed, delete_db, seed_assessment
 
@@ -1233,6 +1234,17 @@ async def change_password(data: ResetPassword, user: UserDB = Depends(get_user))
         message="Successfully update password",
         success=True,
         status_code=status.HTTP_200_OK
+    )
+
+
+@router.get("/email/example", tags=['Development'])
+async def send_email_example() -> JSONResponse:
+    data = send_simple_message()
+    return create_response(
+        message="Nice",
+        success=True,
+        status_code=status.HTTP_418_IM_A_TEAPOT,
+        data=data.json()
     )
 
 
