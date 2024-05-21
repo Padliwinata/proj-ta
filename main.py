@@ -552,6 +552,14 @@ async def upload_proof_point(request: Request,
     assessment_data = existing_assessment_data.items[0]
     assessment_data = AssessmentDB(**assessment_data)
 
+    existing_points = db_point.fetch({'id_assessment': assessment_data.key, 'bab': metadata.bab, 'sub_bab': metadata.sub_bab, 'point': metadata.point})
+    if existing_points.count > 0:
+        return create_response(
+            message="Point already exist",
+            success=False,
+            status_code=status.HTTP_400_BAD_REQUEST
+        )
+
     if new_proof:
         drive.put(filename, content)
         db_proof.put(new_proof.dict())
