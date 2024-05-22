@@ -181,14 +181,6 @@ class ReportInput(BaseModel):
     current_liabilities_1: float
     total_ltd_1: float
     cash_flow_operate_1: float
-    dsri_1: float
-    gmi_1: float
-    aqi_1: float
-    sgi_1: float
-    depi_1: float
-    sgai_1: float
-    lvgi_1: float
-    tata_1: float
     revenue_2: float
     cogs_2: float
     sgae_2: float
@@ -202,14 +194,6 @@ class ReportInput(BaseModel):
     current_liabilities_2: float
     total_ltd_2: float
     cash_flow_operate_2: float
-    dsri_2: float
-    gmi_2: float
-    aqi_2: float
-    sgi_2: float
-    depi_2: float
-    sgai_2: float
-    lvgi_2: float
-    tata_2: float
     tahun_1: float
     tahun_2: float
     id_institution: str

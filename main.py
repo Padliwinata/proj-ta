@@ -1023,10 +1023,20 @@ async def get_beneish_score(data: Report, user: UserDB = Depends(get_user)) -> J
     report = data.dict()
 
     dsri = (data.account_receivables_2 / data.revenue_2) / (data.account_receivables_1 / data.revenue_1)
-    gmi = ((data.revenue_1 - data.cogs_1) / data.revenue_1) / ((data.revenue_2 - data.cogs_2) / data.revenue_2)
+    gmi = (data.cogs_1 / data.revenue_1) / (data.cogs_2 / data.revenue_2)
+    aqi = (1 - (data.current_assets_2 + data.ppe_2 + data.securities_2) / data.total_asset_2) / (
+                1 - (data.current_assets_1 + data.ppe_1 + data.securities_1) / data.total_asset_1)
+    sgi = data.revenue_2 / data.revenue_1
+    depi = (data.depreciation_1 / (data.depreciation_1 + data.ppe_1)) / (data.depreciation_2 / (data.depreciation_2 + data.ppe_2))
+    sgai = data.sgae_2 / data.revenue_2 / (data.sgae_1 / data.revenue_1)
+    lvgi = (data.total_ltd_2 / data.total_asset_2) / (data.total_ltd_1 / data.total_asset_1)
+    tata = (data.net_continuous_2 - data.cash_flow_operate_2) / data.total_asset_2
 
+    # Calculate Beneish M-Score
+    m_score = (
+                -4.84 + 0.920 * dsri + 0.528 * gmi + 0.404 * aqi + 0.892 * sgi + 0.115 * depi - 0.172 * sgai + 4.679 * tata - 0.327 * lvgi)
 
-    report['beneish_m'] = -2
+    report['beneish_m'] = m_score
     report['id_institution'] = user.id_institution
     report_object = Report(**report)
     db_report.insert(report_object.dict())
