@@ -521,13 +521,13 @@ async def upload_proof_point(request: Request,
 
     content = None
     if file:
-        content = await file.read()
-        if len(content) > MAX_FILE_SIZE:
+        if file.size > MAX_FILE_SIZE:
             return create_response(
-                message="File too big",
+                message="File Too Large",
                 success=False,
-                status_code=status.HTTP_400_BAD_REQUEST
+                status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE
             )
+        content = await file.read()
 
     filename = ''
     new_proof = None
