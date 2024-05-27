@@ -1071,11 +1071,13 @@ async def get_evaluation(user: UserDB = Depends(get_user)) -> JSONResponse:
             status_code=status.HTTP_200_OK
         )
 
+    assessments_list = [AssessmentDB(**assessment).get_all_dict() for assessment in existing_assessments.items]
+
     return create_response(
         message="Successfully fetch assessments",
         success=True,
         status_code=status.HTTP_200_OK,
-        data=existing_assessments.items
+        data=assessments_list
     )
 
 

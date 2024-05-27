@@ -150,10 +150,25 @@ class Assessment(BaseModel):
         name: str = data['full_name']
         return name
 
+    def get_reviewer_internal(self) -> str:
+        if not self.id_reviewer_internal:
+            return ''
+        data = db_user.get(self.id_reviewer_internal)
+        name: str = data['full_name']
+        return name
+
+    def get_reviewer_external(self) -> str:
+        if not self.id_reviewer_external:
+            return ''
+        data = db_user.get(self.id_reviewer_external)
+        name: str = data['full_name']
+        return name
+
     def get_all_dict(self) -> typing.Dict[str, typing.Any]:
         data = super().dict()
-        data['nama_admin'] = self.get_admin()
-        data['nama_reviewer'] = ''
+        data['admin'] = self.get_admin()
+        data['reviewer_internal'] = self.get_reviewer_internal()
+        data['reviewer_external'] = self.get_reviewer_external()
         return data
 
 
