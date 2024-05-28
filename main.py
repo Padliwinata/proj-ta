@@ -48,7 +48,8 @@ from models import (
     AssessmentDB,
     AssessmentEval,
     Report,
-    ResetPassword
+    ResetPassword,
+    Event
 )
 from mailer import send_simple_message
 from settings import SECRET_KEY, MAX_FILE_SIZE, DEVELOPMENT
@@ -214,7 +215,7 @@ async def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]) -> J
     ).dict()
 
     login_time = datetime.now() + timedelta(hours=7)
-    log_data = Log(name=form_data.username, email=user.email, role=user.role, tanggal=login_time.strftime('%-d %B %Y, %H:%M'), id_institution=user.id_institution)
+    log_data = Log(event=Event.logged_in, name=form_data.username, email=user.email, role=user.role, tanggal=login_time.strftime('%-d %B %Y, %H:%M'), id_institution=user.id_institution)
     log_data_json = log_data.json()
     log_data_dict = json.loads(log_data_json)
 
@@ -941,8 +942,10 @@ async def get_assessment_detail(key: str, sub_bab: str, user: UserDB = Depends(g
     dict_data = [x.dict() for x in data]
     point_list = sorted(dict_data, key=lambda x: x['point'])
 
+    assessment = AssessmentDB(**existing_assessment).get_all_dict()
+
     response_data = {
-        'assessment': existing_assessment,
+        'assessment': assessment,
         'point': point_list
     }
 
@@ -979,8 +982,10 @@ async def get_assessment_insight(key: str, user: UserDB = Depends(get_user)) -> 
     for key, value in points.items():
         points[key] = sum([skor['skor'] for skor in value])
 
+    assessment = AssessmentDB(**existing_assessment).get_all_dict()
+
     response_data = {
-        'assessment': existing_assessment,
+        'assessment': assessment,
         'point': points
     }
 
