@@ -121,7 +121,12 @@ class Log(BaseModel):
     id_institution: str
 
 
-# class Notification(BaseModel):
+class Notification(BaseModel):
+    id_receiver: str
+    event: Event
+    message: str
+    cta: str
+    date: str
 
 
 class Proof(BaseModel):

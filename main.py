@@ -28,7 +28,8 @@ from db import (
     db_proof,
     drive,
     db_assessment,
-    db_report
+    db_report,
+    db_notification
 )
 from exceptions import DependencyException
 from models import (
@@ -1356,6 +1357,11 @@ async def send_email_example() -> JSONResponse:
         status_code=status.HTTP_418_IM_A_TEAPOT,
         data=data.json()
     )
+
+
+@router.get("/notifications")
+async def get_notifications(user: UserDB = Depends(get_user)) -> JSONResponse:
+    response_data = dbno
 
 
 app.include_router(router)
