@@ -15,6 +15,29 @@ class UserRole(str, Enum):
     reviewer = "reviewer"
 
 
+class Event(str, Enum):
+    logged_in = "Logged In"
+    logged_out = "Logged Out"
+
+    activated_admin = "Activated Admin"
+    deactivated_admin = "Deactivated Admin"
+
+    activated_staff = "Activated Staff"
+    deactivated_staff = "Deactivated Staff"
+    started_assessment = "Started Assessment"
+    viewed_assessments = "Viewed Assessments"
+    deleted_assessments = "Deleted Assessments"
+    submit_point = "Submit Point"
+    edited_point = "Edited Point"
+    uploaded_file = "Uploaded File"
+    deleted_file = "Deleted File"
+    submitted_assessment = "Submitted Assessment"
+
+    started_review = "Started Review"
+    finished_review = "Finished Review"
+
+
+
 class RegisterForm(BaseModel):
     username: str
     email: EmailStr
@@ -94,7 +117,11 @@ class Log(BaseModel):
     email: str
     role: UserRole
     tanggal: str
+    event: Event
     id_institution: str
+
+
+# class Notification(BaseModel):
 
 
 class Proof(BaseModel):

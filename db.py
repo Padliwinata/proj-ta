@@ -12,5 +12,6 @@ db_report = deta_obj.Base("report")
 db_log = deta_obj.Base("log")
 db_point = deta_obj.Base("point")
 db_assessment = deta_obj.Base("assessment")
+db_notification = deta_obj.Base("notification")
 
 drive = deta_obj.Drive("document")
