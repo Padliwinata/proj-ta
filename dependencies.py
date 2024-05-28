@@ -24,7 +24,7 @@ class TokenResponse(BaseModel):
 
 
 def authenticate_user(db: _Base, username: str, password: str) -> Union[User, None]:
-    response = db.fetch({'username': username})
+    response = db.fetch([{'username': username}, {'email': username}])
     if response.count == 0:
         return None
 

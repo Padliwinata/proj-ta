@@ -504,7 +504,7 @@ async def upload_proof_point(request: Request,
                              user: UserDB = Depends(get_user),
                              file: UploadFile = File(None)) -> JSONResponse:
 
-    if user.role != 'admin':
+    if user.role not in ['admin', 'staff']:
         return create_response(
             message="Forbidden Access",
             status_code=status.HTTP_403_FORBIDDEN,
@@ -918,14 +918,87 @@ async def get_current_assessment(sub_bab: str, user: UserDB = Depends(get_user))
     )
 
 
+@router.get('/assessment/{key}', tags=['General'])
+async def get_assessment_detail(key: str, sub_bab: str, user: UserDB = Depends(get_user)) -> JSONResponse:
+    existing_assessment = db_assessment.get(key)
+    if not existing_assessment:
+        return create_response(
+            message="Assessment not found",
+            success=False,
+            status_code=status.HTTP_404_NOT_FOUND
+        )
+
+    existing_point = db_point.fetch({'id_assessment': key, 'sub_bab': sub_bab})
+    if existing_point.count == 0:
+        return create_response(
+            message="Empty data",
+            success=True,
+            status_code=status.HTTP_200_OK
+        )
+
+    data = [Point(**x) for x in existing_point.items]
+    dict_data = [x.dict() for x in data]
+    point_list = sorted(dict_data, key=lambda x: x['point'])
+
+    response_data = {
+        'assessment': existing_assessment,
+        'point': point_list
+    }
+
+    return create_response(
+        message="Fetch data success",
+        success=True,
+        status_code=status.HTTP_200_OK,
+        data=response_data
+    )
+
+
+@router.get('/assessment/insight/{key}')
+async def get_assessment_insight(key: str, user: UserDB = Depends(get_user)) -> JSONResponse:
+    existing_assessment = db_assessment.get(key)
+    if not existing_assessment:
+        return create_response(
+            message="Assessment not found",
+            success=False,
+            status_code=status.HTTP_404_NOT_FOUND
+        )
+
+    existing_point = db_point.fetch({'id_assessment': key})
+    if existing_point.count == 0:
+        return create_response(
+            message="Empty data",
+            success=True,
+            status_code=status.HTTP_200_OK
+        )
+
+    points = dict()
+    for sub_bab in bab:
+        points[sub_bab] = [point for point in existing_point if point['sub_bab'] == sub_bab]
+
+    for key, value in points.items():
+        points[key] = sum([skor['skor'] for skor in value])
+
+    response_data = {
+        'assessment': existing_assessment,
+        'point': points
+    }
+
+    return create_response(
+        message="Fetch data success",
+        success=True,
+        status_code=status.HTTP_200_OK,
+        data=response_data
+    )
+
+
 @router.get("/assessments", tags=['Deterrence - Admin'])
 async def get_all_assessment(user: UserDB = Depends(get_user)) -> JSONResponse:
-    if user.role not in ['admin', 'reviewer']:
-        return create_response(
-            message="Forbidden access",
-            success=False,
-            status_code=status.HTTP_403_FORBIDDEN
-        )
+    # if user.role not in ['admin', 'reviewer']:
+    #     return create_response(
+    #         message="Forbidden access",
+    #         success=False,
+    #         status_code=status.HTTP_403_FORBIDDEN
+    #     )
 
     existing_assessments_data = db_assessment.fetch({'id_institution': user.id_institution})
     if existing_assessments_data.count == 0:
