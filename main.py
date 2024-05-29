@@ -18,7 +18,8 @@ from dependencies import (
     TokenResponse,
     get_payload_from_token,
     create_response,
-    create_log
+    create_log,
+    create_notification
 )
 
 from db import (
@@ -1115,7 +1116,7 @@ async def get_finished_assessments(user: UserDB = Depends(get_user)) -> JSONResp
 
 
 @router.post("/selesai", tags=['Deterrence - Admin'])
-async def selesai_isi(id_assessment: str, user: UserDB = Depends(get_user)) -> JSONResponse:
+async def selesai_isi(request: Request, id_assessment: str, user: UserDB = Depends(get_user)) -> JSONResponse:
     if user.role != 'admin':
         return create_response(
             message="Forbidden access",
@@ -1136,6 +1137,26 @@ async def selesai_isi(id_assessment: str, user: UserDB = Depends(get_user)) -> J
     key = assessment['key']
     del assessment['key']
     db_assessment.update(assessment, key=key)
+
+    if request.client:
+        create_log(
+            user=user,
+            event=Event.submitted_assessment,
+            detail={
+                'id_assessment': key,
+            },
+            host=request.client.host
+        )
+
+        notification_receivers = db_user.fetch({'id_institution': user.id_institution, 'role': 'reviewer'})
+        if notification_receivers.count > 0:
+            receivers_id = [receiver['key'] for receiver in notification_receivers]
+            create_notification(
+                receivers=receivers_id,
+                event=Event.submitted_assessment,
+                message="There's a new assessment to review",
+                host=request.client.host
+            )
 
     return create_response(
         message="Assessment finished",

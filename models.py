@@ -126,7 +126,6 @@ class Notification(BaseModel):
     id_receiver: str
     event: Event
     message: str
-    cta: str
     date: str
 
 

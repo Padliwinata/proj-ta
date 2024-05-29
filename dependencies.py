@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 
 from cryptography.fernet import Fernet
 from deta import _Base
-from db import db_log
+from db import db_log, db_notification
 from fastapi.security import OAuth2PasswordBearer
 from fastapi.responses import JSONResponse
 from jose import jwt
@@ -91,5 +91,26 @@ def create_log(user: UserDB, event: Event, detail: typing.Dict[str, typing.Any],
     db_log.put(data_to_store)
 
     return data_to_store
+
+
+def create_notification(receivers: typing.List[str], event: Event, message: str, host: str) -> typing.Dict[str, typing.Any]:
+    created_date = datetime.now()
+    if host not in ['127.0.0.1', 'localhost']:
+        created_date += timedelta(hours=7)
+    for receiver in receivers:
+        data = {
+            'id_receiver': receiver,
+            'event': event,
+            'message': message,
+            'date': created_date
+        }
+        db_notification.put(data)
+
+    response = {
+        'received_by': receivers,
+        'event': event,
+        'message': message
+    }
+    return response
 
 
