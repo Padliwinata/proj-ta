@@ -55,7 +55,10 @@ from mailer import send_simple_message
 from settings import SECRET_KEY, MAX_FILE_SIZE, DEVELOPMENT
 from seeder import seed, delete_db, seed_assessment
 
-app = FastAPI()
+app = FastAPI(
+    title="FDP",
+    version="1.0.2"
+)
 router = APIRouter(prefix='/api')
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='api/auth', auto_error=False)
 f = Fernet(SECRET_KEY)
