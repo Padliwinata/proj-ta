@@ -4,14 +4,14 @@ from datetime import datetime, timedelta
 
 from cryptography.fernet import Fernet
 from deta import _Base
-from fastapi import status
+from db import db_log
 from fastapi.security import OAuth2PasswordBearer
 from fastapi.responses import JSONResponse
 from jose import jwt
 from pydantic import BaseModel
 
 from settings import SECRET_KEY, ALGORITHM, JWT_EXPIRED
-from models import User, Payload, CustomResponse
+from models import User, Payload, CustomResponse, UserDB, Event
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='auth')
 f = Fernet(SECRET_KEY)
@@ -71,3 +71,25 @@ def create_response(
         response.dict(),
         status_code=status_code
     )
+
+
+def create_log(user: UserDB, event: Event, detail: typing.Dict[str, typing.Any], host: str) -> typing.Dict[str, typing.Any]:
+    tanggal = datetime.now()
+    if host not in ['127.0.0.1', 'localhost']:
+        tanggal += timedelta(hours=7)
+
+    data_to_store = {
+        'name': user.full_name,
+        'email': user.email,
+        'role': user.role,
+        'tanggal': tanggal.strftime('%-d %B %Y, %H:%M'),
+        'event': event,
+        'detail': detail,
+        'id_institution': user.id_institution
+    }
+
+    db_log.put(data_to_store)
+
+    return data_to_store
+
+

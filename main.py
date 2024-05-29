@@ -190,7 +190,7 @@ async def register(data: RegisterForm) -> JSONResponse:
 
 
 @router.post("/auth", tags=['Auth'])
-async def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]) -> JSONResponse:
+async def login(request: Request, form_data: Annotated[OAuth2PasswordRequestForm, Depends()]) -> JSONResponse:
     user = authenticate_user(db_user, form_data.username, form_data.password)
     if not user:
         response = CustomResponseDev(
@@ -214,7 +214,9 @@ async def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]) -> J
         token_type="bearer"
     ).dict()
 
-    login_time = datetime.now() + timedelta(hours=7)
+    login_time = datetime.now()
+    if request.client and request.client.host not in ['127.0.0.1', 'localhost']:
+        login_time += timedelta(hours=7)
     log_data = Log(event=Event.logged_in, name=form_data.username, email=user.email, role=user.role, tanggal=login_time.strftime('%-d %B %Y, %H:%M'), id_institution=user.id_institution)
     log_data_json = log_data.json()
     log_data_dict = json.loads(log_data_json)
@@ -494,8 +496,11 @@ async def get_login_log(user: User = Depends(get_user)) -> JSONResponse:
             'nama': user_data.name,
             'email': user_data.email,
             'role': user_data.role,
+            'event': user_data.event,
             'tanggal': user_data.tanggal
         })
+
+    final_data = sorted(final_data, key=lambda x: datetime.strptime(x['tanggal'], '%d %b %Y, %H:%M'), reverse=True)
 
     return create_response("Fetch Data Success", True, status.HTTP_200_OK, data=final_data)
 
