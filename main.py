@@ -222,7 +222,7 @@ async def login(request: Request, form_data: Annotated[OAuth2PasswordRequestForm
     login_time = datetime.now()
     if request.client and request.client.host not in ['127.0.0.1', 'localhost']:
         login_time += timedelta(hours=7)
-    log_data = Log(event=Event.logged_in, name=form_data.username, email=user.email, role=user.role, tanggal=login_time.strftime('%-d %B %Y, %H:%M'), id_institution=user.id_institution)
+    log_data = Log(event=Event.logged_in, name=form_data.username, email=user.email, role=user.role, tanggal=login_time.strftime('%-d %B %Y, %H:%M'), id_institution=user.id_institution, detail={'id_institution': user.id_institution})
     log_data_json = log_data.json()
     log_data_dict = json.loads(log_data_json)
 
@@ -1441,7 +1441,24 @@ async def send_email_example() -> JSONResponse:
 
 @router.get("/notifications")
 async def get_notifications(user: UserDB = Depends(get_user)) -> JSONResponse:
-    response_data = dbno
+    response_data = db_notification.fetch({'id_receiver': user.key})
+    if response_data.count == 0:
+        return create_response(
+            message="Empty data",
+            success=True,
+            status_code=status.HTTP_200_OK
+        )
+
+    notification_data = response_data.items
+    for notif in notification_data:
+        del notif['key']
+
+    return create_response(
+        message="Fetch data success",
+        success=True,
+        status_code=status.HTTP_200_OK,
+        data=notification_data
+    )
 
 
 app.include_router(router)
