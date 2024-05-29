@@ -539,7 +539,7 @@ async def upload_proof_point(request: Request,
             success=False,
             status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE
         )
-    content = await file.read()
+        content = await file.read()
 
     filename = ''
     new_proof = None

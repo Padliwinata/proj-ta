@@ -118,7 +118,7 @@ class Log(BaseModel):
     role: UserRole
     tanggal: str
     event: typing.Optional[Event]
-    detail: dict
+    detail: typing.Optional[typing.Dict[str, typing.Any]]
     id_institution: str
 
 
