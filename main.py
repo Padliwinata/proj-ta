@@ -17,7 +17,8 @@ from dependencies import (
     create_access_token,
     TokenResponse,
     get_payload_from_token,
-    create_response
+    create_response,
+    create_log
 )
 
 from db import (
@@ -530,14 +531,14 @@ async def upload_proof_point(request: Request,
         )
 
     content = None
-    if file:
-        if file.size > MAX_FILE_SIZE:
-            return create_response(
-                message="File Too Large",
-                success=False,
-                status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE
-            )
-        content = await file.read()
+
+    if file and file.size > MAX_FILE_SIZE:
+        return create_response(
+            message="File Too Large",
+            success=False,
+            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE
+        )
+    content = await file.read()
 
     filename = ''
     new_proof = None
@@ -584,7 +585,7 @@ async def upload_proof_point(request: Request,
         skor=0
     )
 
-    db_point.put(json.loads(new_point.json()))
+    res = db_point.put(json.loads(new_point.json()))
 
     data = json.loads(new_point.json())
 
@@ -601,6 +602,19 @@ async def upload_proof_point(request: Request,
             message="Assessment not found",
             success=False,
             status_code=status.HTTP_404_NOT_FOUND
+        )
+
+    if request.client:
+        create_log(
+            user=user,
+            event=Event.submit_point,
+            detail={
+                'id_point': res['key'],
+                'id_assessment': res['id_assessment'],
+                'bab': res['bab'],
+                'sub_bab': res['sub_bab']
+            },
+            host=request.client.host
         )
 
     return create_response(
@@ -863,7 +877,14 @@ async def verify_user(userid: str) -> JSONResponse:
 
 
 @router.post("/assessment", tags=['Deterrence - Admin'])
-async def start_assessment(user: UserDB = Depends(get_user)) -> JSONResponse:
+async def start_assessment(request: Request, user: UserDB = Depends(get_user)) -> JSONResponse:
+    if user.role != 'admin':
+        return create_response(
+            message="Forbidden access",
+            success=False,
+            status_code=status.HTTP_403_FORBIDDEN
+        )
+
     existing_data = db_assessment.fetch({'id_admin': user.key, 'selesai': False})
     if existing_data.count > 0:
         return create_response(
@@ -886,7 +907,19 @@ async def start_assessment(user: UserDB = Depends(get_user)) -> JSONResponse:
         'selesai': False
     }
 
-    db_assessment.put(new_assessment)
+    res = db_assessment.put(new_assessment)
+
+    if request.client:
+        create_log(
+            user=user,
+            event=Event.started_assessment,
+            detail={
+                'id_assessment': res['key'],
+                'admin': user.full_name,
+                'tanggal': res['tanggal']
+            },
+            host=request.client.host
+        )
 
     return create_response(
         message="Start assessment success",
