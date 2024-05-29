@@ -687,6 +687,19 @@ async def update_assessment(request: Request,
     actual_point.answer = metadata.answer
     db_point.update(actual_point.dict(), key)
 
+    if request.client:
+        create_log(
+            user=user,
+            event=Event.edited_point,
+            detail={
+                'id_point': key,
+                'id_assessment': actual_point.id_assessment,
+                'bab': actual_point.bab,
+                'sub_bab': actual_point.sub_bab
+            },
+            host=request.client.host
+        )
+
     return create_response(
         message='Update success',
         status_code=status.HTTP_200_OK,
