@@ -76,7 +76,7 @@ origins = [
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"]
@@ -369,7 +369,7 @@ async def register_staff(data: AddUser, user: User = Depends(get_user)) -> JSONR
     registered_username = data.username
     registered_email = data.email
 
-    registered_user = db_user.fetch({'username': registered_username, 'email': registered_email})
+    registered_user = db_user.fetch([{'username': registered_username}, {'email': registered_email}])
 
     if registered_user.count != 0:
         return create_response("User Already Exist", False, status.HTTP_400_BAD_REQUEST)
