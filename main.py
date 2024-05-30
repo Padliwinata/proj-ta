@@ -65,9 +65,18 @@ router = APIRouter(prefix='/api')
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='api/auth', auto_error=False)
 f = Fernet(SECRET_KEY)
 
+origins = [
+    'http://127.0.0.1:3000',
+    'http://127.0.0.1:8000',
+    'https://devta-1-j8022502.deta.app'
+    'https://fe-fraud.vercel.app',
+    'https://www.frauddeterrence.online',
+    'http://localhost:3000'
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"]
@@ -533,13 +542,15 @@ async def upload_proof_point(request: Request,
 
     content = None
 
-    if file and file.size > MAX_FILE_SIZE:
-        return create_response(
-            message="File Too Large",
-            success=False,
-            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE
-        )
-        content = await file.read()
+    if file:
+        if file.size > MAX_FILE_SIZE:
+            return create_response(
+                message="File Too Large",
+                success=False,
+                status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE
+            )
+        else:
+            content = await file.read()
 
     filename = ''
     new_proof = None
