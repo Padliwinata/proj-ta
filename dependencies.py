@@ -4,14 +4,14 @@ from datetime import datetime, timedelta
 
 from cryptography.fernet import Fernet
 from deta import _Base
-from fastapi import status
+from db import db_log, db_notification
 from fastapi.security import OAuth2PasswordBearer
 from fastapi.responses import JSONResponse
 from jose import jwt
 from pydantic import BaseModel
 
 from settings import SECRET_KEY, ALGORITHM, JWT_EXPIRED
-from models import User, Payload, CustomResponse
+from models import User, Payload, CustomResponse, UserDB, Event
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='auth')
 f = Fernet(SECRET_KEY)
@@ -24,7 +24,7 @@ class TokenResponse(BaseModel):
 
 
 def authenticate_user(db: _Base, username: str, password: str) -> Union[User, None]:
-    response = db.fetch({'username': username})
+    response = db.fetch([{'username': username}, {'email': username}])
     if response.count == 0:
         return None
 
@@ -71,3 +71,46 @@ def create_response(
         response.dict(),
         status_code=status_code
     )
+
+
+def create_log(user: UserDB, event: Event, detail: typing.Dict[str, typing.Any], host: str) -> typing.Dict[str, typing.Any]:
+    tanggal = datetime.now()
+    if host not in ['127.0.0.1', 'localhost']:
+        tanggal += timedelta(hours=7)
+
+    data_to_store = {
+        'name': user.full_name,
+        'email': user.email,
+        'role': user.role,
+        'tanggal': tanggal.strftime('%-d %B %Y, %H:%M'),
+        'event': event,
+        'detail': detail,
+        'id_institution': user.id_institution
+    }
+
+    db_log.put(data_to_store)
+
+    return data_to_store
+
+
+def create_notification(receivers: typing.List[str], event: Event, message: str, host: str) -> typing.Dict[str, typing.Any]:
+    created_date = datetime.now()
+    if host not in ['127.0.0.1', 'localhost']:
+        created_date += timedelta(hours=7)
+    for receiver in receivers:
+        data = {
+            'id_receiver': receiver,
+            'event': event,
+            'message': message,
+            'date': created_date
+        }
+        db_notification.put(data)
+
+    response = {
+        'received_by': receivers,
+        'event': event,
+        'message': message
+    }
+    return response
+
+
