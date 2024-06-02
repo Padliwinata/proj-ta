@@ -204,7 +204,7 @@ async def register(data: RegisterForm) -> JSONResponse:
 
 
 @router.post("/auth", tags=['Auth'])
-async def login(request: Request, form_data: Annotated[OAuth2PasswordRequestForm, Depends()]) -> JSONResponse:
+async def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]) -> JSONResponse:
     user = authenticate_user(db_user, form_data.username, form_data.password)
     if not user:
         response = CustomResponseDev(
@@ -228,10 +228,7 @@ async def login(request: Request, form_data: Annotated[OAuth2PasswordRequestForm
         token_type="bearer"
     ).dict()
 
-    login_time = datetime.now()
-    if request.client and request.client.host not in ['127.0.0.1', 'localhost']:
-        login_time += timedelta(hours=7)
-    log_data = Log(event=Event.logged_in, name=form_data.username, email=user.email, role=user.role, tanggal=login_time.strftime('%-d %B %Y, %H:%M'), id_institution=user.id_institution, detail={'id_institution': user.id_institution})
+    log_data = Log(name=form_data.username, email=user.email, role=user.role, tanggal=datetime.now().strftime('%d %B %Y, %H:%M'), id_institution=user.id_institution)
     log_data_json = log_data.json()
     log_data_dict = json.loads(log_data_json)
 
@@ -902,16 +899,8 @@ async def verify_user(userid: str) -> JSONResponse:
         status_code=status.HTTP_200_OK,
     )
 
-
 @router.post("/assessment", tags=['Deterrence - Admin'])
-async def start_assessment(request: Request, user: UserDB = Depends(get_user)) -> JSONResponse:
-    if user.role != 'admin':
-        return create_response(
-            message="Forbidden access",
-            success=False,
-            status_code=status.HTTP_403_FORBIDDEN
-        )
-
+async def start_assessment(user: UserDB = Depends(get_user)) -> JSONResponse:
     existing_data = db_assessment.fetch({'id_admin': user.key, 'selesai': False})
     if existing_data.count > 0:
         return create_response(
@@ -926,27 +915,13 @@ async def start_assessment(request: Request, user: UserDB = Depends(get_user)) -
     new_assessment = {
         'id_institution': user.id_institution,
         'id_admin': user.key,
-        'id_reviewer_internal': '',
-        'id_reviewer_external': '',
-        'tanggal': extra_datetime.strftime('%-d %B %Y, %H:%M'),
-        'hasil_internal': 0,
-        'hasil_external': 0,
+        'id_reviewer': '',
+        'tanggal': datetime.now().strftime('%d %B %Y, %H:%M'),
+        'hasil': 0,
         'selesai': False
     }
 
-    res = db_assessment.put(new_assessment)
-
-    if request.client:
-        create_log(
-            user=user,
-            event=Event.started_assessment,
-            detail={
-                'id_assessment': res['key'],
-                'admin': user.full_name,
-                'tanggal': res['tanggal']
-            },
-            host=request.client.host
-        )
+    db_assessment.put(new_assessment)
 
     return create_response(
         message="Start assessment success",

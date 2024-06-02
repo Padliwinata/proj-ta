@@ -19,6 +19,7 @@ def authorized_client() -> typing.Generator[TestClient, TestClient, TestClient]:
     admin_client = TestClient(app)
     reviewer_client = TestClient(app)
     staff_client = TestClient(app)
+    # super_admin_client = TestClient(app)
 
     test_data = {
         'username': 'testingusername',
@@ -27,10 +28,14 @@ def authorized_client() -> typing.Generator[TestClient, TestClient, TestClient]:
         'full_name': 'testing full name',
         'role': 'admin',
         'phone': '081357516553',
+        'id_institution': "gc8uupscjs0e",
+        'is_active': True,
         'institution_name': 'Testing Institution',
         'institution_address': '123 Testing St',
         'institution_phone': '123456789',
         'institution_email': 'institution@example.com'
+        
+        
     }
 
     rev_data = {
@@ -106,10 +111,13 @@ def test_register_admin() -> None:
         'full_name': 'testing full name',
         'role': 'admin',
         'phone': '081357516553',
+        'id_institution': "gc8uupscjs0e",
+        'is_active': True,
         'institution_name': 'Testing Institution',
         'institution_address': '123 Testing St',
         'institution_phone': '123456789',
         'institution_email': 'institution@example.com'
+        
     }
     response = client.post('/api/register', json=test_data)
     user = db_user.fetch({'username': 'testingusername'})
@@ -141,11 +149,12 @@ def test_register_invalid_data() -> None:
 def test_login_admin(authorized_client) -> None:
     # Test case for successful user login
     test_data = {
+        'is_active': True,
         'username': 'testingusername',
         'password': 'testingpassword'
     }
-    client, _, _ = authorized_client
-    response = client.post('/api/auth', data=test_data)
+    admin_client, _, _ = authorized_client
+    response = admin_client.post('/api/auth', data=test_data)
     assert response.status_code == 200
     assert response.json()['success'] is True
     
@@ -155,8 +164,8 @@ def test_login_staff(authorized_client) -> None:
         'username': 'teststaff',
         'password': 'teststaff'
     }
-    _, _, client = authorized_client
-    response = client.post('/api/auth', data=test_data)
+    _, _, staff_client = authorized_client
+    response = staff_client.post('/api/auth', data=test_data)
     assert response.status_code == 200
     assert response.json()['success'] is True
 
@@ -303,13 +312,13 @@ def test_login_staff_not_found() -> None:
 
 
 def test_fill_assesment(authorized_client) -> None:
-    client, _, _ = authorized_client
+    admin_client, _, _ = authorized_client
 
     client.post("/api/assessment")
 
 
     with open('cobafraud.pdf', "rb") as file:
-        res = client.post('/api/point?bab=1&sub_bab=1.1&point=1&answer=1', files={'file': ("cobafraud.pdf", file, "application/pdf")})
+        res = admin_client.post('/api/point?bab=1&sub_bab=1.1&point=1&answer=1', files={'file': ("cobafraud.pdf", file, "application/pdf")})
         user = db_user.fetch({'username': 'testingusername'})
         id_user = user.items[0]['key']
         assessment = db_assessment.fetch({'id_admin': id_user})
