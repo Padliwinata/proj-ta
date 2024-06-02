@@ -146,7 +146,7 @@ class Point(BaseModel):
     id_assessment: str
     bab: str
     sub_bab: str
-    point: int
+    point: float
     answer: int
     skor: typing.Optional[int]
     proof: typing.Optional[Proof]
