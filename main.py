@@ -514,7 +514,7 @@ async def get_login_log(user: User = Depends(get_user)) -> JSONResponse:
             'tanggal': user_data.tanggal
         })
 
-    final_data = sorted(final_data, key=lambda x: datetime.strptime(x['tanggal'], '%d %b %Y, %H:%M'), reverse=True)
+    final_data = sorted(final_data, key=lambda x: datetime.strptime(x['tanggal'], '%d %B %Y, %H:%M'), reverse=True)
 
     return create_response("Fetch Data Success", True, status.HTTP_200_OK, data=final_data)
 
