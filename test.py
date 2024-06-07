@@ -11,10 +11,8 @@ from fastapi import status
 from seeder import seed, seed_assessment
 
 
-client = TestClient(app)
-
 @pytest.fixture
-def authorized_client() -> typing.Generator[TestClient, TestClient, TestClient]: 
+def authorized_client() -> typing.Generator[typing.Tuple[TestClient, TestClient, TestClient], None, None]:
     client = TestClient(app)
     admin_client = TestClient(app)
     reviewer_client = TestClient(app)
@@ -34,10 +32,7 @@ def authorized_client() -> typing.Generator[TestClient, TestClient, TestClient]:
         'institution_address': '123 Testing St',
         'institution_phone': '123456789',
         'institution_email': 'institution@example.com'
-        
-        
     }
-
     rev_data = {
         'username': 'testrev',
         'email': 'revwer@gmail.com',
@@ -51,9 +46,9 @@ def authorized_client() -> typing.Generator[TestClient, TestClient, TestClient]:
         'institution_email': 'institution@example.com'
     }
     staff_data = {
-        'username': 'teststaff',
-        'email': 'staff@gmail.com',
-        'password': 'teststaff',
+        'username': 'staffbaru',
+        'email': 'staffbaru@gmail.com',
+        'password': 'staffbaru',
         'full_name': 'testing staff',
         'role': 'staff',
         'phone': '081999000222',
@@ -70,14 +65,13 @@ def authorized_client() -> typing.Generator[TestClient, TestClient, TestClient]:
         'username': 'testingusername',
         'password': 'testingpassword'
     }
-
     login_rev = {
         'username': 'testrev',
         'password': 'testrev'
     }
     login_staff ={
-        'username' : 'teststaff',
-        'password' : 'teststaff'
+        'username': 'staffbaru',
+        'password': 'staffbaru'
     }
 
     login_response = client.post('/api/auth', data=login_data)
@@ -139,17 +133,18 @@ def test_register_invalid_data() -> None:
         'institution_name': 'Testing Institution',
         'institution_address': '123 Testing St',
         'institution_phone': '123456789',
-        'institution_email': 'institutionexamplecom' #invalid email  format
+        'institution_email': 'institutionexamplecom'  # invalid email format
     }
     response = client.post('/api/register', json=invalid_user_data)
     assert response.status_code == 422
     assert 'detail' in response.json()
     assert 'value is not a valid email address' in response.json()['detail'][0]['msg']
 
-def test_login_admin(authorized_client) -> None:
+
+def test_login_admin(authorized_client: typing.Tuple[TestClient, TestClient, TestClient]) -> None:
     # Test case for successful user login
     test_data = {
-        'is_active': True,
+        'is_active': "true",
         'username': 'testingusername',
         'password': 'testingpassword'
     }
@@ -157,8 +152,9 @@ def test_login_admin(authorized_client) -> None:
     response = admin_client.post('/api/auth', data=test_data)
     assert response.status_code == 200
     assert response.json()['success'] is True
-    
-def test_login_staff(authorized_client) -> None:
+
+
+def test_login_staff(authorized_client: typing.Tuple[TestClient, TestClient, TestClient]) -> None:
     # Test case for successful user login
     test_data = {
         'username': 'teststaff',
@@ -170,13 +166,15 @@ def test_login_staff(authorized_client) -> None:
     assert response.json()['success'] is True
 
 
-def test_check_endpoint(authorized_client) -> None:
+def test_check_endpoint(authorized_client: typing.Tuple[TestClient, TestClient, TestClient]) -> None:
     client, _, _ = authorized_client
     response = client.get('/api/auth')
     print(response.json())
     assert response.status_code == 200
 
+
 def test_login_admin_not_found() -> None:
+    client = TestClient(app)
     # Test case for user not found scenario
     test_data = {
         'username': 'non_existent_user',
@@ -186,7 +184,8 @@ def test_login_admin_not_found() -> None:
     assert response.status_code == 401
     assert response.json()['success'] is False
     assert response.json()['message'] == "User not found"
-    
+
+
 def test_register_reviewer() -> None:
     client = TestClient(app)
     rev_data = {
@@ -228,7 +227,8 @@ def test_register_reviewer_invalid_data() -> None:
     assert 'detail' in response.json()
     assert 'value is not a valid email address' in response.json()['detail'][0]['msg']
 
-def test_login_reviewer(authorized_client) -> None:
+
+def test_login_reviewer(authorized_client: typing.Tuple[TestClient, TestClient, TestClient]) -> None:
     # Test case for successful user login
     rev_data = {
         'username': 'testrev',
@@ -241,6 +241,7 @@ def test_login_reviewer(authorized_client) -> None:
     
 
 def test_login_rev_not_found() -> None:
+    client = TestClient(app)
     # Test case for user not found scenario
     rev_data = {
         'username': 'non_existent_rev',
@@ -252,8 +253,7 @@ def test_login_rev_not_found() -> None:
     assert response.json()['message'] == "User not found"
     
 
-
-def test_register_staff(authorized_client) -> None:
+def test_register_staff(authorized_client: typing.Tuple[TestClient, TestClient, TestClient]) -> None:
     admin_client, _, _ = authorized_client
     
     # Data untuk pendaftaran staf baru
@@ -273,7 +273,8 @@ def test_register_staff(authorized_client) -> None:
     assert response.status_code == 201  # Periksa status kode 201 Created
     assert response.json()['success'] is True  # Pastikan bahwa pendaftaran berhasil
 
-def test_register_existing_user(authorized_client) -> None:
+
+def test_register_existing_user(authorized_client: typing.Tuple[TestClient, TestClient, TestClient]) -> None:
     admin_client, _, _ = authorized_client
     
     # Data untuk pengguna yang sudah terdaftar sebelumnya
@@ -296,10 +297,10 @@ def test_register_existing_user(authorized_client) -> None:
     assert response.status_code == 400  # Periksa status kode 400 Bad Request
     assert response.json()['success'] is False  # Pastikan bahwa pendaftaran gagal
     assert response.json()['message'] == "User Already Exist"  # Pastikan bahwa pesan yang tepat dikembalikan oleh endpoint
-    
 
     
 def test_login_staff_not_found() -> None:
+    client = TestClient(app)
     # Test case for user not found scenario
     test_data = {
         'username': 'non_existent_staff',
@@ -311,11 +312,8 @@ def test_login_staff_not_found() -> None:
     assert response.json()['message'] == "User not found"
 
 
-def test_fill_assesment(authorized_client) -> None:
+def test_fill_assessment(authorized_client: typing.Tuple[TestClient, TestClient, TestClient]) -> None:
     admin_client, _, _ = authorized_client
-
-    client.post("/api/assessment")
-
 
     with open('cobafraud.pdf', "rb") as file:
         res = admin_client.post('/api/point?bab=1&sub_bab=1.1&point=1&answer=1', files={'file': ("cobafraud.pdf", file, "application/pdf")})
@@ -324,8 +322,9 @@ def test_fill_assesment(authorized_client) -> None:
         assessment = db_assessment.fetch({'id_admin': id_user})
         db_assessment.delete(assessment.items[0]['key'])
         assert res.status_code == 200
-    
-def test_start_assessment(authorized_client) -> None:
+
+
+def test_start_assessment(authorized_client: typing.Tuple[TestClient, TestClient, TestClient]) -> None:
     admin_client, _, _ = authorized_client
 
     response = admin_client.post("/api/assessment")
@@ -333,8 +332,9 @@ def test_start_assessment(authorized_client) -> None:
     assert response.status_code == 201
     assert response.json()["message"] == "Start assessment success"
     assert response.json()["success"] == True
-    
-def test_start_assessment_existing_data(authorized_client) -> None:
+
+
+def test_start_assessment_existing_data(authorized_client: typing.Tuple[TestClient, TestClient, TestClient]) -> None:
     admin_client, _, _ = authorized_client
 
     # Create an existing assessment
@@ -348,7 +348,7 @@ def test_start_assessment_existing_data(authorized_client) -> None:
     assert response.json()["success"] == False
 
     
-def test_get_all_assessment(authorized_client) -> None:
+def test_get_all_assessment(authorized_client: typing.Tuple[TestClient, TestClient, TestClient]) -> None:
     admin_client, _, _ = authorized_client
 
     # Create an assessment
@@ -360,8 +360,9 @@ def test_get_all_assessment(authorized_client) -> None:
     assert response.status_code == 200
     assert response.json()["success"] == True
     assert len(response.json()["data"]) == 1  # Assuming only one assessment is created
-    
-def test_get_finished_assessments_with_assessment(authorized_client) -> None:
+
+
+def test_get_finished_assessments_with_assessment(authorized_client: typing.Tuple[TestClient, TestClient, TestClient]) -> None:
     admin_client, _, _ = authorized_client
     
     # Create an ongoing assessment
@@ -375,7 +376,7 @@ def test_get_finished_assessments_with_assessment(authorized_client) -> None:
     assert response.json()["success"] == True
 
 
-def test_get_finished_assessments_no_assessment(authorized_client) -> None:
+def test_get_finished_assessments_no_assessment(authorized_client: typing.Tuple[TestClient, TestClient, TestClient]) -> None:
     admin_client, _, _ = authorized_client
     
     # Call the endpoint
@@ -386,7 +387,8 @@ def test_get_finished_assessments_no_assessment(authorized_client) -> None:
     assert response.json()["success"] == False
     assert response.json()["message"] == "Assessment not found"
 
-def test_start_evaluation_not_reviewer(authorized_client) -> None:
+
+def test_start_evaluation_not_reviewer(authorized_client: typing.Tuple[TestClient, TestClient, TestClient]) -> None:
     admin_client, _, _ = authorized_client
 
     # Kirim permintaan untuk memulai evaluasi oleh reviewer internal
@@ -396,8 +398,9 @@ def test_start_evaluation_not_reviewer(authorized_client) -> None:
     assert response.status_code == status.HTTP_403_FORBIDDEN
     assert response.json()["success"] == False
     assert response.json()["message"] == "Forbidden access"
-    
-def test_start_evaluation_internal_reviewer(authorized_client) -> None:
+
+
+def test_start_evaluation_internal_reviewer(authorized_client: typing.Tuple[TestClient, TestClient, TestClient]) -> None:
     _, reviewer_client, _ = authorized_client
 
     # Kirim permintaan untuk memulai evaluasi oleh reviewer eksternal
