@@ -61,7 +61,6 @@ def authorized_client() -> typing.Generator[typing.Tuple[TestClient, TestClient,
     client.post('/api/register', json=test_data)
     client.post('/api/register', json=rev_data)
     staff_response = client.post('/api/register', json=staff_data)
-    print(staff_response.json())
     login_data = {
         'username': 'testingusername',
         'password': 'testingpassword'
@@ -91,8 +90,8 @@ def authorized_client() -> typing.Generator[typing.Tuple[TestClient, TestClient,
 
     user = db_user.fetch({'username': 'testingusername'})
     reviewer = db_user.fetch({'username': 'testrev'})
-    staff = db_user.fetch({'username': 'teststaff'})
-    print(staff.items)
+    staff = db_user.fetch({'username': 'staffbaruaja'})
+
     db_user.delete(user.items[0]['key'])
     db_user.delete(reviewer.items[0]['key'])
     db_user.delete(staff.items[0]['key'])
@@ -155,6 +154,7 @@ def test_login_admin(authorized_client: typing.Tuple[TestClient, TestClient, Tes
     assert response.status_code == 200
     assert response.json()['success'] is True
 
+
 def test_login_staff(authorized_client: typing.Tuple[TestClient, TestClient, TestClient]) -> None:
     # Test case for successful user login
     test_data = {
@@ -163,6 +163,7 @@ def test_login_staff(authorized_client: typing.Tuple[TestClient, TestClient, Tes
     }
     _, _, staff_client = authorized_client
     response = staff_client.post('/api/auth', data=test_data)
+    print(response.json())
     assert response.status_code == 200
     assert response.json()['success'] is True
 
@@ -255,20 +256,22 @@ def test_login_rev_not_found() -> None:
 
 
 def test_register_staff(authorized_client: typing.Tuple[TestClient, TestClient, TestClient]) -> None:
-    admin_client, _, _ = authorized_client
+    client = TestClient(app)
     
     # Data untuk pendaftaran staf baru
     test_data = {
         'full_name': 'Testing Staff',
         'role': 'staff',
         'phone': '093748499',
-        'email': 'staff@gmail.com',
-        'username': 'staff_yuna',
-        'password': 'stafyuna'
+        'email': 'staffbaruaja@gmail.com',
+        'username': 'staffbaruaja',
+        'password': 'staffbaruaja'
     }
     
     # Panggil endpoint untuk pendaftaran staf baru
-    response = admin_client.post('/api/account', json=test_data)
+    response = client.post('/api/account', json=test_data)
+    staff = db_user.fetch({'username': 'staffbaruaja'})
+    db_user.delete(staff.items[0]['key'])
     
     # Periksa apakah pendaftaran berhasil
     assert response.status_code == 201  # Periksa status kode 201 Created
@@ -283,9 +286,9 @@ def test_register_existing_user(authorized_client: typing.Tuple[TestClient, Test
         'full_name': 'Testing Staff',
         'role': 'staff',
         'phone': '093748499',
-        'email': 'staff@gmail.com',
-        'username': 'staff_yuna',
-        'password': 'stafyuna'
+        'email': 'staffbaruaja@gmail.com',
+        'username': 'staffbaruaja',
+        'password': 'staffbaruaja'
     }
 
     # Menambahkan pengguna yang sudah terdaftar sebelumnya ke database
@@ -293,6 +296,8 @@ def test_register_existing_user(authorized_client: typing.Tuple[TestClient, Test
 
     # Panggil endpoint untuk pendaftaran pengguna yang sama
     response = admin_client.post('/api/account', json=test_data)
+    staff = db_user.fetch({'username': 'staffbaruaja'})
+    db_user.delete(staff.items[0]['key'])
     
     # Periksa apakah pendaftaran gagal karena pengguna sudah terdaftar sebelumnya
     assert response.status_code == 400  # Periksa status kode 400 Bad Request
@@ -411,9 +416,11 @@ def test_start_evaluation_internal_reviewer(authorized_client: typing.Tuple[Test
     assert response.json()["success"] == True
     assert response.json()["message"] == "Start reviewing success"
     assert 'access_token' in response.json()['data']  # Check if access token is returned
-    app.DEVELOPMENT = False
-    
-def test_upload_proof_point_success():
+    # app.DEVELOPMENT = False
+
+
+def test_upload_proof_point_success() -> None:
+    client = TestClient(app)
     # Simulate user authentication and obtain access token
     access_token = create_access_token({"username": "testingusername"})
 
