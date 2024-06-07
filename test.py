@@ -61,7 +61,7 @@ def authorized_client() -> typing.Generator[typing.Tuple[TestClient, TestClient,
     client.post('/api/register', json=test_data)
     client.post('/api/register', json=rev_data)
     staff_response = client.post('/api/register', json=staff_data)
-    # print(staff_response.json())
+    print(staff_response.json())
     login_data = {
         'username': 'testingusername',
         'password': 'testingpassword'
@@ -298,6 +298,7 @@ def test_register_existing_user(authorized_client: typing.Tuple[TestClient, Test
     assert response.status_code == 400  # Periksa status kode 400 Bad Request
     assert response.json()['success'] is False  # Pastikan bahwa pendaftaran gagal
     assert response.json()['message'] == "User Already Exist"  # Pastikan bahwa pesan yang tepat dikembalikan oleh endpoint
+
 
 def test_login_staff_not_found() -> None:
     client = TestClient(app)
