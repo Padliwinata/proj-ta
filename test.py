@@ -11,9 +11,6 @@ from fastapi import status
 from seeder import seed, seed_assessment
 
 
-# client = TestClient(app)
-#
-
 @pytest.fixture
 def authorized_client() -> typing.Generator[typing.Tuple[TestClient, TestClient, TestClient], None, None]:
     client = TestClient(app)
@@ -69,17 +66,15 @@ def authorized_client() -> typing.Generator[typing.Tuple[TestClient, TestClient,
         'username': 'testingusername',
         'password': 'testingpassword'
     }
-
     login_rev = {
         'username': 'testrev',
         'password': 'testrev'
     }
-
     login_staff = {
         'username': 'staffbaruaja',
         'password': 'staffbaruaja'
-    }
 
+    }
     login_response = client.post('/api/auth', data=login_data)
     auth_token = login_response.json()['access_token']
     admin_client.headers.update({"Authorization": f"Bearer {auth_token}"})
@@ -140,7 +135,7 @@ def test_register_invalid_data() -> None:
         'institution_name': 'Testing Institution',
         'institution_address': '123 Testing St',
         'institution_phone': '123456789',
-        'institution_email': 'institutionexamplecom' #invalid email  format
+        'institution_email': 'institutionexamplecom'  # invalid email format
     }
     response = client.post('/api/register', json=invalid_user_data)
     assert response.status_code == 422
@@ -148,10 +143,10 @@ def test_register_invalid_data() -> None:
     assert 'value is not a valid email address' in response.json()['detail'][0]['msg']
 
 
-def test_login_admin(authorized_client) -> None:
+def test_login_admin(authorized_client: typing.Tuple[TestClient, TestClient, TestClient]) -> None:
     # Test case for successful user login
     test_data = {
-        'is_active': True,
+        'is_active': "true",
         'username': 'testingusername',
         'password': 'testingpassword'
     }
@@ -160,8 +155,7 @@ def test_login_admin(authorized_client) -> None:
     assert response.status_code == 200
     assert response.json()['success'] is True
 
-
-def test_login_staff(authorized_client) -> None:
+def test_login_staff(authorized_client: typing.Tuple[TestClient, TestClient, TestClient]) -> None:
     # Test case for successful user login
     test_data = {
         'username': 'teststaff',
@@ -173,7 +167,7 @@ def test_login_staff(authorized_client) -> None:
     assert response.json()['success'] is True
 
 
-def test_check_endpoint(authorized_client) -> None:
+def test_check_endpoint(authorized_client: typing.Tuple[TestClient, TestClient, TestClient]) -> None:
     client, _, _ = authorized_client
     response = client.get('/api/auth')
     print(response.json())
@@ -304,7 +298,6 @@ def test_register_existing_user(authorized_client: typing.Tuple[TestClient, Test
     assert response.status_code == 400  # Periksa status kode 400 Bad Request
     assert response.json()['success'] is False  # Pastikan bahwa pendaftaran gagal
     assert response.json()['message'] == "User Already Exist"  # Pastikan bahwa pesan yang tepat dikembalikan oleh endpoint
-    
 
 def test_login_staff_not_found() -> None:
     client = TestClient(app)
@@ -321,9 +314,6 @@ def test_login_staff_not_found() -> None:
 
 def test_fill_assessment(authorized_client: typing.Tuple[TestClient, TestClient, TestClient]) -> None:
     admin_client, _, _ = authorized_client
-
-    # client.post("/api/assessment")
-
     with open('cobafraud.pdf', "rb") as file:
         res = admin_client.post('/api/point?bab=1&sub_bab=1.1&point=1&answer=1', files={'file': ("cobafraud.pdf", file, "application/pdf")})
         user = db_user.fetch({'username': 'testingusername'})
