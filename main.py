@@ -468,7 +468,8 @@ async def get_staff(user: User = Depends(get_user)) -> JSONResponse:
             'full_name': parsed_user['full_name'],
             'email': parsed_user['email'],
             'role': parsed_user['role'],
-            'status': parsed_user['is_active']
+            'status': parsed_user['is_active'],
+            'key': parsed_user['key']
         })
 
     return create_response(
