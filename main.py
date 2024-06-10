@@ -65,14 +65,14 @@ router = APIRouter(prefix='/api')
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='api/auth', auto_error=False)
 f = Fernet(SECRET_KEY)
 
-origins = [
-    'http://127.0.0.1:3000',
-    'http://127.0.0.1:8000',
-    'https://devta-1-j8022502.deta.app'
-    'https://fe-fraud.vercel.app',
-    'https://www.frauddeterrence.online',
-    'http://localhost:3000'
-]
+# origins = [
+#     'http://127.0.0.1:3000',
+#     'http://127.0.0.1:8000',
+#     'https://devta-1-j8022502.deta.app'
+#     'https://fe-fraud.vercel.app',
+#     'https://www.frauddeterrence.online',
+#     'http://localhost:3000'
+# ]
 
 app.add_middleware(
     CORSMiddleware,
@@ -468,7 +468,8 @@ async def get_staff(user: User = Depends(get_user)) -> JSONResponse:
             'full_name': parsed_user['full_name'],
             'email': parsed_user['email'],
             'role': parsed_user['role'],
-            'status': parsed_user['is_active']
+            'status': parsed_user['is_active'],
+            'key': parsed_user['key']
         })
 
     return create_response(
@@ -514,7 +515,7 @@ async def get_login_log(user: User = Depends(get_user)) -> JSONResponse:
             'tanggal': user_data.tanggal
         })
 
-    final_data = sorted(final_data, key=lambda x: datetime.strptime(x['tanggal'], '%d %b %Y, %H:%M'), reverse=True)
+    final_data = sorted(final_data, key=lambda x: datetime.strptime(x['tanggal'], '%d %B %Y, %H:%M'), reverse=True)
 
     return create_response("Fetch Data Success", True, status.HTTP_200_OK, data=final_data)
 
@@ -1379,7 +1380,7 @@ async def evaluate_assessment(data: AssessmentEval, user: UserDB = Depends(get_u
 
     sorted_points = sorted(existing_points.items, key=lambda x: x['point'])
     for i in range(len(sorted_points)):
-        sorted_points[i]['skor'] = int(data.skor[i]) if data.skor[i] != '-' else None
+        sorted_points[i]['skor'] = float(data.skor[i]) if data.skor[i] != '-' else None
 
     for point in sorted_points:
         to_update = Point(**point)
