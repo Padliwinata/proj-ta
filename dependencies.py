@@ -102,7 +102,7 @@ def create_notification(receivers: typing.List[str], event: Event, message: str,
             'id_receiver': receiver,
             'event': event,
             'message': message,
-            'date': created_date
+            'date': created_date.strftime('%d %B %Y, %H:%M')
         }
         db_notification.put(data)
 
