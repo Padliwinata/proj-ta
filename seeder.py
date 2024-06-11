@@ -31,7 +31,7 @@ institution_data = [
 ]
 
 beneish_report = {
-    "revenue_1": 2824529866,
+    "revenue_1": 2824529865,
     "cogs_1": 1637778233,
     "sgae_1": 978404721,
     "depreciation_1": 145556996,
