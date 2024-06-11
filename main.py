@@ -1142,7 +1142,7 @@ async def selesai_isi(request: Request, id_assessment: str, user: UserDB = Depen
 
         notification_receivers = db_user.fetch({'id_institution': user.id_institution, 'role': 'reviewer'})
         if notification_receivers.count > 0:
-            receivers_id = [receiver['key'] for receiver in notification_receivers]
+            receivers_id = [receiver['key'] for receiver in notification_receivers.items]
             create_notification(
                 receivers=receivers_id,
                 event=Event.submitted_assessment,
