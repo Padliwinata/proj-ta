@@ -920,8 +920,8 @@ async def start_assessment(user: UserDB = Depends(get_user)) -> JSONResponse:
         'id_reviewer_internal': '',
         'id_reviewer_external': '',
         'tanggal': datetime.now().strftime('%d %B %Y, %H:%M'),
-        'hasil_internal': 0,
-        'hasil_external': 0,
+        'hasil_internal': None,
+        'hasil_external': None,
         'selesai': False
     }
 
