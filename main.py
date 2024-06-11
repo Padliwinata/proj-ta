@@ -900,6 +900,7 @@ async def verify_user(userid: str) -> JSONResponse:
         status_code=status.HTTP_200_OK,
     )
 
+
 @router.post("/assessment", tags=['Deterrence - Admin'])
 async def start_assessment(user: UserDB = Depends(get_user)) -> JSONResponse:
     existing_data = db_assessment.fetch({'id_admin': user.key, 'selesai': False})
@@ -916,9 +917,11 @@ async def start_assessment(user: UserDB = Depends(get_user)) -> JSONResponse:
     new_assessment = {
         'id_institution': user.id_institution,
         'id_admin': user.key,
-        'id_reviewer': '',
+        'id_reviewer_internal': '',
+        'id_reviewer_external': '',
         'tanggal': datetime.now().strftime('%d %B %Y, %H:%M'),
-        'hasil': 0,
+        'hasil_internal': 0,
+        'hasil_external': 0,
         'selesai': False
     }
 
