@@ -82,7 +82,7 @@ def create_log(user: UserDB, event: Event, detail: typing.Dict[str, typing.Any],
         'name': user.full_name,
         'email': user.email,
         'role': user.role,
-        'tanggal': tanggal.strftime('%-d %B %Y, %H:%M'),
+        'tanggal': tanggal.strftime('%d %B %Y, %H:%M'),
         'event': event,
         'detail': detail,
         'id_institution': user.id_institution
