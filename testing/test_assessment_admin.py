@@ -1,17 +1,16 @@
 import sys
 import os
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-import json
-
-from fastapi.testclient import TestClient # type: ignore
+import unittest
+from fastapi.testclient import TestClient
 from main import app
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 
 client = TestClient(app)
 
-import unittest
+
 class TestAssessmentFDP(unittest.TestCase):
-    
-    
+
     def test_admin_start_asessment_success(self):
         # Pastikan last assessment harus sudah finish
         login_response = client.post(
@@ -53,7 +52,6 @@ class TestAssessmentFDP(unittest.TestCase):
         assert response.json()["message"] == "Please finish last assessment first"
         assert response.json()["success"] is False
 
-    
     def test_admin_update_assesment_point_not_found(self):
         login_response = client.post(
             "/api/auth",
@@ -148,6 +146,7 @@ class TestAssessmentFDP(unittest.TestCase):
     #     assert response.status_code == 404
     #     assert response.json()["message"] == 'Assessment not found'
     #     assert response.json()["success"] is False
+
 
 if __name__ == "__main__":
     unittest.main()
