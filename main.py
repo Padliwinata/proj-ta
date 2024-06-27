@@ -576,6 +576,20 @@ async def upload_proof_point(request: Request,
             status_code=status.HTTP_400_BAD_REQUEST
         )
 
+    if int(metadata.bab) > 6:
+        return create_response(
+            message="Invalid bab",
+            success=False,
+            status_code=status.HTTP_400_BAD_REQUEST
+        )
+
+    if metadata.sub_bab not in bab:
+        return create_response(
+            message="Invalid sub bab",
+            success=False,
+            status_code=status.HTTP_400_BAD_REQUEST
+        )
+
     if new_proof:
         drive.put(filename, content)
         db_proof.put(new_proof.dict())
