@@ -9,3 +9,4 @@ python-multipart
 pydantic[email]
 mailersend
 pytest
+pymysql

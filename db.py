@@ -1,5 +1,5 @@
 import deta
-import pymysql.cursors
+# import pymysql.cursors
 
 from settings import DATA_KEY, DB_HOST, DB_NAME, DB_PASSWORD, DB_USERNAME
 

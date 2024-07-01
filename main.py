@@ -9,7 +9,7 @@ from fastapi.responses import JSONResponse, StreamingResponse, Response
 from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
 from fastapi.middleware.cors import CORSMiddleware
 from jose import jwt, JWTError
-import pymysql.cursors
+# import pymysql.cursors
 
 from dependencies import (
     authenticate_user,
