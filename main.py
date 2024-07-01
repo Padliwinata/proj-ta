@@ -65,18 +65,18 @@ router = APIRouter(prefix='/api')
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='api/auth', auto_error=False)
 f = Fernet(SECRET_KEY)
 
-# origins = [
-#     'http://127.0.0.1:3000',
-#     'http://127.0.0.1:8000',
-#     'https://devta-1-j8022502.deta.app'
-#     'https://fe-fraud.vercel.app',
-#     'https://www.frauddeterrence.online',
-#     'http://localhost:3000'
-# ]
+request_origins = [
+    'http://127.0.0.1:3000',
+    'http://127.0.0.1:8000',
+    'https://devta-1-j8022502.deta.app'
+    'https://fe-fraud.vercel.app',
+    'https://www.frauddeterrence.online',
+    'http://localhost:3000'
+]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=request_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"]
@@ -228,7 +228,7 @@ async def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]) -> J
         token_type="bearer"
     ).dict()
 
-    log_data = Log(name=form_data.username, email=user.email, role=user.role, tanggal=datetime.now().strftime('%d %B %Y, %H:%M'), id_institution=user.id_institution)
+    log_data = Log(name=form_data.username, event=Event.logged_in, email=user.email, role=user.role, tanggal=datetime.now().strftime('%d %B %Y, %H:%M'), id_institution=user.id_institution)
     log_data_json = log_data.json()
     log_data_dict = json.loads(log_data_json)
 
@@ -572,6 +572,20 @@ async def upload_proof_point(request: Request,
     if existing_points.count > 0:
         return create_response(
             message="Point already exist",
+            success=False,
+            status_code=status.HTTP_400_BAD_REQUEST
+        )
+
+    if int(metadata.bab) > 6:
+        return create_response(
+            message="Invalid bab",
+            success=False,
+            status_code=status.HTTP_400_BAD_REQUEST
+        )
+
+    if metadata.sub_bab not in bab:
+        return create_response(
+            message="Invalid sub bab",
             success=False,
             status_code=status.HTTP_400_BAD_REQUEST
         )

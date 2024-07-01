@@ -75,8 +75,8 @@ def create_response(
 
 def create_log(user: UserDB, event: Event, detail: typing.Dict[str, typing.Any], host: str) -> typing.Dict[str, typing.Any]:
     tanggal = datetime.now()
-    if host not in ['127.0.0.1', 'localhost']:
-        tanggal += timedelta(hours=7)
+    # if host not in ['127.0.0.1', 'localhost']:
+    tanggal -= timedelta(hours=7)
 
     data_to_store = {
         'name': user.full_name,

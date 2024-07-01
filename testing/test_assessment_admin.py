@@ -1,14 +1,14 @@
 import sys
 import os
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-import json
-
-from fastapi.testclient import TestClient # type: ignore
+import unittest
+from fastapi.testclient import TestClient
 from main import app
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 
 client = TestClient(app)
 
-import unittest
+
 class TestAssessmentFDP(unittest.TestCase):
     
     def test_admin_unfinished_asessment(self):
@@ -205,6 +205,7 @@ class TestAssessmentFDP(unittest.TestCase):
         assert response.status_code == 404
         assert response.json()["message"] == 'Assessment not found'
         assert response.json()["success"] is False
+
 
 if __name__ == "__main__":
     unittest.main()

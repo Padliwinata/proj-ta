@@ -37,7 +37,6 @@ class Event(str, Enum):
     finished_review = "Finished Review"
 
 
-
 class RegisterForm(BaseModel):
     username: str
     email: EmailStr
