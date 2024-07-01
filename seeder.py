@@ -273,3 +273,15 @@ def delete_db() -> None:
         drive.delete_many(filename_list)
 
 
+def seed_mysql():
+    new_assessment = {
+        'id_institution': 'gc8uupscjs0e',
+        'id_admin': "ev9ag3o7lxed",
+        'id_reviewer': '',
+        'tanggal': datetime.now().strftime('%d %B %Y, %H:%M'),
+        'hasil': 0,
+        'selesai': False
+    }
+
+
+

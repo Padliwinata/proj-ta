@@ -31,7 +31,8 @@ from db import (
     drive,
     db_assessment,
     db_report,
-    db_notification
+    db_notification,
+    get_user_by_username
 )
 from exceptions import DependencyException
 from models import (
@@ -130,6 +131,7 @@ def get_user(access_token: str = Depends(oauth2_scheme)) -> Union[UserDB, None]:
         raise DependencyException(status_code=status.HTTP_401_UNAUTHORIZED, detail_info=response_error.dict())
 
     response = db_user.fetch({'username': payload.sub})
+    # user_data = get_user_by_username(payload.sub)
     # if response.count == 0:
     #     response_error = CustomResponse(
     #         success=False,

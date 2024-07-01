@@ -1,5 +1,9 @@
+import random
+import string
+
+
 import deta
-# import pymysql.cursors
+import pymysql.cursors
 
 from settings import DATA_KEY, DB_HOST, DB_NAME, DB_PASSWORD, DB_USERNAME
 
@@ -19,15 +23,30 @@ db_notification = deta_obj.Base("notification")
 drive = deta_obj.Drive("document")
 
 
-# def get_user_by_username(username: str):
-#     connection = pymysql.connect(host=DB_HOST,
-#                                  user=DB_USERNAME,
-#                                  password=DB_PASSWORD,
-#                                  database=DB_NAME)
-#
-#     try:
-#         with connection.cursor() as cursor:
-#             sql = "SELECT * FROM Users WHERE username = %s"
-#             cursor.execute(sql, (username, ))
-#             user_data = cursor.fetchone()
-#             return user_data
+def generate_random_string():
+    characters = string.digits + string.ascii_lowercase
+    random_string = ''.join(random.choice(characters) for _ in range(12))
+    return random_string
+
+
+def get_user_by_username(username: str):
+    connection = pymysql.connect(host=DB_HOST,
+                                 user=DB_USERNAME,
+                                 password=DB_PASSWORD,
+                                 database=DB_NAME)
+
+    try:
+        with connection.cursor() as cursor:
+            sql = "SELECT * FROM Users WHERE username = %s"
+            cursor.execute(sql, (username, ))
+            user_data = cursor.fetchone()
+            return user_data
+    except pymysql.MySQLError as e:
+        print(f"Error: {e}")
+        return None
+    finally:
+        connection.close()
+
+
+def insert_new_assessment(data: dict):
+
