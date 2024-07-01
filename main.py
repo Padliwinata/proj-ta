@@ -9,7 +9,7 @@ from fastapi.responses import JSONResponse, StreamingResponse, Response
 from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
 from fastapi.middleware.cors import CORSMiddleware
 from jose import jwt, JWTError
-from pydantic import SecretStr, AnyUrl
+import pymysql.cursors
 
 from dependencies import (
     authenticate_user,
@@ -76,7 +76,7 @@ request_origins = [
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=request_origins,
+    allow_origins=['*'],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"]
