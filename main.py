@@ -9,6 +9,7 @@ from fastapi.responses import JSONResponse, StreamingResponse, Response
 from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
 from fastapi.middleware.cors import CORSMiddleware
 from jose import jwt, JWTError
+from pydantic import SecretStr
 # import pymysql.cursors
 
 from dependencies import (
@@ -54,7 +55,6 @@ from models import (
     ResetPassword,
     Event
 )
-from mailer import send_simple_message
 from settings import SECRET_KEY, MAX_FILE_SIZE, DEVELOPMENT
 from seeder import seed, delete_db, seed_assessment
 
@@ -357,8 +357,6 @@ async def refresh(refresh_token: Refresh, access_token: str = Depends(oauth2_sch
             }
         )
 
-
-from pydantic import SecretStr
 
 @router.post("/account", tags=['Admin'])
 async def register_staff(data: AddUser, user: User = Depends(get_user)) -> JSONResponse:
@@ -1176,7 +1174,7 @@ async def selesai_isi(request: Request, id_assessment: str, user: UserDB = Depen
 
 @app.post("/report", tags=['Detection - Staff'])
 async def get_beneish_score(data: Report, user: UserDB = Depends(get_user)) -> JSONResponse:
-    if user.role != 'staff':
+    if user.role not in ['staff', 'admin']:
         return create_response(
             message="Forbidden access",
             success=False,
