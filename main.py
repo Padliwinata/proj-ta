@@ -162,7 +162,7 @@ async def register(data: RegisterForm) -> JSONResponse:
 
     if existing_data > 0:
         return create_response(
-            message="Username or email already "
+            message="Username or email already exist"
         )
 
     data.password = SecretStr(encrypt_password(data.password.get_secret_value()))
