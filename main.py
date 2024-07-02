@@ -155,7 +155,7 @@ async def custom_handler(request: Request, exc: DependencyException) -> JSONResp
 
 @router.post('/register', tags=['Auth'])
 async def register(data: RegisterForm) -> JSONResponse:
-    existing_data = db_user.fetch([{'username': data.username}, {'email': data.email}])
+    existing_data = db_user.fetch([{'username': data.username}, {'email': data.email}, {'phone': data.phone}])
     if existing_data.count > 0:
         return create_response(
             message="Username or email already "
@@ -1269,7 +1269,10 @@ async def finish_reviewing(id_assessment: str, user: UserDB = Depends(get_user))
     else:
         existing_assessment['hasil_internal'] = total
 
-    existing_assessment['tanggal_nilai'] = datetime.now().strftime('%d %B %Y, %H:%M')
+    current_datetime = datetime.now()
+    extra_datetime = current_datetime + timedelta(hours=7)
+
+    existing_assessment['tanggal_nilai'] = extra_datetime.strftime('%d %B %Y, %H:%M')
 
     key = existing_assessment['key']
     del existing_assessment['key']
@@ -1437,15 +1440,14 @@ async def change_password(data: ResetPassword, user: UserDB = Depends(get_user))
     )
 
 
-@router.get("/email/example", tags=['Development'])
-async def send_email_example() -> JSONResponse:
-    data = send_simple_message()
-    return create_response(
-        message="Nice",
-        success=True,
-        status_code=status.HTTP_418_IM_A_TEAPOT,
-        data=data.json()
-    )
+# @router.get("/email/example", tags=['Development'])
+# async def send_email_example() -> JSONResponse:
+#     return create_response(
+#         message="Nice",
+#         success=True,
+#         status_code=status.HTTP_418_IM_A_TEAPOT,
+#         data=data.json()
+#     )
 
 
 @router.get("/notifications")
