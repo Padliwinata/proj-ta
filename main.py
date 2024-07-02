@@ -155,8 +155,12 @@ async def custom_handler(request: Request, exc: DependencyException) -> JSONResp
 
 @router.post('/register', tags=['Auth'])
 async def register(data: RegisterForm) -> JSONResponse:
-    existing_data = db_user.fetch([{'username': data.username}, {'email': data.email}, {'phone': data.phone}])
-    if existing_data.count > 0:
+    existing_data_user = db_user.fetch([{'username': data.username}, {'email': data.email}, {'phone': data.phone}])
+    existing_data_institution = db_institution.fetch({'phone': data.institution_phone})
+
+    existing_data = existing_data_user.count + existing_data_institution.count
+
+    if existing_data > 0:
         return create_response(
             message="Username or email already "
         )
