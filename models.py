@@ -244,7 +244,6 @@ class ReportInput(BaseModel):
     tahun_1: float
     tahun_2: float
     id_institution: str
-    beneish_m: float
 
 
 class Report(ReportInput):
