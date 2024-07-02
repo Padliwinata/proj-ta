@@ -605,7 +605,7 @@ async def upload_proof_point(request: Request,
         proof=new_proof,
         point=metadata.point,
         answer=metadata.answer,
-        skor=0
+        skor=None
     )
 
     res = db_point.put(json.loads(new_point.json()))
@@ -1045,8 +1045,13 @@ async def get_assessment_insight(key: str, user: UserDB = Depends(get_user)) -> 
     for sub_bab in bab:
         points[sub_bab] = [point for point in existing_point.items if point['sub_bab'] == sub_bab]
 
+    # print(json.dumps(points, indent=4))
     for key, value in points.items():
-        points[key] = sum([skor['skor'] for skor in value])
+        existing_skor = len([skor['skor'] for skor in value if skor['skor']])
+        if existing_skor == question_number[bab.index(key)]:
+            points[key] = sum([skor['skor'] for skor in value])
+        else:
+            points[key] = None
 
     assessment = AssessmentDB(**existing_assessment).get_all_dict()
 
