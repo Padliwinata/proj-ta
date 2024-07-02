@@ -53,7 +53,7 @@ from models import (
     AssessmentEval,
     Report,
     ResetPassword,
-    Event
+    Event, ReportInput
 )
 from settings import SECRET_KEY, MAX_FILE_SIZE, DEVELOPMENT
 from seeder import seed, delete_db, seed_assessment
@@ -1183,7 +1183,7 @@ async def selesai_isi(request: Request, id_assessment: str, user: UserDB = Depen
 
 
 @app.post("/report", tags=['Detection - Staff'])
-async def get_beneish_score(data: Report, user: UserDB = Depends(get_user)) -> JSONResponse:
+async def get_beneish_score(data: ReportInput, user: UserDB = Depends(get_user)) -> JSONResponse:
     if user.role not in ['staff', 'admin']:
         return create_response(
             message="Forbidden access",
