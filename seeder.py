@@ -100,10 +100,10 @@ user_data: typing.List[typing.Dict[str, typing.Union[str, bool]]] = [
     #     "is_active": True
     # },
     {
-        "username": "bob_marley",
-        "full_name": "Bob Marley",
-        "password": "yet_another_secure_password",
-        "email": "bob@example.com",
+        "username": "staff_perusahaan",
+        "full_name": "Staff Perusahaan",
+        "password": "password",
+        "email": "staff@example.com",
         "role": "staff",
         "id_institution": "gc8uupscjs0e",
         "is_active": True,
