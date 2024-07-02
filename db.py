@@ -48,5 +48,5 @@ def get_user_by_username(username: str):
         connection.close()
 
 
-def insert_new_assessment(data: dict):
+# def insert_new_assessment(data: dict):
 

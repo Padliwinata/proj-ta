@@ -935,10 +935,11 @@ async def start_assessment(user: UserDB = Depends(get_user)) -> JSONResponse:
         'id_admin': user.key,
         'id_reviewer_internal': '',
         'id_reviewer_external': '',
-        'tanggal': datetime.now().strftime('%d %B %Y, %H:%M'),
+        'tanggal': extra_datetime.strftime('%d %B %Y, %H:%M'),
         'hasil_internal': None,
         'hasil_external': None,
-        'selesai': False
+        'selesai': False,
+        'tanggal_nilai': None
     }
 
     db_assessment.put(new_assessment)
@@ -1270,6 +1271,8 @@ async def finish_reviewing(id_assessment: str, user: UserDB = Depends(get_user))
     else:
         existing_assessment['hasil_internal'] = total
 
+    existing_assessment['tanggal_nilai'] = datetime.now().strftime('%d %B %Y, %H:%M')
+
     key = existing_assessment['key']
     del existing_assessment['key']
     db_assessment.update(existing_assessment, key)
@@ -1466,6 +1469,16 @@ async def get_notifications(user: UserDB = Depends(get_user)) -> JSONResponse:
         success=True,
         status_code=status.HTTP_200_OK,
         data=notification_data
+    )
+
+
+@router.get('/today', include_in_schema=False)
+async def get_date() -> JSONResponse:
+    return create_response(
+        message="Tanggal",
+        success=True,
+        status_code=status.HTTP_200_OK,
+        data={'tanggal': datetime.now().strftime('%d %B %Y, %H:%M')}
     )
 
 
