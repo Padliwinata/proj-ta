@@ -1,27 +1,16 @@
 import io
 import json
-from typing import Annotated, Union, List
 from datetime import datetime, timedelta
+from typing import Annotated, Union, List
 
 from cryptography.fernet import Fernet
 from fastapi import FastAPI, Depends, status, File, UploadFile, Request, APIRouter
-from fastapi.responses import JSONResponse, StreamingResponse, Response
-from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
 from fastapi.middleware.cors import CORSMiddleware
-from jose import jwt, JWTError
+from fastapi.responses import JSONResponse, Response
+from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
+from jose import JWTError
+import pandas as pd
 from pydantic import SecretStr
-# import pymysql.cursors
-
-from dependencies import (
-    authenticate_user,
-    create_refresh_token,
-    create_access_token,
-    TokenResponse,
-    get_payload_from_token,
-    create_response,
-    create_log,
-    create_notification
-)
 
 from db import (
     db_user,
@@ -32,8 +21,17 @@ from db import (
     drive,
     db_assessment,
     db_report,
-    db_notification,
-    get_user_by_username
+    db_notification
+)
+from dependencies import (
+    authenticate_user,
+    create_refresh_token,
+    create_access_token,
+    TokenResponse,
+    get_payload_from_token,
+    create_response,
+    create_log,
+    create_notification
 )
 from exceptions import DependencyException
 from models import (
@@ -55,8 +53,10 @@ from models import (
     ResetPassword,
     Event, ReportInput
 )
-from settings import SECRET_KEY, MAX_FILE_SIZE, DEVELOPMENT
 from seeder import seed, delete_db, seed_assessment
+from settings import SECRET_KEY, MAX_FILE_SIZE, DEVELOPMENT
+
+# import pymysql.cursors
 
 app = FastAPI(
     title="FDP",
@@ -222,6 +222,13 @@ async def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]) -> J
         )
         return JSONResponse(
             response.dict(),
+            status_code=status.HTTP_401_UNAUTHORIZED
+        )
+
+    if not user.is_active:
+        return JSONResponse(
+            {'message': 'User inactive',
+             'success': False},
             status_code=status.HTTP_401_UNAUTHORIZED
         )
 
@@ -1208,13 +1215,21 @@ async def get_beneish_score(data: ReportInput, user: UserDB = Depends(get_user))
 
     report['beneish_m'] = m_score
     report['id_institution'] = user.id_institution
+    report['dsri'] = dsri
+    report['gmi'] = gmi
+    report['aqi'] = aqi
+    report['sgi'] = sgi
+    report['depi'] = depi
+    report['sgai'] = sgai
+    report['lvgi'] = lvgi
+    report['tata'] = tata
     report_object = Report(**report)
     db_report.insert(report_object.dict())
     return create_response(
         message="Success insert report",
         success=True,
         status_code=status.HTTP_201_CREATED,
-        data=report_object.dict()
+        data=report
     )
 
 
@@ -1479,6 +1494,11 @@ async def get_notifications(user: UserDB = Depends(get_user)) -> JSONResponse:
         status_code=status.HTTP_200_OK,
         data=notification_data
     )
+
+
+# @router.post('/excel')
+# async def read_report_file(user: UserDB = Depends(get_user), file: UploadFile = File(None)):
+#
 
 
 @router.get('/today', include_in_schema=False)
