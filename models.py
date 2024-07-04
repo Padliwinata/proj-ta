@@ -137,7 +137,7 @@ class Proof(BaseModel):
 class ProofMeta(BaseModel):
     bab: str
     sub_bab: str
-    point: int
+    point: float
     answer: int
 
 
@@ -145,7 +145,7 @@ class Point(BaseModel):
     id_assessment: str
     bab: str
     sub_bab: str
-    point: int
+    point: float
     answer: float
     skor: typing.Optional[float]
     proof: typing.Optional[Proof]
@@ -156,7 +156,7 @@ class PointDB(Point):
 
 
 class SubPoint(BaseModel):
-    point: int
+    point: float
     proof: Proof
 
 
