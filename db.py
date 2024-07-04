@@ -23,7 +23,7 @@ db_notification = deta_obj.Base("notification")
 drive = deta_obj.Drive("document")
 
 
-def generate_random_string():
+def generate_random_string() -> str:
     characters = string.digits + string.ascii_lowercase
     random_string = ''.join(random.choice(characters) for _ in range(12))
     return random_string
