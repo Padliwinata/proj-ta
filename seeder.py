@@ -266,11 +266,11 @@ def delete_db() -> None:
         drive.delete_many(filename_list)
 
 
-# def generate_data_key() -> str:
-#     # Placeholder for generating a data key, modify according to your logic
-#     return str(uuid.uuid4())
-#
-#
+def generate_data_key() -> str:
+    # Placeholder for generating a data key, modify according to your logic
+    return str(uuid.uuid4())
+
+
 # def get_institution_id(id_institution):
 #     # Placeholder for mapping institution ID, modify according to your logic
 #     institution_map = {
@@ -279,41 +279,42 @@ def delete_db() -> None:
 #         "external": 3
 #     }
 #     return institution_map.get(id_institution, 0)
-#
-#
+
+
 # # Function to insert data into the database
-# def insert_user_data() -> None:
-#     try:
-#         # Connect to the database
-#         connection = pymysql.connect(
-#             host=DB_HOST,
-#             user=DB_USERNAME,
-#             password=DB_PASSWORD,
-#             database=DB_NAME
-#         )
-#
-#         with connection.cursor() as cursor:
-#             insert_query = """
-#             INSERT INTO Users (data_key, username, full_name, password, email, role, id_institution, is_active, phone)
-#             VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
-#             """
-#             for user in user_data:
-#                 data_key = generate_data_key()  # You need to implement this function based on your logic
-#                 if isinstance(user['password'], str):
-#                     password_blob = user['password'].encode()  # Convert password to bytes
-#                 user_id_institution = get_institution_id(user['id_institution'])  # Map institution ID if needed
-#                 cursor.execute(insert_query, (
-#                     data_key, user['username'], user['full_name'], password_blob, user['email'],
-#                     user['role'], user_id_institution, user['is_active'], user['phone']
-#                 ))
-#
-#             # Commit the transaction
-#             connection.commit()
-#
-#     except pymysql.MySQLError as e:
-#         print(f"Error: {e}")
-#     finally:
-#         connection.close()
+def insert_user_data() -> None:
+    try:
+        # Connect to the database
+        connection = pymysql.connect(
+            host=DB_HOST,
+            user=DB_USERNAME,
+            password=DB_PASSWORD,
+            database=DB_NAME
+        )
+
+        with connection.cursor() as cursor:
+            insert_query = """
+            INSERT INTO Users (data_key, username, full_name, password, email, role, id_institution, is_active, phone)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+            """
+            for user in user_data:
+                data_key = generate_data_key()  # You need to implement this function based on your logic
+                if isinstance(user['password'], str):
+                    password_blob = user['password'].encode()  # Convert password to bytes
+                user_id_institution = user['id_institution']  # Map institution ID if needed
+                cursor.execute(insert_query, (
+                    data_key, user['username'], user['full_name'], password_blob, user['email'],
+                    user['role'], user_id_institution, user['is_active'], user['phone']
+                ))
+
+            # Commit the transaction
+            connection.commit()
+
+    except pymysql.MySQLError as e:
+        print(f"Error: {e}")
+    finally:
+        connection.close()
+
 
 institution_data2 = [
     {
