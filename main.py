@@ -1,26 +1,16 @@
 import io
 import json
-from typing import Annotated, Union, List
 from datetime import datetime, timedelta
+from typing import Annotated, Union, List
 
 from cryptography.fernet import Fernet
 from fastapi import FastAPI, Depends, status, File, UploadFile, Request, APIRouter
-from fastapi.responses import JSONResponse, StreamingResponse, Response
-from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
 from fastapi.middleware.cors import CORSMiddleware
-from jose import jwt, JWTError
-from pydantic import SecretStr, AnyUrl
-
-from dependencies import (
-    authenticate_user,
-    create_refresh_token,
-    create_access_token,
-    TokenResponse,
-    get_payload_from_token,
-    create_response,
-    create_log,
-    create_notification
-)
+from fastapi.responses import JSONResponse, Response
+from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
+from jose import JWTError
+import pandas as pd
+from pydantic import SecretStr
 
 from db import (
     db_user,
@@ -32,6 +22,16 @@ from db import (
     db_assessment,
     db_report,
     db_notification
+)
+from dependencies import (
+    authenticate_user,
+    create_refresh_token,
+    create_access_token,
+    TokenResponse,
+    get_payload_from_token,
+    create_response,
+    create_log,
+    create_notification
 )
 from exceptions import DependencyException
 from models import (
@@ -51,11 +51,12 @@ from models import (
     AssessmentEval,
     Report,
     ResetPassword,
-    Event
+    Event, ReportInput
 )
-from mailer import send_simple_message
-from settings import SECRET_KEY, MAX_FILE_SIZE, DEVELOPMENT
 from seeder import seed, delete_db, seed_assessment
+from settings import SECRET_KEY, MAX_FILE_SIZE, DEVELOPMENT
+
+# import pymysql.cursors
 
 app = FastAPI(
     title="FDP",
@@ -76,7 +77,7 @@ request_origins = [
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=request_origins,
+    allow_origins=['*'],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"]
@@ -130,6 +131,7 @@ def get_user(access_token: str = Depends(oauth2_scheme)) -> Union[UserDB, None]:
         raise DependencyException(status_code=status.HTTP_401_UNAUTHORIZED, detail_info=response_error.dict())
 
     response = db_user.fetch({'username': payload.sub})
+    # user_data = get_user_by_username(payload.sub)
     # if response.count == 0:
     #     response_error = CustomResponse(
     #         success=False,
@@ -153,10 +155,14 @@ async def custom_handler(request: Request, exc: DependencyException) -> JSONResp
 
 @router.post('/register', tags=['Auth'])
 async def register(data: RegisterForm) -> JSONResponse:
-    existing_data = db_user.fetch([{'username': data.username}, {'email': data.email}])
-    if existing_data.count > 0:
+    existing_data_user = db_user.fetch([{'username': data.username}, {'email': data.email}, {'phone': data.phone}])
+    existing_data_institution = db_institution.fetch([{'phone': data.institution_phone}, {'email': data.institution_email}])
+
+    existing_data = existing_data_user.count + existing_data_institution.count
+
+    if existing_data > 0:
         return create_response(
-            message="Username or email already "
+            message="Username or email already exist"
         )
 
     data.password = SecretStr(encrypt_password(data.password.get_secret_value()))
@@ -216,6 +222,13 @@ async def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]) -> J
         )
         return JSONResponse(
             response.dict(),
+            status_code=status.HTTP_401_UNAUTHORIZED
+        )
+
+    if not user.is_active:
+        return JSONResponse(
+            {'message': 'User inactive',
+             'success': False},
             status_code=status.HTTP_401_UNAUTHORIZED
         )
 
@@ -355,8 +368,6 @@ async def refresh(refresh_token: Refresh, access_token: str = Depends(oauth2_sch
             }
         )
 
-
-from pydantic import SecretStr
 
 @router.post("/account", tags=['Admin'])
 async def register_staff(data: AddUser, user: User = Depends(get_user)) -> JSONResponse:
@@ -601,7 +612,7 @@ async def upload_proof_point(request: Request,
         proof=new_proof,
         point=metadata.point,
         answer=metadata.answer,
-        skor=0
+        skor=None
     )
 
     res = db_point.put(json.loads(new_point.json()))
@@ -933,10 +944,11 @@ async def start_assessment(user: UserDB = Depends(get_user)) -> JSONResponse:
         'id_admin': user.key,
         'id_reviewer_internal': '',
         'id_reviewer_external': '',
-        'tanggal': datetime.now().strftime('%d %B %Y, %H:%M'),
+        'tanggal': extra_datetime.strftime('%d %B %Y, %H:%M'),
         'hasil_internal': None,
         'hasil_external': None,
-        'selesai': False
+        'selesai': False,
+        'tanggal_nilai': None
     }
 
     db_assessment.put(new_assessment)
@@ -1040,8 +1052,13 @@ async def get_assessment_insight(key: str, user: UserDB = Depends(get_user)) -> 
     for sub_bab in bab:
         points[sub_bab] = [point for point in existing_point.items if point['sub_bab'] == sub_bab]
 
+    # print(json.dumps(points, indent=4))
     for key, value in points.items():
-        points[key] = sum([skor['skor'] for skor in value])
+        existing_skor = len([skor['skor'] for skor in value if isinstance(skor['skor'], int)])
+        if existing_skor == question_number[bab.index(key)]:
+            points[key] = sum([skor['skor'] for skor in value])
+        else:
+            points[key] = None
 
     assessment = AssessmentDB(**existing_assessment).get_all_dict()
 
@@ -1173,8 +1190,8 @@ async def selesai_isi(request: Request, id_assessment: str, user: UserDB = Depen
 
 
 @app.post("/report", tags=['Detection - Staff'])
-async def get_beneish_score(data: Report, user: UserDB = Depends(get_user)) -> JSONResponse:
-    if user.role != 'staff':
+async def get_beneish_score(data: ReportInput, user: UserDB = Depends(get_user)) -> JSONResponse:
+    if user.role not in ['staff', 'admin']:
         return create_response(
             message="Forbidden access",
             success=False,
@@ -1198,13 +1215,21 @@ async def get_beneish_score(data: Report, user: UserDB = Depends(get_user)) -> J
 
     report['beneish_m'] = m_score
     report['id_institution'] = user.id_institution
+    report['dsri'] = dsri
+    report['gmi'] = gmi
+    report['aqi'] = aqi
+    report['sgi'] = sgi
+    report['depi'] = depi
+    report['sgai'] = sgai
+    report['lvgi'] = lvgi
+    report['tata'] = tata
     report_object = Report(**report)
     db_report.insert(report_object.dict())
     return create_response(
         message="Success insert report",
         success=True,
         status_code=status.HTTP_201_CREATED,
-        data=report_object.dict()
+        data=report
     )
 
 
@@ -1267,6 +1292,11 @@ async def finish_reviewing(id_assessment: str, user: UserDB = Depends(get_user))
         existing_assessment['hasil_external'] = total
     else:
         existing_assessment['hasil_internal'] = total
+
+    current_datetime = datetime.now()
+    extra_datetime = current_datetime + timedelta(hours=7)
+
+    existing_assessment['tanggal_nilai'] = extra_datetime.strftime('%d %B %Y, %H:%M')
 
     key = existing_assessment['key']
     del existing_assessment['key']
@@ -1434,15 +1464,14 @@ async def change_password(data: ResetPassword, user: UserDB = Depends(get_user))
     )
 
 
-@router.get("/email/example", tags=['Development'])
-async def send_email_example() -> JSONResponse:
-    data = send_simple_message()
-    return create_response(
-        message="Nice",
-        success=True,
-        status_code=status.HTTP_418_IM_A_TEAPOT,
-        data=data.json()
-    )
+# @router.get("/email/example", tags=['Development'])
+# async def send_email_example() -> JSONResponse:
+#     return create_response(
+#         message="Nice",
+#         success=True,
+#         status_code=status.HTTP_418_IM_A_TEAPOT,
+#         data=data.json()
+#     )
 
 
 @router.get("/notifications")
@@ -1464,6 +1493,21 @@ async def get_notifications(user: UserDB = Depends(get_user)) -> JSONResponse:
         success=True,
         status_code=status.HTTP_200_OK,
         data=notification_data
+    )
+
+
+# @router.post('/excel')
+# async def read_report_file(user: UserDB = Depends(get_user), file: UploadFile = File(None)):
+#
+
+
+@router.get('/today', include_in_schema=False)
+async def get_date() -> JSONResponse:
+    return create_response(
+        message="Tanggal",
+        success=True,
+        status_code=status.HTTP_200_OK,
+        data={'tanggal': datetime.now().strftime('%d %B %Y, %H:%M')}
     )
 
 

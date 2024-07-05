@@ -137,7 +137,7 @@ class Proof(BaseModel):
 class ProofMeta(BaseModel):
     bab: str
     sub_bab: str
-    point: int
+    point: float
     answer: int
 
 
@@ -145,7 +145,7 @@ class Point(BaseModel):
     id_assessment: str
     bab: str
     sub_bab: str
-    point: int
+    point: float
     answer: float
     skor: typing.Optional[float]
     proof: typing.Optional[Proof]
@@ -156,7 +156,7 @@ class PointDB(Point):
 
 
 class SubPoint(BaseModel):
-    point: int
+    point: float
     proof: Proof
 
 
@@ -174,6 +174,7 @@ class Assessment(BaseModel):
     tanggal: str
     hasil_internal: typing.Optional[int]
     hasil_external: typing.Optional[int]
+    tanggal_nilai: typing.Optional[str]
     selesai: bool
 
     def get_admin(self) -> str:
@@ -243,7 +244,6 @@ class ReportInput(BaseModel):
     tahun_1: float
     tahun_2: float
     id_institution: str
-    beneish_m: float
 
 
 class Report(ReportInput):

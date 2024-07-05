@@ -51,7 +51,7 @@ beneish_report = {
     "depi_1": 0.12,
     "sgai_1": 0.35,
     "lvgi_1": 0.73,
-    "tata_1": 0,
+    "tata_1": 1,
     "revenue_2": 3698268848,
     "cogs_2": 2017661985,
     "sgae_2": 1286510421,
@@ -100,10 +100,10 @@ user_data: typing.List[typing.Dict[str, typing.Union[str, bool]]] = [
     #     "is_active": True
     # },
     {
-        "username": "bob_marley",
-        "full_name": "Bob Marley",
-        "password": "yet_another_secure_password",
-        "email": "bob@example.com",
+        "username": "staff_perusahaan",
+        "full_name": "Staff Perusahaan",
+        "password": "password",
+        "email": "staff@example.com",
         "role": "staff",
         "id_institution": "gc8uupscjs0e",
         "is_active": True,
@@ -271,5 +271,17 @@ def delete_db() -> None:
     filename_list = drive.list()['names']
     if filename_list:
         drive.delete_many(filename_list)
+
+
+def seed_mysql():
+    new_assessment = {
+        'id_institution': 'gc8uupscjs0e',
+        'id_admin': "ev9ag3o7lxed",
+        'id_reviewer': '',
+        'tanggal': datetime.now().strftime('%d %B %Y, %H:%M'),
+        'hasil': 0,
+        'selesai': False
+    }
+
 
 
