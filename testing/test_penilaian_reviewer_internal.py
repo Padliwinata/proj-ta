@@ -43,11 +43,28 @@ class TestPenilaianAssessment(unittest.TestCase):
             "/api/assessments/evaluation",
             headers={"Authorization": f"Bearer {access_token}"},
             params={
-                "id_assessment": "19mc8bodyuay" 
+                "id_assessment": "8qmzna65io8j" #harus diganti dengan id assessment yang belum dinilai
             })
 
         assert response.status_code == 200
         assert response.json()["message"] == 'Start reviewing success'
+        assert response.json()["success"] is True
+        
+    def test_reviewer_internal_get_assesment_list(self):
+        login_response = client.post(
+            "/api/auth",
+           data={"username": "emma_jones", "password": "password"}
+        )
+        assert login_response.status_code == 200
+        access_token = login_response.json()["data"]["access_token"]
+
+        response = client.get(
+            "/api/assessments/list",
+            headers={"Authorization": f"Bearer {access_token}"}
+        )
+
+        assert response.status_code == 200
+        assert response.json()["message"] == 'Successfully fetch assessments'
         assert response.json()["success"] is True
         
 if __name__ == "__main__":

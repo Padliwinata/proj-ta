@@ -4,7 +4,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from fastapi.testclient import TestClient # type: ignore
 from main import app
-from main import login
+from html_reporter import HTMLTestRunner
 
 client = TestClient(app)
 
@@ -43,7 +43,7 @@ class TestLogin(unittest.TestCase):
     def test_login_staff(self):
         response = client.post(
         "/api/auth",
-        data={"username": "bob_marley", "password": "yet_another_secure_password"}
+        data={"username": "staff_perusahaan", "password": "password"}
     )
         assert response.status_code == 200
         assert response.json()["success"] is True
@@ -86,4 +86,12 @@ class TestLogin(unittest.TestCase):
         assert response.json()["message"] == "User not found"
         
 if __name__ == "__main__":
-    unittest.main()
+    runner = HTMLTestRunner(
+        report_filepath="my_report.html",
+        title="Test Login",
+        description="Ini test login",
+        open_in_browser=True
+    )
+
+    # run the test
+    unittest.main(testRunner=runner)
