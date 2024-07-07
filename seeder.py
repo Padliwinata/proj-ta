@@ -8,6 +8,7 @@ import uuid
 from db import db_user, db_institution, db_log, db_assessment, db_point, drive, db_proof
 from models import Proof, Point
 from settings import SECRET_KEY, DB_HOST, DB_NAME, DB_PASSWORD, DB_USERNAME
+from utils import encrypt_password
 
 f = Fernet(SECRET_KEY)
 
@@ -294,17 +295,17 @@ def insert_user_data() -> None:
 
         with connection.cursor() as cursor:
             insert_query = """
-            INSERT INTO users (data_key, username, full_name, password, email, role, id_institution, is_active, phone)
+            INSERT INTO users (data_key, id_institution, username, full_name, password, email, role, is_active, phone)
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
             """
             for user in user_data:
                 data_key = generate_data_key()  # You need to implement this function based on your logic
                 if isinstance(user['password'], str):
-                    password_blob = user['password'].encode()  # Convert password to bytes
+                    password_blob = encrypt_password(user['password'])  # Convert password to bytes
                 user_id_institution = user['id_institution']  # Map institution ID if needed
                 cursor.execute(insert_query, (
-                    data_key, user['username'], user['full_name'], password_blob, user['email'],
-                    user['role'], user_id_institution, user['is_active'], user['phone']
+                    data_key, user_id_institution, user['username'], user['full_name'], password_blob, user['email'],
+                    user['role'], user['is_active'], user['phone']
                 ))
 
             # Commit the transaction

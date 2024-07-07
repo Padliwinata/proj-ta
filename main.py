@@ -56,6 +56,8 @@ from models import (
 from seeder import seed, delete_db, seed_assessment
 from settings import SECRET_KEY, MAX_FILE_SIZE, DEVELOPMENT
 
+from utils import encrypt_password
+
 # import pymysql.cursors
 
 app = FastAPI(
@@ -102,12 +104,6 @@ bab = [
 ]
 
 question_number = [10, 10, 10, 10, 8, 7, 7, 8, 15, 15]
-
-
-def encrypt_password(raw_password: str) -> str:
-    encoded_password = raw_password.encode('utf-8')
-    encrypted_password = f.encrypt(encoded_password).decode('utf-8')
-    return encrypted_password
 
 
 def get_user(access_token: str = Depends(oauth2_scheme)) -> Union[UserDB, None]:
