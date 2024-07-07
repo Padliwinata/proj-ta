@@ -161,9 +161,9 @@ async def register(data: RegisterForm) -> JSONResponse:
     new_data = data.dict()
 
     institution_key = insert_new_institution(new_data['institution_name'],
-                           new_data['institution_address'],
-                           new_data['institution_phone'],
-                           new_data['institution_email'])
+                                             new_data['institution_address'],
+                                             new_data['institution_phone'],
+                                             new_data['institution_email'])
 
     if not institution_key:
         return create_response(
@@ -171,6 +171,8 @@ async def register(data: RegisterForm) -> JSONResponse:
             success=False,
             status_code=status.HTTP_400_BAD_REQUEST
         )
+
+    print(institution_key)
 
     # user_data = dict()
     # user_data['username'] = new_data['username']
@@ -185,7 +187,7 @@ async def register(data: RegisterForm) -> JSONResponse:
     # new_user.password = data.password.get_secret_value().encode('utf-8')
     # res = db_user.put(json.loads(new_user.json()))
 
-    insert_new_user(
+    user_key = insert_new_user(
         username=new_data['username'],
         password=new_data['password'].get_secret_value().encode('utf-8'),
         full_name=new_data['full_name'],
@@ -195,6 +197,15 @@ async def register(data: RegisterForm) -> JSONResponse:
         id_institution=institution_key,
         role='admin'
     )
+
+    print(user_key)
+
+    if not user_key:
+        return create_response(
+            message="Failed to create new user",
+            success=False,
+            status_code=status.HTTP_400_BAD_REQUEST
+        )
 
     payload = {
         'user': data.username,
