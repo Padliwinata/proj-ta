@@ -3,6 +3,8 @@ import typing
 
 from cryptography.fernet import Fernet
 import pymysql
+import random
+import string
 import uuid
 
 from db import db_user, db_institution, db_log, db_assessment, db_point, drive, db_proof
@@ -268,8 +270,8 @@ def delete_db() -> None:
 
 
 def generate_data_key() -> str:
-    # Placeholder for generating a data key, modify according to your logic
-    return str(uuid.uuid4())
+    characters = string.ascii_lowercase + string.digits
+    return ''.join(random.choices(characters, k=12))
 
 
 # def get_institution_id(id_institution):
