@@ -33,12 +33,32 @@ def get_user_by_username(username: str):
     connection = pymysql.connect(host=DB_HOST,
                                  user=DB_USERNAME,
                                  password=DB_PASSWORD,
-                                 database=DB_NAME)
+                                 database=DB_NAME,
+                                 cursorclass=pymysql.cursors.DictCursor)
 
     try:
         with connection.cursor() as cursor:
             sql = "SELECT * FROM users WHERE username = %s"
             cursor.execute(sql, (username, ))
+            user_data = cursor.fetchone()
+            return user_data
+    except pymysql.MySQLError as e:
+        print(f"Error: {e}")
+        return None
+    finally:
+        connection.close()
+
+
+def get_user_by_email(email: str):
+    connection = pymysql.connect(host=DB_HOST,
+                                 user=DB_USERNAME,
+                                 password=DB_PASSWORD,
+                                 database=DB_NAME,
+                                 cursorclass=pymysql.cursors.DictCursor)
+    try:
+        with connection.cursor() as cursor:
+            sql = "SELECT * FROM users WHERE email = %s"
+            cursor.execute(sql, (email, ))
             user_data = cursor.fetchone()
             return user_data
     except pymysql.MySQLError as e:
