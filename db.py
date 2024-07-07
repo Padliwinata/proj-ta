@@ -37,7 +37,7 @@ def get_user_by_username(username: str):
 
     try:
         with connection.cursor() as cursor:
-            sql = "SELECT * FROM Users WHERE username = %s"
+            sql = "SELECT * FROM users WHERE username = %s"
             cursor.execute(sql, (username, ))
             user_data = cursor.fetchone()
             return user_data

@@ -127,15 +127,6 @@ def get_user(access_token: str = Depends(oauth2_scheme)) -> Union[UserDB, None]:
         raise DependencyException(status_code=status.HTTP_401_UNAUTHORIZED, detail_info=response_error.dict())
 
     response = db_user.fetch({'username': payload.sub})
-    # user_data = get_user_by_username(payload.sub)
-    # if response.count == 0:
-    #     response_error = CustomResponse(
-    #         success=False,
-    #         code=status.HTTP_400_BAD_REQUEST,
-    #         message="Invalid Token",
-    #         data=None
-    #     )
-    #     raise DependencyException(status_code=status.HTTP_401_UNAUTHORIZED, detail_info=response_error.dict())
 
     user = response.items[0]
     return UserDB(**user)

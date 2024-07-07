@@ -36,6 +36,10 @@ def authenticate_user(db: _Base, username: str, password: str) -> Union[User, No
     return user_instance
 
 
+# def alter_auth(username: str, password: str) -> typing.Optional[User]:
+#     response =
+
+
 def create_access_token(data: Dict[str, Any]) -> str:
     to_encode = data.copy()
     to_encode.update(
