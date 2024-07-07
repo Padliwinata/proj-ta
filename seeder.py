@@ -354,7 +354,7 @@ def insert_institution_data():
 
         with connection.cursor() as cursor:
             insert_query = """
-            INSERT INTO Institutions (data_key, name, address, phone, email)
+            INSERT INTO institutions (data_key, name, address, phone, email)
             VALUES (%s, %s, %s, %s, %s)
             """
             for institution in institution_data2:
