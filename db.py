@@ -100,7 +100,9 @@ def get_institution_by_all(phone: str, email: str) -> Optional[Dict[str, Any]]:
             sql = "SELECT * FROM institutions WHERE email = %s OR phone = %s"
             cursor.execute(sql, (phone, email))
             user_data = cursor.fetchone()
-            return dict(user_data)
+            if user_data:
+                return dict(user_data)
+            return None
     except pymysql.MySQLError as e:
         print(f"Error: {e}")
         return None
