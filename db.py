@@ -79,7 +79,9 @@ def get_user_by_all(username: str, email: str, phone: str) -> Optional[Dict[str,
             sql = "SELECT * FROM users WHERE username = %s OR email = %s OR phone = %s"
             cursor.execute(sql, (username, email, phone))
             user_data = cursor.fetchone()
-            return dict(user_data)
+            if user_data:
+                return dict(user_data)
+            return None
     except pymysql.MySQLError as e:
         print(f"Error: {e}")
         return None
