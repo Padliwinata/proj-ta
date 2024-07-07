@@ -294,7 +294,7 @@ def insert_user_data() -> None:
 
         with connection.cursor() as cursor:
             insert_query = """
-            INSERT INTO Users (data_key, username, full_name, password, email, role, id_institution, is_active, phone)
+            INSERT INTO users (data_key, username, full_name, password, email, role, id_institution, is_active, phone)
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
             """
             for user in user_data:
