@@ -88,7 +88,7 @@ user_data: typing.List[typing.Dict[str, typing.Union[str, bool]]] = [
         "full_name": "User Name",
         "password": "password",
         "email": "username@example.com",
-        "role": "super admin",
+        "role": "super_admin",
         "id_institution": "",
         "is_active": True,
         "phone": "+6281111111111"
@@ -307,6 +307,25 @@ def insert_user_data() -> None:
                     data_key, user_id_institution, user['username'], user['full_name'], password_blob, user['email'],
                     user['role'], user['is_active'], user['phone']
                 ))
+
+            admin_data = {
+                "username": "adminperusahaan",
+                "full_name": "Admin Perusahaan",
+                "password": encrypt_password('admin'),
+                "email": "alice@example.com",
+                "role": "admin",
+                "id_institution": "gc8uupscjs0e",
+                "is_active": True,
+                "phone": "+6281111111115",
+                "data_key": "ev9ag3o7lxed"
+            }
+
+            cursor.execute(insert_query, (
+                admin_data['data_key'], admin_data['id_institution'], admin_data['username'], admin_data['full_name'],
+                admin_data['password'], admin_data['email'], admin_data['role'], admin_data['is_active'],
+                admin_data['phone']
+            ))
+
 
             # Commit the transaction
             connection.commit()
