@@ -23,7 +23,7 @@ from db import (
     db_report,
     db_notification,
     get_user_by_username, get_user_by_all, get_institution_by_all, insert_new_institution, insert_new_user,
-    insert_new_log
+    insert_new_log, get_user_by_username_email
 )
 from dependencies import (
     authenticate_user,
@@ -302,8 +302,9 @@ async def check(access_token: str = Depends(oauth2_scheme)) -> JSONResponse:
             )
 
         payload = get_payload_from_token(access_token)
-        res = db_user.fetch({'username': payload.sub})
-        if res.count == 0:
+        # res = db_user.fetch({'username': payload.sub})
+        res = get_user_by_username(payload.sub)
+        if not res:
             response = CustomResponse(
                 success=False,
                 code=status.HTTP_404_NOT_FOUND,
@@ -315,14 +316,14 @@ async def check(access_token: str = Depends(oauth2_scheme)) -> JSONResponse:
                 response.dict(),
                 status_code=status.HTTP_404_NOT_FOUND
             )
-        data = res.items[0]
-        data['payload'] = payload.dict()
+        # data = res.items[0]
+        res['payload'] = payload.dict()
 
         response = CustomResponse(
             success=True,
             code=status.HTTP_200_OK,
             message="Authenticated",
-            data=data
+            data=res
         )
         return JSONResponse(
             response.dict(),
@@ -395,9 +396,10 @@ async def register_staff(data: AddUser, user: User = Depends(get_user)) -> JSONR
     registered_username = data.username
     registered_email = data.email
 
-    registered_user = db_user.fetch([{'username': registered_username}, {'email': registered_email}])
+    # registered_user = db_user.fetch([{'username': registered_username}, {'email': registered_email}])
+    registered_user = get_user_by_username_email(registered_username, registered_email)
 
-    if registered_user.count != 0:
+    if registered_user:
         return create_response("User Already Exist", False, status.HTTP_400_BAD_REQUEST)
 
     encrypted_password = encrypt_password(parsed_data['password'])
@@ -406,7 +408,18 @@ async def register_staff(data: AddUser, user: User = Depends(get_user)) -> JSONR
     parsed_data['is_active'] = False
     parsed_data['id_institution'] = user.get_institution()['key']
 
-    db_user.put(parsed_data)
+    # db_user.put(parsed_data)
+    insert_new_user(
+        username=parsed_data['username'],
+        password=parsed_data['password'],
+        full_name=parsed_data['full_name'],
+        email=parsed_data['email'],
+        is_active=parsed_data['is_active'],
+        phone=parsed_data['phone'],
+        id_institution=parsed_data['id_institution'],
+        role=parsed_data['role']
+    )
+
     del parsed_data['password']
 
     return create_response("User Created", True, status.HTTP_201_CREATED, parsed_data)

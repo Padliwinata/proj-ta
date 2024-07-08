@@ -68,6 +68,27 @@ def get_user_by_email(email: str):
         connection.close()
 
 
+def get_user_by_username_email(username: str, email: str) -> Optional[Dict[str, Any]]:
+    connection = pymysql.connect(host=DB_HOST,
+                                 user=DB_USERNAME,
+                                 password=DB_PASSWORD,
+                                 database=DB_NAME,
+                                 cursorclass=pymysql.cursors.DictCursor)
+    try:
+        with connection.cursor() as cursor:
+            sql = "SELECT * FROM users WHERE username = %s OR email = %s"
+            cursor.execute(sql, (username, email))
+            user_data = cursor.fetchone()
+            if user_data:
+                return dict(user_data)
+            return None
+    except pymysql.MySQLError as e:
+        print(f"Error: {e}")
+        return None
+    finally:
+        connection.close()
+
+
 def get_user_by_all(username: str, email: str, phone: str) -> Optional[Dict[str, Any]]:
     connection = pymysql.connect(host=DB_HOST,
                                  user=DB_USERNAME,
@@ -85,6 +106,26 @@ def get_user_by_all(username: str, email: str, phone: str) -> Optional[Dict[str,
     except pymysql.MySQLError as e:
         print(f"Error: {e}")
         return None
+    finally:
+        connection.close()
+
+
+def delete_user_by_username(username: str) -> bool:
+    connection = pymysql.connect(host=DB_HOST,
+                                 user=DB_USERNAME,
+                                 password=DB_PASSWORD,
+                                 database=DB_NAME,
+                                 cursorclass=pymysql.cursors.DictCursor)
+    try:
+        with connection.cursor() as cursor:
+            sql = "DELETE FROM users WHERE username = %s"
+            cursor.execute(sql, (username, ))
+            connection.commit()
+            return True
+    except pymysql.MySQLError as e:
+        print(f"Error: {e}")
+        connection.rollback()
+        return False
     finally:
         connection.close()
 
