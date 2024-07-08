@@ -124,10 +124,12 @@ def insert_new_institution(name: str, address: str, phone: str, email: str) -> O
             """
             data_key = generate_random_string()
             cursor.execute(sql, (data_key, name, address, phone, email))
+            connection.commit()
             # user_data = cursor.fetchone()
             return data_key
     except pymysql.MySQLError as e:
         print(f"Error: {e}")
+        connection.rollback()
         return None
     finally:
         connection.close()
@@ -157,9 +159,11 @@ def insert_new_user(username: str,
             data_key = generate_random_string()
             cursor.execute(sql, (data_key, id_institution, username, full_name,
                                  password, email, role, is_active, phone))
+            connection.commit()
             return data_key
     except pymysql.MySQLError as e:
         print(f"Error: {e}")
+        connection.rollback()
         return None
     finally:
         connection.close()
