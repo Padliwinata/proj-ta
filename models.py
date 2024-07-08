@@ -10,7 +10,7 @@ from db import db_institution, db_user
 
 class UserRole(str, Enum):
     admin = "admin"
-    super_admin = "super admin"
+    super_admin = "super_admin"
     staff = "staff"
     reviewer = "reviewer"
 
@@ -89,7 +89,7 @@ class User(BaseModel):
 
 
 class UserDB(User):
-    key: str
+    data_key: str
 
 
 class AddUser(BaseModel):

@@ -22,7 +22,8 @@ from db import (
     db_assessment,
     db_report,
     db_notification,
-    get_user_by_username, get_user_by_all, get_institution_by_all, insert_new_institution, insert_new_user
+    get_user_by_username, get_user_by_all, get_institution_by_all, insert_new_institution, insert_new_user,
+    insert_new_log, get_user_by_username_email
 )
 from dependencies import (
     authenticate_user,
@@ -172,8 +173,6 @@ async def register(data: RegisterForm) -> JSONResponse:
             status_code=status.HTTP_400_BAD_REQUEST
         )
 
-    print(institution_key)
-
     # user_data = dict()
     # user_data['username'] = new_data['username']
     # user_data['full_name'] = new_data['full_name']
@@ -197,8 +196,6 @@ async def register(data: RegisterForm) -> JSONResponse:
         id_institution=institution_key,
         role='admin'
     )
-
-    print(user_key)
 
     if not user_key:
         return create_response(
@@ -257,11 +254,12 @@ async def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]) -> J
         token_type="bearer"
     ).dict()
 
-    log_data = Log(name=form_data.username, event=Event.logged_in, email=user.email, role=user.role, tanggal=datetime.now().strftime('%d %B %Y, %H:%M'), id_institution=user.id_institution)
+    log_data = Log(name=form_data.username, event=Event.logged_in, email=user.email, role=user.role, tanggal=datetime.now().strftime('%Y-%m-%d %H:%M:%S'), id_institution=user.id_institution)
     log_data_json = log_data.json()
     log_data_dict = json.loads(log_data_json)
 
-    db_log.put(log_data_dict)
+    # db_log.put(log_data_dict)
+    insert_new_log(log_data_dict)
 
     if DEVELOPMENT:
         resp_dev = CustomResponseDev(
@@ -304,8 +302,9 @@ async def check(access_token: str = Depends(oauth2_scheme)) -> JSONResponse:
             )
 
         payload = get_payload_from_token(access_token)
-        res = db_user.fetch({'username': payload.sub})
-        if res.count == 0:
+        # res = db_user.fetch({'username': payload.sub})
+        res = get_user_by_username(payload.sub)
+        if not res:
             response = CustomResponse(
                 success=False,
                 code=status.HTTP_404_NOT_FOUND,
@@ -317,14 +316,14 @@ async def check(access_token: str = Depends(oauth2_scheme)) -> JSONResponse:
                 response.dict(),
                 status_code=status.HTTP_404_NOT_FOUND
             )
-        data = res.items[0]
-        data['payload'] = payload.dict()
+        # data = res.items[0]
+        res['payload'] = payload.dict()
 
         response = CustomResponse(
             success=True,
             code=status.HTTP_200_OK,
             message="Authenticated",
-            data=data
+            data=res
         )
         return JSONResponse(
             response.dict(),
@@ -397,9 +396,10 @@ async def register_staff(data: AddUser, user: User = Depends(get_user)) -> JSONR
     registered_username = data.username
     registered_email = data.email
 
-    registered_user = db_user.fetch([{'username': registered_username}, {'email': registered_email}])
+    # registered_user = db_user.fetch([{'username': registered_username}, {'email': registered_email}])
+    registered_user = get_user_by_username_email(registered_username, registered_email)
 
-    if registered_user.count != 0:
+    if registered_user:
         return create_response("User Already Exist", False, status.HTTP_400_BAD_REQUEST)
 
     encrypted_password = encrypt_password(parsed_data['password'])
@@ -408,7 +408,18 @@ async def register_staff(data: AddUser, user: User = Depends(get_user)) -> JSONR
     parsed_data['is_active'] = False
     parsed_data['id_institution'] = user.get_institution()['key']
 
-    db_user.put(parsed_data)
+    # db_user.put(parsed_data)
+    insert_new_user(
+        username=parsed_data['username'],
+        password=parsed_data['password'],
+        full_name=parsed_data['full_name'],
+        email=parsed_data['email'],
+        is_active=parsed_data['is_active'],
+        phone=parsed_data['phone'],
+        id_institution=parsed_data['id_institution'],
+        role=parsed_data['role']
+    )
+
     del parsed_data['password']
 
     return create_response("User Created", True, status.HTTP_201_CREATED, parsed_data)
@@ -578,12 +589,12 @@ async def upload_proof_point(request: Request,
         filename = f"{user.get_institution()['key']}_{metadata.bab}_{metadata.sub_bab.replace('.', '')}_{metadata.point}.pdf"
 
         new_proof = Proof(
-            id_user=user.key,
+            id_user=user.data_key,
             url=f"{request.url.hostname}/file/{filename}",
             file_name=filename
         )
 
-    existing_assessment_data = db_assessment.fetch({'id_admin': user.key, 'selesai': False})
+    existing_assessment_data = db_assessment.fetch({'id_admin': user.data_key, 'selesai': False})
 
     if existing_assessment_data.count == 0:
         return create_response(
@@ -683,7 +694,7 @@ async def update_assessment(request: Request,
             success=False
         )
 
-    existing_assessment_data = db_assessment.fetch({'id_admin': user.key, 'selesai': False})
+    existing_assessment_data = db_assessment.fetch({'id_admin': user.data_key, 'selesai': False})
     if existing_assessment_data.count == 0:
         return create_response(
             message="No active assessment",
@@ -722,7 +733,7 @@ async def update_assessment(request: Request,
         drive.put(filename, content)
         if not actual_point.proof:
             new_proof = Proof(
-                id_user=user.key,
+                id_user=user.data_key,
                 url=f"{request.url.hostname}/api/actualfile/{filename}",
                 file_name=filename
             )
@@ -820,7 +831,7 @@ async def upload_proofs_point(request: Request,
     filename = f"{user.get_institution()['key']}_{metadata.bab}_{metadata.sub_bab.replace('.', '')}_{metadata.point}.pdf"
 
     new_proof = Proof(
-        id_user=user.key,
+        id_user=user.data_key,
         url=f"{request.url.hostname}/file/{filename}",
         file_name=filename
     )
@@ -944,7 +955,7 @@ async def verify_user(userid: str) -> JSONResponse:
 
 @router.post("/assessment", tags=['Deterrence - Admin'])
 async def start_assessment(user: UserDB = Depends(get_user)) -> JSONResponse:
-    existing_data = db_assessment.fetch({'id_admin': user.key, 'selesai': False})
+    existing_data = db_assessment.fetch({'id_admin': user.data_key, 'selesai': False})
     if existing_data.count > 0:
         return create_response(
             message="Please finish last assessment first",
@@ -957,7 +968,7 @@ async def start_assessment(user: UserDB = Depends(get_user)) -> JSONResponse:
 
     new_assessment = {
         'id_institution': user.id_institution,
-        'id_admin': user.key,
+        'id_admin': user.data_key,
         'id_reviewer_internal': '',
         'id_reviewer_external': '',
         'tanggal': extra_datetime.strftime('%d %B %Y, %H:%M'),
@@ -979,7 +990,7 @@ async def start_assessment(user: UserDB = Depends(get_user)) -> JSONResponse:
 
 @router.get("/assessment", tags=['Deterrence - Admin'])
 async def get_current_assessment(sub_bab: str, user: UserDB = Depends(get_user)) -> JSONResponse:
-    existing_assessment_data = db_assessment.fetch({'id_admin': user.key, 'selesai': False})
+    existing_assessment_data = db_assessment.fetch({'id_admin': user.data_key, 'selesai': False})
     if existing_assessment_data.count == 0:
         return create_response(
             message="No active assessment",
@@ -1128,7 +1139,7 @@ async def get_finished_assessments(user: UserDB = Depends(get_user)) -> JSONResp
             status_code=status.HTTP_403_FORBIDDEN
         )
 
-    existing_assessment = db_assessment.fetch({'id_admin': user.key, 'selesai': False})
+    existing_assessment = db_assessment.fetch({'id_admin': user.data_key, 'selesai': False})
     if existing_assessment.count == 0:
         return create_response(
             message="Assessment not found",
@@ -1369,9 +1380,9 @@ async def start_evaluation(id_assessment: str, user: UserDB = Depends(get_user))
         )
 
     if external:
-        existing_assessment['id_reviewer_external'] = user.key
+        existing_assessment['id_reviewer_external'] = user.data_key
     else:
-        existing_assessment['id_reviewer_internal'] = user.key
+        existing_assessment['id_reviewer_internal'] = user.data_key
 
     db_assessment.update(existing_assessment, key)
 
@@ -1418,7 +1429,7 @@ async def evaluate_assessment(data: AssessmentEval, user: UserDB = Depends(get_u
             status_code=status.HTTP_400_BAD_REQUEST
         )
 
-    if existing_assessment[reviewer_key] != user.key:
+    if existing_assessment[reviewer_key] != user.data_key:
         return create_response(
             message="Assessment started by someone else",
             success=False,
@@ -1467,7 +1478,7 @@ async def change_password(data: ResetPassword, user: UserDB = Depends(get_user))
                 status_code=status.HTTP_400_BAD_REQUEST
             )
 
-    key = user.key
+    key = user.data_key
     new_data = user.dict()
     new_data['password'] = encrypt_password(data.new_password)
     del new_data['key']
@@ -1492,7 +1503,7 @@ async def change_password(data: ResetPassword, user: UserDB = Depends(get_user))
 
 @router.get("/notifications")
 async def get_notifications(user: UserDB = Depends(get_user)) -> JSONResponse:
-    response_data = db_notification.fetch({'id_receiver': user.key})
+    response_data = db_notification.fetch({'id_receiver': user.data_key})
     if response_data.count == 0:
         return create_response(
             message="Empty data",
