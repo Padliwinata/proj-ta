@@ -89,7 +89,7 @@ class User(BaseModel):
 
 
 class UserDB(User):
-    key: str
+    data_key: str
 
 
 class AddUser(BaseModel):

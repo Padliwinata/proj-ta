@@ -126,7 +126,7 @@ class TestMainPageAdmin(unittest.TestCase):
         }
     )
         assert response.status_code == 422
-        assert response.json()["detail"][0]["msg"] == "Field required"
+        assert response.json()["detail"][0]["msg"] == "field required"
         assert response.json()["detail"][0]["loc"] == ["body", "full_name"]
 
     def test_admin_add_staff_missing_role(self):
@@ -150,7 +150,7 @@ class TestMainPageAdmin(unittest.TestCase):
         )
 
         assert response.status_code == 422
-        assert response.json()["detail"][0]["msg"] == "Field required"
+        assert response.json()["detail"][0]["msg"] == "field required"
         assert response.json()["detail"][0]["loc"] == ["body", "role"]
 
     def test_admin_add_staff_missing_phone(self):
@@ -174,7 +174,7 @@ class TestMainPageAdmin(unittest.TestCase):
         )
 
         assert response.status_code == 422
-        assert response.json()["detail"][0]["msg"] == "Field required"
+        assert response.json()["detail"][0]["msg"] == "field required"
         assert response.json()["detail"][0]["loc"] == ["body", "phone"]
 
     def test_admin_add_staff_missing_email(self):
@@ -198,7 +198,7 @@ class TestMainPageAdmin(unittest.TestCase):
         )
 
         assert response.status_code == 422
-        assert response.json()["detail"][0]["msg"] == "Field required"
+        assert response.json()["detail"][0]["msg"] == "field required"
         assert response.json()["detail"][0]["loc"] == ["body", "email"]
 
     def test_admin_add_staff_missing_username(self):
@@ -222,7 +222,7 @@ class TestMainPageAdmin(unittest.TestCase):
         )
 
         assert response.status_code == 422
-        assert response.json()["detail"][0]["msg"] == "Field required"
+        assert response.json()["detail"][0]["msg"] == "field required"
         assert response.json()["detail"][0]["loc"] == ["body", "username"]
 
     def test_admin_add_staff_missing_password(self):
@@ -246,7 +246,7 @@ class TestMainPageAdmin(unittest.TestCase):
         )
 
         assert response.status_code == 422
-        assert response.json()["detail"][0]["msg"] == "Field required"
+        assert response.json()["detail"][0]["msg"] == "field required"
         assert response.json()["detail"][0]["loc"] == ["body", "password"]
         
             
