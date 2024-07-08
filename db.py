@@ -169,4 +169,39 @@ def insert_new_user(username: str,
         connection.close()
 
 
+def insert_new_log(data: Dict[str, Any]) -> Optional[str]:
+    connection = pymysql.connect(host=DB_HOST,
+                                 user=DB_USERNAME,
+                                 password=DB_PASSWORD,
+                                 database=DB_NAME,
+                                 cursorclass=pymysql.cursors.DictCursor)
+    try:
+        with connection.cursor() as cursor:
+            sql = """
+                    INSERT INTO logs
+                    (data_key, id_institution, username, email, role, tanggal, event)
+                    VALUES
+                    (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    """
+            data_key = generate_random_string()
+            new_data = (
+                data_key,
+                data['id_institution'],
+                data['username'],
+                data['email'],
+                data['role'],
+                data['tanggal'],
+                'logged in'
+            )
+            cursor.execute(sql, new_data)
+            connection.commit()
+            return data_key
+    except pymysql.MySQLError as e:
+        print(f"Error: {e}")
+        connection.rollback()
+        return None
+    finally:
+        connection.close()
+
+
 

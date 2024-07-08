@@ -22,7 +22,8 @@ from db import (
     db_assessment,
     db_report,
     db_notification,
-    get_user_by_username, get_user_by_all, get_institution_by_all, insert_new_institution, insert_new_user
+    get_user_by_username, get_user_by_all, get_institution_by_all, insert_new_institution, insert_new_user,
+    insert_new_log
 )
 from dependencies import (
     authenticate_user,
@@ -172,8 +173,6 @@ async def register(data: RegisterForm) -> JSONResponse:
             status_code=status.HTTP_400_BAD_REQUEST
         )
 
-    print(institution_key)
-
     # user_data = dict()
     # user_data['username'] = new_data['username']
     # user_data['full_name'] = new_data['full_name']
@@ -197,8 +196,6 @@ async def register(data: RegisterForm) -> JSONResponse:
         id_institution=institution_key,
         role='admin'
     )
-
-    print(user_key)
 
     if not user_key:
         return create_response(
@@ -261,7 +258,8 @@ async def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]) -> J
     log_data_json = log_data.json()
     log_data_dict = json.loads(log_data_json)
 
-    db_log.put(log_data_dict)
+    # db_log.put(log_data_dict)
+    insert_new_log(log_data_dict)
 
     if DEVELOPMENT:
         resp_dev = CustomResponseDev(
