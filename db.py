@@ -181,7 +181,7 @@ def insert_new_log(data: Dict[str, Any]) -> Optional[str]:
                     INSERT INTO logs
                     (data_key, id_institution, username, email, role, tanggal, event)
                     VALUES
-                    (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    (%s, %s, %s, %s, %s, %s, %s)
                     """
             data_key = generate_random_string()
             new_data = (
