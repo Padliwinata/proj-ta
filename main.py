@@ -23,7 +23,7 @@ from db import (
     db_report,
     db_notification,
     get_user_by_username, get_user_by_all, get_institution_by_all, insert_new_institution, insert_new_user,
-    insert_new_log, get_user_by_username_email
+    insert_new_log, get_user_by_username_email, get_user_by_key, alter_user_status, get_all_user_by_role
 )
 from dependencies import (
     authenticate_user,
@@ -53,7 +53,7 @@ from models import (
     AssessmentEval,
     Report,
     ResetPassword,
-    Event, ReportInput
+    Event, ReportInput, ReportResult
 )
 from seeder import seed, delete_db, seed_assessment
 from settings import SECRET_KEY, MAX_FILE_SIZE, DEVELOPMENT
@@ -432,8 +432,18 @@ async def alternate_staff_status(user_key: str, user: User = Depends(get_user)) 
     if not user_key:
         return create_response("Missing user key", False, status.HTTP_400_BAD_REQUEST)
 
-    existing_user = db_user.get(user_key)
-    db_user.update({'is_active': not existing_user['is_active']}, key=user_key)
+    # existing_user = db_user.get(user_key)
+    existing_user = get_user_by_key(user_key)
+
+    if not existing_user:
+        return create_response(
+            message="User not found",
+            success=False,
+            status_code=status.HTTP_400_BAD_REQUEST
+        )
+
+    # db_user.update({'is_active': not existing_user['is_active']}, key=user_key)
+    alter_user_status(user_key)
     existing_user['is_active'] = not existing_user['is_active']
 
     return create_response("Success altering user status", True, status.HTTP_200_OK, existing_user)
@@ -444,8 +454,9 @@ async def get_admin_list(user: User = Depends(get_user)) -> JSONResponse:
     if user.role != 'super admin':
         return create_response("Forbidden Access", False, status.HTTP_403_FORBIDDEN, {'role': user.role})
 
-    fetch_data = db_user.fetch({'role': 'admin'})
-    if fetch_data.count == 0:
+    # fetch_data = db_user.fetch({'role': 'admin'})
+    fetch_data = get_all_user_by_role('admin')
+    if len(fetch_data) == 0:
         response = CustomResponse(
             success=True,
             code=status.HTTP_200_OK,
@@ -458,7 +469,7 @@ async def get_admin_list(user: User = Depends(get_user)) -> JSONResponse:
         )
 
     final_data = []
-    for data in fetch_data.items:
+    for data in fetch_data:
         user = User(**data)
         final_data.append({
             'institusi': user.get_institution(),
@@ -1252,11 +1263,12 @@ async def get_beneish_score(data: ReportInput, user: UserDB = Depends(get_user))
     report['tata'] = tata
     report_object = Report(**report)
     db_report.insert(report_object.dict())
+    report_result = ReportResult(**report)
     return create_response(
         message="Success insert report",
         success=True,
         status_code=status.HTTP_201_CREATED,
-        data=report
+        data=report_result
     )
 
 
