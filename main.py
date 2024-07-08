@@ -23,7 +23,8 @@ from db import (
     db_report,
     db_notification,
     get_user_by_username, get_user_by_all, get_institution_by_all, insert_new_institution, insert_new_user,
-    insert_new_log, get_user_by_username_email, get_user_by_key, alter_user_status, get_all_user_by_role
+    insert_new_log, get_user_by_username_email, get_user_by_key, alter_user_status, get_all_user_by_role,
+    get_user_by_role_institution
 )
 from dependencies import (
     authenticate_user,
@@ -502,6 +503,9 @@ async def get_staff(user: User = Depends(get_user)) -> JSONResponse:
         {'role': 'staff', 'id_institution': id_institution},
         {'role': 'reviewer', 'id_institution': id_institution}
     ])
+
+    fetch_response = get_user_by_role_institution('staff', id_institution)
+    fetch_response.extends(get_user_by_role_institution('reviewer', id_institution))
 
     if fetch_response.count == 0:
         return create_response(
@@ -1238,9 +1242,9 @@ async def get_beneish_score(data: ReportInput, user: UserDB = Depends(get_user))
     report = data.dict()
 
     dsri = (data.account_receivables_2 / data.revenue_2) / (data.account_receivables_1 / data.revenue_1)
-    gmi = (data.cogs_1 / data.revenue_1) / (data.cogs_2 / data.revenue_2)
-    aqi = (1 - (data.current_assets_2 + data.ppe_2 + data.securities_2) / data.total_asset_2) / (
-                1 - (data.current_assets_1 + data.ppe_1 + data.securities_1) / data.total_asset_1)
+    gmi = ((data.revenue_1 - data.cogs_1) / data.revenue_1) / ((data.revenue_2 - data.cogs_2) / data.revenue_2)
+    aqi = ((1 - (data.current_assets_2 + data.ppe_2 + data.securities_2) / data.total_asset_2) /
+           (1 - (data.current_assets_1 + data.ppe_1 + data.securities_1) / data.total_asset_1))
     sgi = data.revenue_2 / data.revenue_1
     depi = (data.depreciation_1 / (data.depreciation_1 + data.ppe_1)) / (data.depreciation_2 / (data.depreciation_2 + data.ppe_2))
     sgai = data.sgae_2 / data.revenue_2 / (data.sgae_1 / data.revenue_1)

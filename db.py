@@ -89,6 +89,25 @@ def get_user_by_username_email(username: str, email: str) -> Optional[Dict[str, 
         connection.close()
 
 
+def get_user_by_role_institution(role: str, institution: str):
+    connection = pymysql.connect(host=DB_HOST,
+                                 user=DB_USERNAME,
+                                 password=DB_PASSWORD,
+                                 database=DB_NAME,
+                                 cursorclass=pymysql.cursors.DictCursor)
+    try:
+        with connection.cursor() as cursor:
+            sql = "SELECT * FROM users WHERE role = %s AND id_institution = %s"
+            cursor.execute(sql, (role, institution))
+            user_data = cursor.fetchall()
+            return user_data
+    except pymysql.MySQLError as e:
+        print(f"Error: {e}")
+        return None
+    finally:
+        connection.close()
+
+
 def get_user_by_all(username: str, email: str, phone: str) -> Optional[Dict[str, Any]]:
     connection = pymysql.connect(host=DB_HOST,
                                  user=DB_USERNAME,
