@@ -187,7 +187,7 @@ def insert_new_log(data: Dict[str, Any]) -> Optional[str]:
             new_data = (
                 data_key,
                 data['id_institution'],
-                data['username'],
+                data['name'],
                 data['email'],
                 data['role'],
                 data['tanggal'],
