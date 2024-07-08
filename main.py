@@ -51,7 +51,7 @@ from models import (
     AssessmentEval,
     Report,
     ResetPassword,
-    Event, ReportInput
+    Event, ReportInput, ReportResult
 )
 from seeder import seed, delete_db, seed_assessment
 from settings import SECRET_KEY, MAX_FILE_SIZE, DEVELOPMENT
@@ -1221,11 +1221,12 @@ async def get_beneish_score(data: ReportInput, user: UserDB = Depends(get_user))
     report['tata'] = tata
     report_object = Report(**report)
     db_report.insert(report_object.dict())
+    report_result = ReportResult(**report)
     return create_response(
         message="Success insert report",
         success=True,
         status_code=status.HTTP_201_CREATED,
-        data=report
+        data=report_result
     )
 
 

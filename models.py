@@ -251,6 +251,19 @@ class Report(ReportInput):
     beneish_m: float
 
 
+class ReportResult(BaseModel):
+    id_institution: str
+    beneish_m: float
+    dsri: float
+    gmi: float
+    aqi: float
+    sgi: float
+    depi: float
+    sgai: float
+    lvgi: float
+    tata: float
+
+
 class ResetPassword(BaseModel):
     current_password: str
     new_password: str
