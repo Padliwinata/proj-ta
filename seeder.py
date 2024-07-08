@@ -2,10 +2,15 @@ from datetime import datetime
 import typing
 
 from cryptography.fernet import Fernet
+import pymysql
+import random
+import string
+import uuid
 
 from db import db_user, db_institution, db_log, db_assessment, db_point, drive, db_proof
 from models import Proof, Point
-from settings import SECRET_KEY
+from settings import SECRET_KEY, DB_HOST, DB_NAME, DB_PASSWORD, DB_USERNAME
+from utils import encrypt_password
 
 f = Fernet(SECRET_KEY)
 
@@ -85,20 +90,11 @@ user_data: typing.List[typing.Dict[str, typing.Union[str, bool]]] = [
         "full_name": "User Name",
         "password": "password",
         "email": "username@example.com",
-        "role": "super admin",
+        "role": "super_admin",
         "id_institution": "",
         "is_active": True,
         "phone": "+6281111111111"
     },
-    # {
-    #     "username": "alice_smith",
-    #     "full_name": "Alice Smith",
-    #     "password": "another_secure_password",
-    #     "email": "alice@example.com",
-    #     "role": "admin",
-    #     "id_institution": "gc8uupscjs0e",
-    #     "is_active": True
-    # },
     {
         "username": "staff_perusahaan",
         "full_name": "Staff Perusahaan",
@@ -273,15 +269,131 @@ def delete_db() -> None:
         drive.delete_many(filename_list)
 
 
-def seed_mysql():
-    new_assessment = {
-        'id_institution': 'gc8uupscjs0e',
-        'id_admin': "ev9ag3o7lxed",
-        'id_reviewer': '',
-        'tanggal': datetime.now().strftime('%d %B %Y, %H:%M'),
-        'hasil': 0,
-        'selesai': False
+def generate_data_key() -> str:
+    characters = string.ascii_lowercase + string.digits
+    return ''.join(random.choices(characters, k=12))
+
+
+# def get_institution_id(id_institution):
+#     # Placeholder for mapping institution ID, modify according to your logic
+#     institution_map = {
+#         "gc8uupscjs0e": 1,
+#         "uxalzb21mwcr": 2,
+#         "external": 3
+#     }
+#     return institution_map.get(id_institution, 0)
+
+
+# # Function to insert data into the database
+def insert_user_data() -> None:
+    try:
+        # Connect to the database
+        connection = pymysql.connect(
+            host=DB_HOST,
+            user=DB_USERNAME,
+            password=DB_PASSWORD,
+            database=DB_NAME
+        )
+
+        with connection.cursor() as cursor:
+            insert_query = """
+            INSERT INTO users (data_key, id_institution, username, full_name, password, email, role, is_active, phone)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+            """
+            for user in user_data:
+                data_key = generate_data_key()  # You need to implement this function based on your logic
+                if isinstance(user['password'], str):
+                    password_blob = encrypt_password(user['password'])  # Convert password to bytes
+                user_id_institution = user['id_institution']  # Map institution ID if needed
+                cursor.execute(insert_query, (
+                    data_key, user_id_institution, user['username'], user['full_name'], password_blob, user['email'],
+                    user['role'], user['is_active'], user['phone']
+                ))
+
+            admin_data = {
+                "username": "adminperusahaan",
+                "full_name": "Admin Perusahaan",
+                "password": encrypt_password('admin'),
+                "email": "alice@example.com",
+                "role": "admin",
+                "id_institution": "gc8uupscjs0e",
+                "is_active": True,
+                "phone": "+6281111111115",
+                "data_key": "ev9ag3o7lxed"
+            }
+
+            cursor.execute(insert_query, (
+                admin_data['data_key'], admin_data['id_institution'], admin_data['username'], admin_data['full_name'],
+                admin_data['password'], admin_data['email'], admin_data['role'], admin_data['is_active'],
+                admin_data['phone']
+            ))
+
+
+            # Commit the transaction
+            connection.commit()
+
+    except pymysql.MySQLError as e:
+        print(f"Error: {e}")
+    finally:
+        connection.close()
+
+
+institution_data2 = [
+    {
+        'address': 'TULT 0610',
+        'email': 'iflab@example.com',
+        'name': 'IFLab',
+        'phone': '+6285179762170',
+        'data_key': 'gc8uupscjs0e'
+    },
+    {
+        'address': 'TULT 0604',
+        'email': 'company@email.com',
+        'name': 'asprak',
+        'phone': '+6285179762170',
+        'data_key': 'uxalzb21mwcr'
+    },
+    {
+        'address': '',
+        'email': 'external@gmail.com',
+        'name': 'External Reviewer',
+        'phone': '',
+        'data_key': 'external'
     }
+]
+
+
+# Function to insert data into the database
+def insert_institution_data():
+    try:
+        # Connect to the database
+        connection = pymysql.connect(
+            host=DB_HOST,
+            user=DB_USERNAME,
+            password=DB_PASSWORD,
+            database=DB_NAME
+        )
+
+        with connection.cursor() as cursor:
+            insert_query = """
+            INSERT INTO institutions (data_key, name, address, phone, email)
+            VALUES (%s, %s, %s, %s, %s)
+            """
+            for institution in institution_data2:
+                cursor.execute(insert_query, (
+                    institution['data_key'], institution['name'], institution['address'],
+                    institution['phone'], institution['email']
+                ))
+
+            # Commit the transaction
+            connection.commit()
+
+    except pymysql.MySQLError as e:
+        print(f"Error: {e}")
+    finally:
+        connection.close()
+
+
 
 
 

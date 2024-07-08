@@ -4,14 +4,20 @@ from datetime import datetime, timedelta
 
 from cryptography.fernet import Fernet
 from deta import _Base
-from db import db_log, db_notification
 from fastapi.security import OAuth2PasswordBearer
 from fastapi.responses import JSONResponse
 from jose import jwt
 from pydantic import BaseModel
 
+from db import (
+    db_log,
+    db_notification,
+    get_user_by_username,
+    get_user_by_email
+)
 from settings import SECRET_KEY, ALGORITHM, JWT_EXPIRED
 from models import User, Payload, CustomResponse, UserDB, Event
+from utils import encrypt_password, decrypt_password
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='auth')
 f = Fernet(SECRET_KEY)
@@ -34,6 +40,21 @@ def authenticate_user(db: _Base, username: str, password: str) -> Union[User, No
         return None
 
     return user_instance
+
+
+def alter_auth(username: str, password: str) -> typing.Optional[User]:
+    user_by_username = get_user_by_username(username)
+    user_by_email = get_user_by_email(username)
+    response = any([user_by_username, user_by_email])
+    if not response:
+        return None
+
+    user = user_by_email or user_by_username
+
+    if decrypt_password(user['password']) != password:
+        return None
+
+    return User(**user)
 
 
 def create_access_token(data: Dict[str, Any]) -> str:

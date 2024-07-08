@@ -21,7 +21,8 @@ from db import (
     drive,
     db_assessment,
     db_report,
-    db_notification
+    db_notification,
+    get_user_by_username, get_user_by_all, get_institution_by_all, insert_new_institution, insert_new_user
 )
 from dependencies import (
     authenticate_user,
@@ -31,7 +32,7 @@ from dependencies import (
     get_payload_from_token,
     create_response,
     create_log,
-    create_notification
+    create_notification, alter_auth
 )
 from exceptions import DependencyException
 from models import (
@@ -55,6 +56,8 @@ from models import (
 )
 from seeder import seed, delete_db, seed_assessment
 from settings import SECRET_KEY, MAX_FILE_SIZE, DEVELOPMENT
+
+from utils import encrypt_password
 
 # import pymysql.cursors
 
@@ -104,12 +107,6 @@ bab = [
 question_number = [10, 10, 10, 10, 8, 7, 7, 8, 15, 15]
 
 
-def encrypt_password(raw_password: str) -> str:
-    encoded_password = raw_password.encode('utf-8')
-    encrypted_password = f.encrypt(encoded_password).decode('utf-8')
-    return encrypted_password
-
-
 def get_user(access_token: str = Depends(oauth2_scheme)) -> Union[UserDB, None]:
     if not access_token:
         response_error = CustomResponse(
@@ -130,18 +127,10 @@ def get_user(access_token: str = Depends(oauth2_scheme)) -> Union[UserDB, None]:
         )
         raise DependencyException(status_code=status.HTTP_401_UNAUTHORIZED, detail_info=response_error.dict())
 
-    response = db_user.fetch({'username': payload.sub})
-    # user_data = get_user_by_username(payload.sub)
-    # if response.count == 0:
-    #     response_error = CustomResponse(
-    #         success=False,
-    #         code=status.HTTP_400_BAD_REQUEST,
-    #         message="Invalid Token",
-    #         data=None
-    #     )
-    #     raise DependencyException(status_code=status.HTTP_401_UNAUTHORIZED, detail_info=response_error.dict())
+    # response = db_user.fetch({'username': payload.sub})
+    user = get_user_by_username(payload.sub)
 
-    user = response.items[0]
+    # user = response.items[0]
     return UserDB(**user)
 
 
@@ -155,12 +144,15 @@ async def custom_handler(request: Request, exc: DependencyException) -> JSONResp
 
 @router.post('/register', tags=['Auth'])
 async def register(data: RegisterForm) -> JSONResponse:
-    existing_data_user = db_user.fetch([{'username': data.username}, {'email': data.email}, {'phone': data.phone}])
-    existing_data_institution = db_institution.fetch([{'phone': data.institution_phone}, {'email': data.institution_email}])
+    # existing_data_user = db_user.fetch([{'username': data.username}, {'email': data.email}, {'phone': data.phone}])
+    existing_data_user = get_user_by_all(data.username, data.email, data.phone)
+    # existing_data_institution = db_institution.fetch([{'phone': data.institution_phone},
+    #                                                   {'email': data.institution_email}])
+    existing_data_institution = get_institution_by_all(data.institution_phone, data.institution_email)
 
-    existing_data = existing_data_user.count + existing_data_institution.count
+    # existing_data = existing_data_user.count + existing_data_institution.count
 
-    if existing_data > 0:
+    if existing_data_institution or existing_data_user:
         return create_response(
             message="Username or email already exist"
         )
@@ -168,33 +160,56 @@ async def register(data: RegisterForm) -> JSONResponse:
     data.password = SecretStr(encrypt_password(data.password.get_secret_value()))
     new_data = data.dict()
 
-    institution_data = dict()
-    institution_data['name'] = new_data['institution_name']
-    institution_data['address'] = new_data['institution_address']
-    institution_data['phone'] = new_data['institution_phone']
-    institution_data['email'] = new_data['institution_email']
-    new_institution = Institution(**institution_data)
-    stored_institution = db_institution.put(json.loads(new_institution.json()))
+    institution_key = insert_new_institution(new_data['institution_name'],
+                                             new_data['institution_address'],
+                                             new_data['institution_phone'],
+                                             new_data['institution_email'])
 
-    user_data = dict()
-    user_data['username'] = new_data['username']
-    user_data['full_name'] = new_data['full_name']
-    user_data['phone'] = new_data['phone']
-    user_data['email'] = new_data['email']
-    user_data['password'] = new_data['password']
+    if not institution_key:
+        return create_response(
+            message="Failed to create new institution",
+            success=False,
+            status_code=status.HTTP_400_BAD_REQUEST
+        )
 
-    user_data['is_active'] = False
-    user_data['id_institution'] = stored_institution['key']
-    new_user = User(**user_data)
-    new_user.password = data.password.get_secret_value().encode('utf-8')
-    res = db_user.put(json.loads(new_user.json()))
+    print(institution_key)
 
-    # userid: str = res['key']
-    # send_confirmation(userid, new_user.email, new_user.full_name)
+    # user_data = dict()
+    # user_data['username'] = new_data['username']
+    # user_data['full_name'] = new_data['full_name']
+    # user_data['phone'] = new_data['phone']
+    # user_data['email'] = new_data['email']
+    # user_data['password'] = new_data['password']
+    #
+    # user_data['is_active'] = False
+    # user_data['id_institution'] = institution_key
+    # new_user = User(**user_data)
+    # new_user.password = data.password.get_secret_value().encode('utf-8')
+    # res = db_user.put(json.loads(new_user.json()))
+
+    user_key = insert_new_user(
+        username=new_data['username'],
+        password=new_data['password'].get_secret_value().encode('utf-8'),
+        full_name=new_data['full_name'],
+        email=new_data['email'],
+        phone=new_data['phone'],
+        is_active=False,
+        id_institution=institution_key,
+        role='admin'
+    )
+
+    print(user_key)
+
+    if not user_key:
+        return create_response(
+            message="Failed to create new user",
+            success=False,
+            status_code=status.HTTP_400_BAD_REQUEST
+        )
 
     payload = {
         'user': data.username,
-        'institution': institution_data['name']
+        'institution': new_data['institution_name']
     }
 
     response = CustomResponse(
@@ -211,7 +226,8 @@ async def register(data: RegisterForm) -> JSONResponse:
 
 @router.post("/auth", tags=['Auth'])
 async def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]) -> JSONResponse:
-    user = authenticate_user(db_user, form_data.username, form_data.password)
+    # user = authenticate_user(db_user, form_data.username, form_data.password)
+    user = alter_auth(form_data.username, form_data.password)
     if not user:
         response = CustomResponseDev(
             success=False,
