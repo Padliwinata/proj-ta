@@ -888,7 +888,7 @@ def insert_new_point(data: Dict[str, Any]):
             sql = """
                 INSERT INTO points
                 (data_key, id_assessment, id_proof, bab, sub_bab, poin, answer, skor)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
                 """
             data_key = generate_random_string()
             query_params = (
