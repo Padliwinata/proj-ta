@@ -759,7 +759,7 @@ def get_points_by_assessment_sub_bab(id_assessment: str, sub_bab: str):
                                  cursorclass=pymysql.cursors.DictCursor)
     try:
         with connection.cursor() as cursor:
-            sql = "SELECT * FROM assessments WHERE id_assessment = %s AND sub_bab = %s"
+            sql = "SELECT * FROM points WHERE id_assessment = %s AND sub_bab = %s"
             cursor.execute(sql, (id_assessment, sub_bab))
             user_data = cursor.fetchall()
             return user_data
