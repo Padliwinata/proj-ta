@@ -666,7 +666,7 @@ async def upload_proof_point(request: Request,
         insert_new_proof(new_proof.id_user, new_proof.url, new_proof.file_name)
 
     new_point = Point(
-        id_assessment=assessment_data.data_key,
+        id_assessment=assessment_data['data_key'],
         bab=metadata.bab,
         sub_bab=metadata.sub_bab,
         proof=new_proof,
