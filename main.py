@@ -1001,7 +1001,8 @@ async def verify_user(userid: str) -> JSONResponse:
 async def start_assessment(user: UserDB = Depends(get_user)) -> JSONResponse:
     # existing_data = db_assessment.fetch({'id_admin': user.data_key, 'selesai': False})
     existing_data = get_unfinished_assessments_by_admin(user.data_key)
-    if not existing_data:
+    print(existing_data)
+    if existing_data:
         return create_response(
             message="Please finish last assessment first",
             success=False,
