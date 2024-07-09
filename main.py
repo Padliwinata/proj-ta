@@ -1208,7 +1208,7 @@ async def get_finished_assessments(user: UserDB = Depends(get_user)) -> JSONResp
 
     # existing_points = [db_point.fetch({'id_assessment': assessment['data_key'], 'sub_bab': sub_bab}) for sub_bab in bab]
     existing_points = [get_points_by_assessment_sub_bab(assessment['data_key'], sub_bab) for sub_bab in bab]
-    points_status = [point.count for point in existing_points]
+    points_status = [len(point) for point in existing_points]
 
     point_finished = []
     for i in range(len(bab)):
