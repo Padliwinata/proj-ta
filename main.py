@@ -624,6 +624,7 @@ async def upload_proof_point(request: Request,
 
     # existing_assessment_data = db_assessment.fetch({'id_admin': user.data_key, 'selesai': False})
     assessment_data = get_unfinished_assessments_by_admin(user.data_key)
+    print(assessment_data)
 
     if not assessment_data:
         return create_response(
@@ -636,8 +637,8 @@ async def upload_proof_point(request: Request,
     # assessment_data = AssessmentDB()
 
     # existing_points = db_point.fetch({'id_assessment': assessment_data.key, 'bab': metadata.bab, 'sub_bab': metadata.sub_bab, 'point': metadata.point})
-    existing_points = get_points_by_all(assessment_data['data_key'], assessment_data['bab'], assessment_data['sub_bab'],
-                                        assessment_data['point'])
+    existing_points = get_points_by_all(assessment_data['data_key'], metadata.bab, metadata.sub_bab,
+                                        metadata.point)
     if existing_points.count > 0:
         return create_response(
             message="Point already exist",
