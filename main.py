@@ -716,7 +716,7 @@ async def upload_proof_point(request: Request,
     )
 
 
-@router.patch('/poin', tags=['Deterrence - Admin'])
+@router.patch('/point', tags=['Deterrence - Admin'])
 async def update_assessment(request: Request,
                             metadata: ProofMeta = Depends(),
                             user: UserDB = Depends(get_user),
