@@ -639,7 +639,7 @@ async def upload_proof_point(request: Request,
     # existing_points = db_point.fetch({'id_assessment': assessment_data.key, 'bab': metadata.bab, 'sub_bab': metadata.sub_bab, 'point': metadata.point})
     existing_points = get_points_by_all(assessment_data['data_key'], metadata.bab, metadata.sub_bab,
                                         metadata.point)
-    if existing_points.count > 0:
+    if len(existing_points) > 0:
         return create_response(
             message="Point already exist",
             success=False,
