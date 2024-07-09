@@ -894,7 +894,7 @@ def insert_new_point(data: Dict[str, Any]):
             query_params = (
                 data_key,
                 data['id_assessment'],
-                data['id_proof'],
+                data['proof'],
                 data['bab'],
                 data['sub_bab'],
                 data['poin'],
