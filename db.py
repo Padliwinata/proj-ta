@@ -794,7 +794,7 @@ def update_points_by_key(data: Dict[str, Any], key: str):
                 data['id_proof'],
                 data['bab'],
                 data['sub_bab'],
-                data['point'],
+                data['poin'],
                 data['answer'],
                 data['skor'],
                 key
@@ -897,7 +897,7 @@ def insert_new_point(data: Dict[str, Any]):
                 data['proof'],
                 data['bab'],
                 data['sub_bab'],
-                data['point'],
+                data['poin'],
                 data['answer'],
                 data['skor']
             )
