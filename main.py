@@ -1249,7 +1249,6 @@ async def selesai_isi(request: Request, id_assessment: str, user: UserDB = Depen
     # db_assessment.update(assessment, key=key)
     update_assessment_by_key(assessment, key)
 
-
     if request.client:
         create_log(
             user=user,
@@ -1270,6 +1269,12 @@ async def selesai_isi(request: Request, id_assessment: str, user: UserDB = Depen
                 message="There's a new assessment to review",
                 host=request.client.host
             )
+
+    if assessment['tanggal_mulai']:
+        assessment['tanggal_mulai'] = assessment['tanggal_mulai'].strftime('%Y-%m-%d %H:%M:%S')
+
+    if assessment['tanggal_nilai']:
+        assessment['tanggal_nilai'] = assessment['tanggal_nilai'].strftime('%Y-%m-%d %H:%M:%S')
 
     return create_response(
         message="Assessment finished",
