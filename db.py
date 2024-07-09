@@ -897,7 +897,7 @@ def insert_new_point(data: Dict[str, Any]):
                 data['proof'],
                 data['bab'],
                 data['sub_bab'],
-                data['poin'],
+                data['point'],
                 data['answer'],
                 data['skor']
             )
