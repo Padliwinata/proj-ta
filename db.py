@@ -653,7 +653,7 @@ def update_assessment_by_key(data: Dict[str, Any], key: str):
                 data['id_admin'],
                 data['id_reviewer_internal'],
                 data['id_reviewer_external'],
-                data['tanggal'],
+                data['tanggal_mulai'],
                 data['hasil_internal'],
                 data['hasil_external'],
                 data['tanggal_nilai'],
