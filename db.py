@@ -409,7 +409,7 @@ def insert_new_notification(data: Dict[str, Any]):
             data_key = generate_random_string()
             new_data = (
                 data_key,
-                data['id_user'],
+                data['id_receiver'],
                 data['event'],
                 data['message'],
                 data['date']
