@@ -5,7 +5,7 @@ from datetime import datetime
 
 from pydantic import BaseModel, SecretStr, EmailStr, AnyUrl
 
-from db import db_institution, db_user
+from db import db_institution, db_user, get_institution_by_key, get_user_by_key
 
 
 class UserRole(str, Enum):
@@ -58,7 +58,7 @@ class Institution(BaseModel):
 
 
 class InstitutionDB(Institution):
-    key: str
+    data_key: str
 
 
 class CustomResponse(BaseModel):
@@ -83,7 +83,8 @@ class User(BaseModel):
     phone: str
 
     def get_institution(self) -> typing.Dict[str, typing.Any]:
-        institution = db_institution.get(self.id_institution)
+        # institution = db_institution.get(self.id_institution)
+        institution = get_institution_by_key(self.id_institution)
         data = InstitutionDB(**institution)
         return data.dict()
 
@@ -178,21 +179,24 @@ class Assessment(BaseModel):
     selesai: bool
 
     def get_admin(self) -> str:
-        data = db_user.get(self.id_admin)
+        # data = db_user.get(self.id_admin)
+        data = get_user_by_key(self.id_admin)
         name: str = data['full_name']
         return name
 
     def get_reviewer_internal(self) -> str:
         if not self.id_reviewer_internal:
             return ''
-        data = db_user.get(self.id_reviewer_internal)
+        # data = db_user.get(self.id_reviewer_internal)
+        data = get_user_by_key(self.id_reviewer_internal)
         name: str = data['full_name']
         return name
 
     def get_reviewer_external(self) -> str:
         if not self.id_reviewer_external:
             return ''
-        data = db_user.get(self.id_reviewer_external)
+        # data = db_user.get(self.id_reviewer_external)
+        data = get_user_by_key(self.id_reviewer_external)
         name: str = data['full_name']
         return name
 
@@ -205,7 +209,7 @@ class Assessment(BaseModel):
 
 
 class AssessmentDB(Assessment):
-    key: str
+    data_key: str
 
 
 class AssessmentEval(BaseModel):
@@ -249,6 +253,19 @@ class ReportInput(BaseModel):
 class Report(ReportInput):
     id_institution: str
     beneish_m: float
+
+
+class ReportResult(BaseModel):
+    id_institution: str
+    beneish_m: float
+    dsri: float
+    gmi: float
+    aqi: float
+    sgi: float
+    depi: float
+    sgai: float
+    lvgi: float
+    tata: float
 
 
 class ResetPassword(BaseModel):
