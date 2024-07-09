@@ -624,7 +624,7 @@ async def upload_proof_point(request: Request,
 
     # existing_assessment_data = db_assessment.fetch({'id_admin': user.data_key, 'selesai': False})
     assessment_data = get_unfinished_assessments_by_admin(user.data_key)
-    print(assessment_data)
+    # print(assessment_data)
 
     if not assessment_data:
         return create_response(
@@ -1002,7 +1002,6 @@ async def verify_user(userid: str) -> JSONResponse:
 async def start_assessment(user: UserDB = Depends(get_user)) -> JSONResponse:
     # existing_data = db_assessment.fetch({'id_admin': user.data_key, 'selesai': False})
     existing_data = get_unfinished_assessments_by_admin(user.data_key)
-    print(existing_data)
     if existing_data:
         return create_response(
             message="Please finish last assessment first",
