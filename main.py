@@ -512,7 +512,7 @@ async def get_staff(user: User = Depends(get_user)) -> JSONResponse:
     # ])
 
     fetch_response = get_user_by_role_institution('staff', id_institution)
-    fetch_response.extends(get_user_by_role_institution('reviewer', id_institution))
+    fetch_response.extend(get_user_by_role_institution('reviewer', id_institution))
     fetch_response = remove_dict_duplicates(fetch_response)
 
     if not fetch_response:
