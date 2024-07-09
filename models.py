@@ -172,7 +172,7 @@ class Assessment(BaseModel):
     id_admin: str
     id_reviewer_internal: typing.Optional[str]
     id_reviewer_external: typing.Optional[str]
-    tanggal: str
+    tanggal_mulai: str
     hasil_internal: typing.Optional[int]
     hasil_external: typing.Optional[int]
     tanggal_nilai: typing.Optional[str]
