@@ -17,16 +17,16 @@ class TestRegistration(unittest.TestCase):
         response = client.post(
             "/api/register",
             json={
-                "username": "admintesting5",
-                "email": "admin5@testing.com",
-                "password": "passwordd",
-                "full_name": "Admin Testing 5",
+                "username": "admintesting10",
+                "email": "admin10@testing.com",
+                "password": "passworddddd",
+                "full_name": "Admin Testing 10",
                 "role": "admin",
-                "phone": "0829918837744",
-                "institution_name": "Admin Institutionn",
+                "phone": "082991883774430",
+                "institution_name": "Admin Institutionnnnn",
                 "institution_address": "Jl. Pahlawann",
-                "institution_phone": "0829938847755",
-                "institution_email": "adminn@institution.com"
+                "institution_phone": "082993884775530",
+                "institution_email": "adminnnnn@institution.com"
             }
         )
 
@@ -39,16 +39,16 @@ class TestRegistration(unittest.TestCase):
         response = client.post(
         "/api/register",
         json={
-            "username": username,
-            "email": "admin5@testing.com",
-            "password": "passwordd",
-            "full_name": "Admin Testing 5",
-            "role": "admin",
-            "phone": "0829918837744",
-            "institution_name": "Admin Institutionn",
-            "institution_address": "Jl. Pahlawann",
-            "institution_phone": "0829938847755",
-            "institution_email": "adminn@institution.com"
+                "username": "admintesting10",
+                "email": "admin10@testing.com",
+                "password": "passworddddd",
+                "full_name": "Admin Testing 10",
+                "role": "admin",
+                "phone": "082991883774430",
+                "institution_name": "Admin Institutionnnnn",
+                "institution_address": "Jl. Pahlawann",
+                "institution_phone": "082993884775530",
+                "institution_email": "adminnnnn@institution.com"
         }
     )
         

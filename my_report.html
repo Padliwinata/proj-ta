@@ -52,19 +52,17 @@
         <hr>
         <p>
             <strong>Start time:</strong>
-            <span>2024-07-08, 09:45:25</span>
+            <span>2024-07-09, 19:26:31</span>
         </p>
         <p>
             <strong>Duration:</strong>
-            <span>0:00:03.608743</span>
+            <span>0:00:02.517429</span>
         </p>
         <p>
             <strong>Status:</strong>
             <span>Total: 8</span>
             
             
-            
-                <span>&#8212; Error: 8</span>
             
             
         </p>
@@ -93,19 +91,19 @@
         
             <tr class="fw-bold">
                 <td>TestLogin</td>
-                <th>0</th>
-                <th>0</th>
-                <th>0</th>
+                <th>8</th>
                 <th>8</th>
                 <th>0</th>
-                <td><a href="javascript:showClassDetail('c1', '0')"
+                <th>0</th>
+                <th>0</th>
+                <td><a href="javascript:showClassDetail('c1', '8')"
                        class="text-decoration-none">Detail</a>
                 </td>
             </tr>
 
             
-                <tr id='et1.1' class="
-                table-warning
+                <tr id='pt1.1' class="
+                table-success
                 ">
                     <td>
                         <div class='testcase'>test_login_admin</div>
@@ -114,133 +112,15 @@
                     <td colspan='6' class="text-center">
                         <!--css div popup start-->
                         
-                            <a class="popup_link badge text-decoration-none
-                            bg-warning text-black
-                            " onfocus='this.blur();'
-                               href="javascript:showTestDetail('div_et1.1')">error</a>
-
-                            <div id='div_et1.1' class="popup_window">
-                                <div style='text-align: right; color:red;cursor:pointer'>
-                                    <a onfocus='this.blur();'
-                                       onclick="document.getElementById('div_et1.1').style.display = 'none';">
-                                        [x]
-                                    </a>
-                                </div>
-                                <pre>et1.1: Traceback (most recent call last):
-  File "D:\SEMESTER 8\TA\proj-ta\testing\test_login.py", line 26, in test_login_admin
-    response = client.post(
-               ^^^^^^^^^^^^
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\testclient.py", line 633, in post
-    return super().post(
-           ^^^^^^^^^^^^^
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\httpx\_client.py", line 1145, in post
-    return self.request(
-           ^^^^^^^^^^^^^
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\testclient.py", line 516, in request
-    return super().request(
-           ^^^^^^^^^^^^^^^^
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\httpx\_client.py", line 827, in request
-    return self.send(request, auth=auth, follow_redirects=follow_redirects)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\httpx\_client.py", line 914, in send
-    response = self._send_handling_auth(
-               ^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\httpx\_client.py", line 942, in _send_handling_auth
-    response = self._send_handling_redirects(
-               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\httpx\_client.py", line 979, in _send_handling_redirects
-    response = self._send_single_request(request)
-               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\httpx\_client.py", line 1015, in _send_single_request
-    response = transport.handle_request(request)
-               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\testclient.py", line 398, in handle_request
-    raise exc
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\testclient.py", line 395, in handle_request
-    portal.call(self.app, scope, receive, send)
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\anyio\from_thread.py", line 288, in call
-    return cast(T_Retval, self.start_task_soon(func, *args).result())
-                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Program Files\Python311\Lib\concurrent\futures\_base.py", line 456, in result
-    return self.__get_result()
-           ^^^^^^^^^^^^^^^^^^^
-  File "C:\Program Files\Python311\Lib\concurrent\futures\_base.py", line 401, in __get_result
-    raise self._exception
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\anyio\from_thread.py", line 217, in _call_func
-    retval = await retval_or_awaitable
-             ^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\fastapi\applications.py", line 1054, in __call__
-    await super().__call__(scope, receive, send)
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\applications.py", line 123, in __call__
-    await self.middleware_stack(scope, receive, send)
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\middleware\errors.py", line 186, in __call__
-    raise exc
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\middleware\errors.py", line 164, in __call__
-    await self.app(scope, receive, _send)
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\middleware\cors.py", line 85, in __call__
-    await self.app(scope, receive, send)
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\middleware\exceptions.py", line 65, in __call__
-    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\_exception_handler.py", line 64, in wrapped_app
-    raise exc
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
-    await app(scope, receive, sender)
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\routing.py", line 756, in __call__
-    await self.middleware_stack(scope, receive, send)
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\routing.py", line 776, in app
-    await route.handle(scope, receive, send)
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\routing.py", line 297, in handle
-    await self.app(scope, receive, send)
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\routing.py", line 77, in app
-    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\_exception_handler.py", line 64, in wrapped_app
-    raise exc
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
-    await app(scope, receive, sender)
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\routing.py", line 72, in app
-    response = await func(request)
-               ^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\fastapi\routing.py", line 278, in app
-    raw_response = await run_endpoint_function(
-                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\fastapi\routing.py", line 191, in run_endpoint_function
-    return await dependant.call(**values)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "D:\SEMESTER 8\TA\proj-ta\main.py", line 230, in login
-    user = alter_auth(form_data.username, form_data.password)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "D:\SEMESTER 8\TA\proj-ta\dependencies.py", line 46, in alter_auth
-    user_by_username = get_user_by_username(username)
-                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "D:\SEMESTER 8\TA\proj-ta\db.py", line 33, in get_user_by_username
-    connection = pymysql.connect(host=DB_HOST,
-                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\pymysql\connections.py", line 361, in __init__
-    self.connect()
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\pymysql\connections.py", line 669, in connect
-    self._request_authentication()
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\pymysql\connections.py", line 971, in _request_authentication
-    auth_packet = self._process_auth(plugin_name, auth_packet)
-                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\pymysql\connections.py", line 1062, in _process_auth
-    pkt = self._read_packet()
-          ^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\pymysql\connections.py", line 775, in _read_packet
-    packet.raise_for_error()
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\pymysql\protocol.py", line 219, in raise_for_error
-    err.raise_mysql_exception(self._data)
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\pymysql\err.py", line 150, in raise_mysql_exception
-    raise errorclass(errno, errval)
-pymysql.err.OperationalError: (1045, "Access denied for user 'server_ta'@'180.244.134.243' (using password: YES)")
-</pre>
-                            </div>
-                            <!--css div popup end-->
+                            <span class='badge 
+                            bg-success text-white
+                            '>pass</span>
                         
                     </td>
                 </tr>
             
-                <tr id='et1.2' class="
-                table-warning
+                <tr id='pt1.2' class="
+                table-success
                 ">
                     <td>
                         <div class='testcase'>test_login_admin_failed</div>
@@ -249,133 +129,15 @@ pymysql.err.OperationalError: (1045, "Access denied for user 'server_ta'@'180.24
                     <td colspan='6' class="text-center">
                         <!--css div popup start-->
                         
-                            <a class="popup_link badge text-decoration-none
-                            bg-warning text-black
-                            " onfocus='this.blur();'
-                               href="javascript:showTestDetail('div_et1.2')">error</a>
-
-                            <div id='div_et1.2' class="popup_window">
-                                <div style='text-align: right; color:red;cursor:pointer'>
-                                    <a onfocus='this.blur();'
-                                       onclick="document.getElementById('div_et1.2').style.display = 'none';">
-                                        [x]
-                                    </a>
-                                </div>
-                                <pre>et1.2: Traceback (most recent call last):
-  File "D:\SEMESTER 8\TA\proj-ta\testing\test_login.py", line 35, in test_login_admin_failed
-    response = client.post(
-               ^^^^^^^^^^^^
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\testclient.py", line 633, in post
-    return super().post(
-           ^^^^^^^^^^^^^
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\httpx\_client.py", line 1145, in post
-    return self.request(
-           ^^^^^^^^^^^^^
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\testclient.py", line 516, in request
-    return super().request(
-           ^^^^^^^^^^^^^^^^
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\httpx\_client.py", line 827, in request
-    return self.send(request, auth=auth, follow_redirects=follow_redirects)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\httpx\_client.py", line 914, in send
-    response = self._send_handling_auth(
-               ^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\httpx\_client.py", line 942, in _send_handling_auth
-    response = self._send_handling_redirects(
-               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\httpx\_client.py", line 979, in _send_handling_redirects
-    response = self._send_single_request(request)
-               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\httpx\_client.py", line 1015, in _send_single_request
-    response = transport.handle_request(request)
-               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\testclient.py", line 398, in handle_request
-    raise exc
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\testclient.py", line 395, in handle_request
-    portal.call(self.app, scope, receive, send)
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\anyio\from_thread.py", line 288, in call
-    return cast(T_Retval, self.start_task_soon(func, *args).result())
-                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Program Files\Python311\Lib\concurrent\futures\_base.py", line 456, in result
-    return self.__get_result()
-           ^^^^^^^^^^^^^^^^^^^
-  File "C:\Program Files\Python311\Lib\concurrent\futures\_base.py", line 401, in __get_result
-    raise self._exception
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\anyio\from_thread.py", line 217, in _call_func
-    retval = await retval_or_awaitable
-             ^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\fastapi\applications.py", line 1054, in __call__
-    await super().__call__(scope, receive, send)
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\applications.py", line 123, in __call__
-    await self.middleware_stack(scope, receive, send)
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\middleware\errors.py", line 186, in __call__
-    raise exc
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\middleware\errors.py", line 164, in __call__
-    await self.app(scope, receive, _send)
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\middleware\cors.py", line 85, in __call__
-    await self.app(scope, receive, send)
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\middleware\exceptions.py", line 65, in __call__
-    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\_exception_handler.py", line 64, in wrapped_app
-    raise exc
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
-    await app(scope, receive, sender)
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\routing.py", line 756, in __call__
-    await self.middleware_stack(scope, receive, send)
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\routing.py", line 776, in app
-    await route.handle(scope, receive, send)
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\routing.py", line 297, in handle
-    await self.app(scope, receive, send)
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\routing.py", line 77, in app
-    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\_exception_handler.py", line 64, in wrapped_app
-    raise exc
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
-    await app(scope, receive, sender)
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\routing.py", line 72, in app
-    response = await func(request)
-               ^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\fastapi\routing.py", line 278, in app
-    raw_response = await run_endpoint_function(
-                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\fastapi\routing.py", line 191, in run_endpoint_function
-    return await dependant.call(**values)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "D:\SEMESTER 8\TA\proj-ta\main.py", line 230, in login
-    user = alter_auth(form_data.username, form_data.password)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "D:\SEMESTER 8\TA\proj-ta\dependencies.py", line 46, in alter_auth
-    user_by_username = get_user_by_username(username)
-                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "D:\SEMESTER 8\TA\proj-ta\db.py", line 33, in get_user_by_username
-    connection = pymysql.connect(host=DB_HOST,
-                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\pymysql\connections.py", line 361, in __init__
-    self.connect()
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\pymysql\connections.py", line 669, in connect
-    self._request_authentication()
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\pymysql\connections.py", line 971, in _request_authentication
-    auth_packet = self._process_auth(plugin_name, auth_packet)
-                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\pymysql\connections.py", line 1062, in _process_auth
-    pkt = self._read_packet()
-          ^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\pymysql\connections.py", line 775, in _read_packet
-    packet.raise_for_error()
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\pymysql\protocol.py", line 219, in raise_for_error
-    err.raise_mysql_exception(self._data)
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\pymysql\err.py", line 150, in raise_mysql_exception
-    raise errorclass(errno, errval)
-pymysql.err.OperationalError: (1045, "Access denied for user 'server_ta'@'180.244.134.243' (using password: YES)")
-</pre>
-                            </div>
-                            <!--css div popup end-->
+                            <span class='badge 
+                            bg-success text-white
+                            '>pass</span>
                         
                     </td>
                 </tr>
             
-                <tr id='et1.3' class="
-                table-warning
+                <tr id='pt1.3' class="
+                table-success
                 ">
                     <td>
                         <div class='testcase'>test_login_reviewer_external</div>
@@ -384,133 +146,15 @@ pymysql.err.OperationalError: (1045, "Access denied for user 'server_ta'@'180.24
                     <td colspan='6' class="text-center">
                         <!--css div popup start-->
                         
-                            <a class="popup_link badge text-decoration-none
-                            bg-warning text-black
-                            " onfocus='this.blur();'
-                               href="javascript:showTestDetail('div_et1.3')">error</a>
-
-                            <div id='div_et1.3' class="popup_window">
-                                <div style='text-align: right; color:red;cursor:pointer'>
-                                    <a onfocus='this.blur();'
-                                       onclick="document.getElementById('div_et1.3').style.display = 'none';">
-                                        [x]
-                                    </a>
-                                </div>
-                                <pre>et1.3: Traceback (most recent call last):
-  File "D:\SEMESTER 8\TA\proj-ta\testing\test_login.py", line 71, in test_login_reviewer_external
-    response = client.post(
-               ^^^^^^^^^^^^
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\testclient.py", line 633, in post
-    return super().post(
-           ^^^^^^^^^^^^^
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\httpx\_client.py", line 1145, in post
-    return self.request(
-           ^^^^^^^^^^^^^
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\testclient.py", line 516, in request
-    return super().request(
-           ^^^^^^^^^^^^^^^^
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\httpx\_client.py", line 827, in request
-    return self.send(request, auth=auth, follow_redirects=follow_redirects)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\httpx\_client.py", line 914, in send
-    response = self._send_handling_auth(
-               ^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\httpx\_client.py", line 942, in _send_handling_auth
-    response = self._send_handling_redirects(
-               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\httpx\_client.py", line 979, in _send_handling_redirects
-    response = self._send_single_request(request)
-               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\httpx\_client.py", line 1015, in _send_single_request
-    response = transport.handle_request(request)
-               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\testclient.py", line 398, in handle_request
-    raise exc
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\testclient.py", line 395, in handle_request
-    portal.call(self.app, scope, receive, send)
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\anyio\from_thread.py", line 288, in call
-    return cast(T_Retval, self.start_task_soon(func, *args).result())
-                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Program Files\Python311\Lib\concurrent\futures\_base.py", line 456, in result
-    return self.__get_result()
-           ^^^^^^^^^^^^^^^^^^^
-  File "C:\Program Files\Python311\Lib\concurrent\futures\_base.py", line 401, in __get_result
-    raise self._exception
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\anyio\from_thread.py", line 217, in _call_func
-    retval = await retval_or_awaitable
-             ^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\fastapi\applications.py", line 1054, in __call__
-    await super().__call__(scope, receive, send)
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\applications.py", line 123, in __call__
-    await self.middleware_stack(scope, receive, send)
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\middleware\errors.py", line 186, in __call__
-    raise exc
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\middleware\errors.py", line 164, in __call__
-    await self.app(scope, receive, _send)
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\middleware\cors.py", line 85, in __call__
-    await self.app(scope, receive, send)
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\middleware\exceptions.py", line 65, in __call__
-    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\_exception_handler.py", line 64, in wrapped_app
-    raise exc
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
-    await app(scope, receive, sender)
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\routing.py", line 756, in __call__
-    await self.middleware_stack(scope, receive, send)
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\routing.py", line 776, in app
-    await route.handle(scope, receive, send)
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\routing.py", line 297, in handle
-    await self.app(scope, receive, send)
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\routing.py", line 77, in app
-    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\_exception_handler.py", line 64, in wrapped_app
-    raise exc
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
-    await app(scope, receive, sender)
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\routing.py", line 72, in app
-    response = await func(request)
-               ^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\fastapi\routing.py", line 278, in app
-    raw_response = await run_endpoint_function(
-                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\fastapi\routing.py", line 191, in run_endpoint_function
-    return await dependant.call(**values)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "D:\SEMESTER 8\TA\proj-ta\main.py", line 230, in login
-    user = alter_auth(form_data.username, form_data.password)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "D:\SEMESTER 8\TA\proj-ta\dependencies.py", line 46, in alter_auth
-    user_by_username = get_user_by_username(username)
-                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "D:\SEMESTER 8\TA\proj-ta\db.py", line 33, in get_user_by_username
-    connection = pymysql.connect(host=DB_HOST,
-                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\pymysql\connections.py", line 361, in __init__
-    self.connect()
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\pymysql\connections.py", line 669, in connect
-    self._request_authentication()
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\pymysql\connections.py", line 971, in _request_authentication
-    auth_packet = self._process_auth(plugin_name, auth_packet)
-                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\pymysql\connections.py", line 1062, in _process_auth
-    pkt = self._read_packet()
-          ^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\pymysql\connections.py", line 775, in _read_packet
-    packet.raise_for_error()
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\pymysql\protocol.py", line 219, in raise_for_error
-    err.raise_mysql_exception(self._data)
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\pymysql\err.py", line 150, in raise_mysql_exception
-    raise errorclass(errno, errval)
-pymysql.err.OperationalError: (1045, "Access denied for user 'server_ta'@'180.244.134.243' (using password: YES)")
-</pre>
-                            </div>
-                            <!--css div popup end-->
+                            <span class='badge 
+                            bg-success text-white
+                            '>pass</span>
                         
                     </td>
                 </tr>
             
-                <tr id='et1.4' class="
-                table-warning
+                <tr id='pt1.4' class="
+                table-success
                 ">
                     <td>
                         <div class='testcase'>test_login_reviewer_external_failed</div>
@@ -519,133 +163,15 @@ pymysql.err.OperationalError: (1045, "Access denied for user 'server_ta'@'180.24
                     <td colspan='6' class="text-center">
                         <!--css div popup start-->
                         
-                            <a class="popup_link badge text-decoration-none
-                            bg-warning text-black
-                            " onfocus='this.blur();'
-                               href="javascript:showTestDetail('div_et1.4')">error</a>
-
-                            <div id='div_et1.4' class="popup_window">
-                                <div style='text-align: right; color:red;cursor:pointer'>
-                                    <a onfocus='this.blur();'
-                                       onclick="document.getElementById('div_et1.4').style.display = 'none';">
-                                        [x]
-                                    </a>
-                                </div>
-                                <pre>et1.4: Traceback (most recent call last):
-  File "D:\SEMESTER 8\TA\proj-ta\testing\test_login.py", line 80, in test_login_reviewer_external_failed
-    response = client.post(
-               ^^^^^^^^^^^^
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\testclient.py", line 633, in post
-    return super().post(
-           ^^^^^^^^^^^^^
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\httpx\_client.py", line 1145, in post
-    return self.request(
-           ^^^^^^^^^^^^^
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\testclient.py", line 516, in request
-    return super().request(
-           ^^^^^^^^^^^^^^^^
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\httpx\_client.py", line 827, in request
-    return self.send(request, auth=auth, follow_redirects=follow_redirects)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\httpx\_client.py", line 914, in send
-    response = self._send_handling_auth(
-               ^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\httpx\_client.py", line 942, in _send_handling_auth
-    response = self._send_handling_redirects(
-               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\httpx\_client.py", line 979, in _send_handling_redirects
-    response = self._send_single_request(request)
-               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\httpx\_client.py", line 1015, in _send_single_request
-    response = transport.handle_request(request)
-               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\testclient.py", line 398, in handle_request
-    raise exc
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\testclient.py", line 395, in handle_request
-    portal.call(self.app, scope, receive, send)
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\anyio\from_thread.py", line 288, in call
-    return cast(T_Retval, self.start_task_soon(func, *args).result())
-                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Program Files\Python311\Lib\concurrent\futures\_base.py", line 456, in result
-    return self.__get_result()
-           ^^^^^^^^^^^^^^^^^^^
-  File "C:\Program Files\Python311\Lib\concurrent\futures\_base.py", line 401, in __get_result
-    raise self._exception
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\anyio\from_thread.py", line 217, in _call_func
-    retval = await retval_or_awaitable
-             ^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\fastapi\applications.py", line 1054, in __call__
-    await super().__call__(scope, receive, send)
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\applications.py", line 123, in __call__
-    await self.middleware_stack(scope, receive, send)
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\middleware\errors.py", line 186, in __call__
-    raise exc
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\middleware\errors.py", line 164, in __call__
-    await self.app(scope, receive, _send)
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\middleware\cors.py", line 85, in __call__
-    await self.app(scope, receive, send)
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\middleware\exceptions.py", line 65, in __call__
-    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\_exception_handler.py", line 64, in wrapped_app
-    raise exc
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
-    await app(scope, receive, sender)
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\routing.py", line 756, in __call__
-    await self.middleware_stack(scope, receive, send)
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\routing.py", line 776, in app
-    await route.handle(scope, receive, send)
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\routing.py", line 297, in handle
-    await self.app(scope, receive, send)
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\routing.py", line 77, in app
-    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\_exception_handler.py", line 64, in wrapped_app
-    raise exc
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
-    await app(scope, receive, sender)
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\routing.py", line 72, in app
-    response = await func(request)
-               ^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\fastapi\routing.py", line 278, in app
-    raw_response = await run_endpoint_function(
-                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\fastapi\routing.py", line 191, in run_endpoint_function
-    return await dependant.call(**values)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "D:\SEMESTER 8\TA\proj-ta\main.py", line 230, in login
-    user = alter_auth(form_data.username, form_data.password)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "D:\SEMESTER 8\TA\proj-ta\dependencies.py", line 46, in alter_auth
-    user_by_username = get_user_by_username(username)
-                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "D:\SEMESTER 8\TA\proj-ta\db.py", line 33, in get_user_by_username
-    connection = pymysql.connect(host=DB_HOST,
-                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\pymysql\connections.py", line 361, in __init__
-    self.connect()
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\pymysql\connections.py", line 669, in connect
-    self._request_authentication()
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\pymysql\connections.py", line 971, in _request_authentication
-    auth_packet = self._process_auth(plugin_name, auth_packet)
-                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\pymysql\connections.py", line 1062, in _process_auth
-    pkt = self._read_packet()
-          ^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\pymysql\connections.py", line 775, in _read_packet
-    packet.raise_for_error()
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\pymysql\protocol.py", line 219, in raise_for_error
-    err.raise_mysql_exception(self._data)
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\pymysql\err.py", line 150, in raise_mysql_exception
-    raise errorclass(errno, errval)
-pymysql.err.OperationalError: (1045, "Access denied for user 'server_ta'@'180.244.134.243' (using password: YES)")
-</pre>
-                            </div>
-                            <!--css div popup end-->
+                            <span class='badge 
+                            bg-success text-white
+                            '>pass</span>
                         
                     </td>
                 </tr>
             
-                <tr id='et1.5' class="
-                table-warning
+                <tr id='pt1.5' class="
+                table-success
                 ">
                     <td>
                         <div class='testcase'>test_login_reviewer_internal</div>
@@ -654,133 +180,15 @@ pymysql.err.OperationalError: (1045, "Access denied for user 'server_ta'@'180.24
                     <td colspan='6' class="text-center">
                         <!--css div popup start-->
                         
-                            <a class="popup_link badge text-decoration-none
-                            bg-warning text-black
-                            " onfocus='this.blur();'
-                               href="javascript:showTestDetail('div_et1.5')">error</a>
-
-                            <div id='div_et1.5' class="popup_window">
-                                <div style='text-align: right; color:red;cursor:pointer'>
-                                    <a onfocus='this.blur();'
-                                       onclick="document.getElementById('div_et1.5').style.display = 'none';">
-                                        [x]
-                                    </a>
-                                </div>
-                                <pre>et1.5: Traceback (most recent call last):
-  File "D:\SEMESTER 8\TA\proj-ta\testing\test_login.py", line 53, in test_login_reviewer_internal
-    response = client.post(
-               ^^^^^^^^^^^^
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\testclient.py", line 633, in post
-    return super().post(
-           ^^^^^^^^^^^^^
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\httpx\_client.py", line 1145, in post
-    return self.request(
-           ^^^^^^^^^^^^^
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\testclient.py", line 516, in request
-    return super().request(
-           ^^^^^^^^^^^^^^^^
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\httpx\_client.py", line 827, in request
-    return self.send(request, auth=auth, follow_redirects=follow_redirects)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\httpx\_client.py", line 914, in send
-    response = self._send_handling_auth(
-               ^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\httpx\_client.py", line 942, in _send_handling_auth
-    response = self._send_handling_redirects(
-               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\httpx\_client.py", line 979, in _send_handling_redirects
-    response = self._send_single_request(request)
-               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\httpx\_client.py", line 1015, in _send_single_request
-    response = transport.handle_request(request)
-               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\testclient.py", line 398, in handle_request
-    raise exc
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\testclient.py", line 395, in handle_request
-    portal.call(self.app, scope, receive, send)
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\anyio\from_thread.py", line 288, in call
-    return cast(T_Retval, self.start_task_soon(func, *args).result())
-                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Program Files\Python311\Lib\concurrent\futures\_base.py", line 456, in result
-    return self.__get_result()
-           ^^^^^^^^^^^^^^^^^^^
-  File "C:\Program Files\Python311\Lib\concurrent\futures\_base.py", line 401, in __get_result
-    raise self._exception
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\anyio\from_thread.py", line 217, in _call_func
-    retval = await retval_or_awaitable
-             ^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\fastapi\applications.py", line 1054, in __call__
-    await super().__call__(scope, receive, send)
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\applications.py", line 123, in __call__
-    await self.middleware_stack(scope, receive, send)
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\middleware\errors.py", line 186, in __call__
-    raise exc
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\middleware\errors.py", line 164, in __call__
-    await self.app(scope, receive, _send)
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\middleware\cors.py", line 85, in __call__
-    await self.app(scope, receive, send)
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\middleware\exceptions.py", line 65, in __call__
-    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\_exception_handler.py", line 64, in wrapped_app
-    raise exc
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
-    await app(scope, receive, sender)
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\routing.py", line 756, in __call__
-    await self.middleware_stack(scope, receive, send)
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\routing.py", line 776, in app
-    await route.handle(scope, receive, send)
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\routing.py", line 297, in handle
-    await self.app(scope, receive, send)
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\routing.py", line 77, in app
-    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\_exception_handler.py", line 64, in wrapped_app
-    raise exc
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
-    await app(scope, receive, sender)
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\routing.py", line 72, in app
-    response = await func(request)
-               ^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\fastapi\routing.py", line 278, in app
-    raw_response = await run_endpoint_function(
-                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\fastapi\routing.py", line 191, in run_endpoint_function
-    return await dependant.call(**values)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "D:\SEMESTER 8\TA\proj-ta\main.py", line 230, in login
-    user = alter_auth(form_data.username, form_data.password)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "D:\SEMESTER 8\TA\proj-ta\dependencies.py", line 46, in alter_auth
-    user_by_username = get_user_by_username(username)
-                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "D:\SEMESTER 8\TA\proj-ta\db.py", line 33, in get_user_by_username
-    connection = pymysql.connect(host=DB_HOST,
-                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\pymysql\connections.py", line 361, in __init__
-    self.connect()
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\pymysql\connections.py", line 669, in connect
-    self._request_authentication()
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\pymysql\connections.py", line 971, in _request_authentication
-    auth_packet = self._process_auth(plugin_name, auth_packet)
-                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\pymysql\connections.py", line 1062, in _process_auth
-    pkt = self._read_packet()
-          ^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\pymysql\connections.py", line 775, in _read_packet
-    packet.raise_for_error()
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\pymysql\protocol.py", line 219, in raise_for_error
-    err.raise_mysql_exception(self._data)
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\pymysql\err.py", line 150, in raise_mysql_exception
-    raise errorclass(errno, errval)
-pymysql.err.OperationalError: (1045, "Access denied for user 'server_ta'@'180.244.134.243' (using password: YES)")
-</pre>
-                            </div>
-                            <!--css div popup end-->
+                            <span class='badge 
+                            bg-success text-white
+                            '>pass</span>
                         
                     </td>
                 </tr>
             
-                <tr id='et1.6' class="
-                table-warning
+                <tr id='pt1.6' class="
+                table-success
                 ">
                     <td>
                         <div class='testcase'>test_login_reviewer_internal_failed</div>
@@ -789,133 +197,15 @@ pymysql.err.OperationalError: (1045, "Access denied for user 'server_ta'@'180.24
                     <td colspan='6' class="text-center">
                         <!--css div popup start-->
                         
-                            <a class="popup_link badge text-decoration-none
-                            bg-warning text-black
-                            " onfocus='this.blur();'
-                               href="javascript:showTestDetail('div_et1.6')">error</a>
-
-                            <div id='div_et1.6' class="popup_window">
-                                <div style='text-align: right; color:red;cursor:pointer'>
-                                    <a onfocus='this.blur();'
-                                       onclick="document.getElementById('div_et1.6').style.display = 'none';">
-                                        [x]
-                                    </a>
-                                </div>
-                                <pre>et1.6: Traceback (most recent call last):
-  File "D:\SEMESTER 8\TA\proj-ta\testing\test_login.py", line 62, in test_login_reviewer_internal_failed
-    response = client.post(
-               ^^^^^^^^^^^^
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\testclient.py", line 633, in post
-    return super().post(
-           ^^^^^^^^^^^^^
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\httpx\_client.py", line 1145, in post
-    return self.request(
-           ^^^^^^^^^^^^^
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\testclient.py", line 516, in request
-    return super().request(
-           ^^^^^^^^^^^^^^^^
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\httpx\_client.py", line 827, in request
-    return self.send(request, auth=auth, follow_redirects=follow_redirects)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\httpx\_client.py", line 914, in send
-    response = self._send_handling_auth(
-               ^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\httpx\_client.py", line 942, in _send_handling_auth
-    response = self._send_handling_redirects(
-               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\httpx\_client.py", line 979, in _send_handling_redirects
-    response = self._send_single_request(request)
-               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\httpx\_client.py", line 1015, in _send_single_request
-    response = transport.handle_request(request)
-               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\testclient.py", line 398, in handle_request
-    raise exc
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\testclient.py", line 395, in handle_request
-    portal.call(self.app, scope, receive, send)
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\anyio\from_thread.py", line 288, in call
-    return cast(T_Retval, self.start_task_soon(func, *args).result())
-                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Program Files\Python311\Lib\concurrent\futures\_base.py", line 456, in result
-    return self.__get_result()
-           ^^^^^^^^^^^^^^^^^^^
-  File "C:\Program Files\Python311\Lib\concurrent\futures\_base.py", line 401, in __get_result
-    raise self._exception
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\anyio\from_thread.py", line 217, in _call_func
-    retval = await retval_or_awaitable
-             ^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\fastapi\applications.py", line 1054, in __call__
-    await super().__call__(scope, receive, send)
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\applications.py", line 123, in __call__
-    await self.middleware_stack(scope, receive, send)
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\middleware\errors.py", line 186, in __call__
-    raise exc
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\middleware\errors.py", line 164, in __call__
-    await self.app(scope, receive, _send)
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\middleware\cors.py", line 85, in __call__
-    await self.app(scope, receive, send)
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\middleware\exceptions.py", line 65, in __call__
-    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\_exception_handler.py", line 64, in wrapped_app
-    raise exc
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
-    await app(scope, receive, sender)
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\routing.py", line 756, in __call__
-    await self.middleware_stack(scope, receive, send)
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\routing.py", line 776, in app
-    await route.handle(scope, receive, send)
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\routing.py", line 297, in handle
-    await self.app(scope, receive, send)
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\routing.py", line 77, in app
-    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\_exception_handler.py", line 64, in wrapped_app
-    raise exc
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
-    await app(scope, receive, sender)
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\routing.py", line 72, in app
-    response = await func(request)
-               ^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\fastapi\routing.py", line 278, in app
-    raw_response = await run_endpoint_function(
-                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\fastapi\routing.py", line 191, in run_endpoint_function
-    return await dependant.call(**values)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "D:\SEMESTER 8\TA\proj-ta\main.py", line 230, in login
-    user = alter_auth(form_data.username, form_data.password)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "D:\SEMESTER 8\TA\proj-ta\dependencies.py", line 46, in alter_auth
-    user_by_username = get_user_by_username(username)
-                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "D:\SEMESTER 8\TA\proj-ta\db.py", line 33, in get_user_by_username
-    connection = pymysql.connect(host=DB_HOST,
-                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\pymysql\connections.py", line 361, in __init__
-    self.connect()
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\pymysql\connections.py", line 669, in connect
-    self._request_authentication()
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\pymysql\connections.py", line 971, in _request_authentication
-    auth_packet = self._process_auth(plugin_name, auth_packet)
-                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\pymysql\connections.py", line 1062, in _process_auth
-    pkt = self._read_packet()
-          ^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\pymysql\connections.py", line 775, in _read_packet
-    packet.raise_for_error()
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\pymysql\protocol.py", line 219, in raise_for_error
-    err.raise_mysql_exception(self._data)
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\pymysql\err.py", line 150, in raise_mysql_exception
-    raise errorclass(errno, errval)
-pymysql.err.OperationalError: (1045, "Access denied for user 'server_ta'@'180.244.134.243' (using password: YES)")
-</pre>
-                            </div>
-                            <!--css div popup end-->
+                            <span class='badge 
+                            bg-success text-white
+                            '>pass</span>
                         
                     </td>
                 </tr>
             
-                <tr id='et1.7' class="
-                table-warning
+                <tr id='pt1.7' class="
+                table-success
                 ">
                     <td>
                         <div class='testcase'>test_login_staff</div>
@@ -924,133 +214,15 @@ pymysql.err.OperationalError: (1045, "Access denied for user 'server_ta'@'180.24
                     <td colspan='6' class="text-center">
                         <!--css div popup start-->
                         
-                            <a class="popup_link badge text-decoration-none
-                            bg-warning text-black
-                            " onfocus='this.blur();'
-                               href="javascript:showTestDetail('div_et1.7')">error</a>
-
-                            <div id='div_et1.7' class="popup_window">
-                                <div style='text-align: right; color:red;cursor:pointer'>
-                                    <a onfocus='this.blur();'
-                                       onclick="document.getElementById('div_et1.7').style.display = 'none';">
-                                        [x]
-                                    </a>
-                                </div>
-                                <pre>et1.7: Traceback (most recent call last):
-  File "D:\SEMESTER 8\TA\proj-ta\testing\test_login.py", line 44, in test_login_staff
-    response = client.post(
-               ^^^^^^^^^^^^
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\testclient.py", line 633, in post
-    return super().post(
-           ^^^^^^^^^^^^^
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\httpx\_client.py", line 1145, in post
-    return self.request(
-           ^^^^^^^^^^^^^
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\testclient.py", line 516, in request
-    return super().request(
-           ^^^^^^^^^^^^^^^^
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\httpx\_client.py", line 827, in request
-    return self.send(request, auth=auth, follow_redirects=follow_redirects)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\httpx\_client.py", line 914, in send
-    response = self._send_handling_auth(
-               ^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\httpx\_client.py", line 942, in _send_handling_auth
-    response = self._send_handling_redirects(
-               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\httpx\_client.py", line 979, in _send_handling_redirects
-    response = self._send_single_request(request)
-               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\httpx\_client.py", line 1015, in _send_single_request
-    response = transport.handle_request(request)
-               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\testclient.py", line 398, in handle_request
-    raise exc
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\testclient.py", line 395, in handle_request
-    portal.call(self.app, scope, receive, send)
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\anyio\from_thread.py", line 288, in call
-    return cast(T_Retval, self.start_task_soon(func, *args).result())
-                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Program Files\Python311\Lib\concurrent\futures\_base.py", line 456, in result
-    return self.__get_result()
-           ^^^^^^^^^^^^^^^^^^^
-  File "C:\Program Files\Python311\Lib\concurrent\futures\_base.py", line 401, in __get_result
-    raise self._exception
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\anyio\from_thread.py", line 217, in _call_func
-    retval = await retval_or_awaitable
-             ^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\fastapi\applications.py", line 1054, in __call__
-    await super().__call__(scope, receive, send)
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\applications.py", line 123, in __call__
-    await self.middleware_stack(scope, receive, send)
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\middleware\errors.py", line 186, in __call__
-    raise exc
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\middleware\errors.py", line 164, in __call__
-    await self.app(scope, receive, _send)
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\middleware\cors.py", line 85, in __call__
-    await self.app(scope, receive, send)
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\middleware\exceptions.py", line 65, in __call__
-    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\_exception_handler.py", line 64, in wrapped_app
-    raise exc
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
-    await app(scope, receive, sender)
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\routing.py", line 756, in __call__
-    await self.middleware_stack(scope, receive, send)
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\routing.py", line 776, in app
-    await route.handle(scope, receive, send)
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\routing.py", line 297, in handle
-    await self.app(scope, receive, send)
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\routing.py", line 77, in app
-    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\_exception_handler.py", line 64, in wrapped_app
-    raise exc
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
-    await app(scope, receive, sender)
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\routing.py", line 72, in app
-    response = await func(request)
-               ^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\fastapi\routing.py", line 278, in app
-    raw_response = await run_endpoint_function(
-                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\fastapi\routing.py", line 191, in run_endpoint_function
-    return await dependant.call(**values)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "D:\SEMESTER 8\TA\proj-ta\main.py", line 230, in login
-    user = alter_auth(form_data.username, form_data.password)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "D:\SEMESTER 8\TA\proj-ta\dependencies.py", line 46, in alter_auth
-    user_by_username = get_user_by_username(username)
-                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "D:\SEMESTER 8\TA\proj-ta\db.py", line 33, in get_user_by_username
-    connection = pymysql.connect(host=DB_HOST,
-                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\pymysql\connections.py", line 361, in __init__
-    self.connect()
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\pymysql\connections.py", line 669, in connect
-    self._request_authentication()
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\pymysql\connections.py", line 971, in _request_authentication
-    auth_packet = self._process_auth(plugin_name, auth_packet)
-                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\pymysql\connections.py", line 1062, in _process_auth
-    pkt = self._read_packet()
-          ^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\pymysql\connections.py", line 775, in _read_packet
-    packet.raise_for_error()
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\pymysql\protocol.py", line 219, in raise_for_error
-    err.raise_mysql_exception(self._data)
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\pymysql\err.py", line 150, in raise_mysql_exception
-    raise errorclass(errno, errval)
-pymysql.err.OperationalError: (1045, "Access denied for user 'server_ta'@'180.244.134.243' (using password: YES)")
-</pre>
-                            </div>
-                            <!--css div popup end-->
+                            <span class='badge 
+                            bg-success text-white
+                            '>pass</span>
                         
                     </td>
                 </tr>
             
-                <tr id='et1.8' class="
-                table-warning
+                <tr id='pt1.8' class="
+                table-success
                 ">
                     <td>
                         <div class='testcase'>test_login_superadmin</div>
@@ -1059,127 +231,9 @@ pymysql.err.OperationalError: (1045, "Access denied for user 'server_ta'@'180.24
                     <td colspan='6' class="text-center">
                         <!--css div popup start-->
                         
-                            <a class="popup_link badge text-decoration-none
-                            bg-warning text-black
-                            " onfocus='this.blur();'
-                               href="javascript:showTestDetail('div_et1.8')">error</a>
-
-                            <div id='div_et1.8' class="popup_window">
-                                <div style='text-align: right; color:red;cursor:pointer'>
-                                    <a onfocus='this.blur();'
-                                       onclick="document.getElementById('div_et1.8').style.display = 'none';">
-                                        [x]
-                                    </a>
-                                </div>
-                                <pre>et1.8: Traceback (most recent call last):
-  File "D:\SEMESTER 8\TA\proj-ta\testing\test_login.py", line 17, in test_login_superadmin
-    response = client.post(
-               ^^^^^^^^^^^^
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\testclient.py", line 633, in post
-    return super().post(
-           ^^^^^^^^^^^^^
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\httpx\_client.py", line 1145, in post
-    return self.request(
-           ^^^^^^^^^^^^^
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\testclient.py", line 516, in request
-    return super().request(
-           ^^^^^^^^^^^^^^^^
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\httpx\_client.py", line 827, in request
-    return self.send(request, auth=auth, follow_redirects=follow_redirects)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\httpx\_client.py", line 914, in send
-    response = self._send_handling_auth(
-               ^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\httpx\_client.py", line 942, in _send_handling_auth
-    response = self._send_handling_redirects(
-               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\httpx\_client.py", line 979, in _send_handling_redirects
-    response = self._send_single_request(request)
-               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\httpx\_client.py", line 1015, in _send_single_request
-    response = transport.handle_request(request)
-               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\testclient.py", line 398, in handle_request
-    raise exc
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\testclient.py", line 395, in handle_request
-    portal.call(self.app, scope, receive, send)
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\anyio\from_thread.py", line 288, in call
-    return cast(T_Retval, self.start_task_soon(func, *args).result())
-                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Program Files\Python311\Lib\concurrent\futures\_base.py", line 456, in result
-    return self.__get_result()
-           ^^^^^^^^^^^^^^^^^^^
-  File "C:\Program Files\Python311\Lib\concurrent\futures\_base.py", line 401, in __get_result
-    raise self._exception
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\anyio\from_thread.py", line 217, in _call_func
-    retval = await retval_or_awaitable
-             ^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\fastapi\applications.py", line 1054, in __call__
-    await super().__call__(scope, receive, send)
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\applications.py", line 123, in __call__
-    await self.middleware_stack(scope, receive, send)
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\middleware\errors.py", line 186, in __call__
-    raise exc
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\middleware\errors.py", line 164, in __call__
-    await self.app(scope, receive, _send)
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\middleware\cors.py", line 85, in __call__
-    await self.app(scope, receive, send)
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\middleware\exceptions.py", line 65, in __call__
-    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\_exception_handler.py", line 64, in wrapped_app
-    raise exc
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
-    await app(scope, receive, sender)
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\routing.py", line 756, in __call__
-    await self.middleware_stack(scope, receive, send)
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\routing.py", line 776, in app
-    await route.handle(scope, receive, send)
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\routing.py", line 297, in handle
-    await self.app(scope, receive, send)
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\routing.py", line 77, in app
-    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\_exception_handler.py", line 64, in wrapped_app
-    raise exc
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
-    await app(scope, receive, sender)
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\starlette\routing.py", line 72, in app
-    response = await func(request)
-               ^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\fastapi\routing.py", line 278, in app
-    raw_response = await run_endpoint_function(
-                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\fastapi\routing.py", line 191, in run_endpoint_function
-    return await dependant.call(**values)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "D:\SEMESTER 8\TA\proj-ta\main.py", line 230, in login
-    user = alter_auth(form_data.username, form_data.password)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "D:\SEMESTER 8\TA\proj-ta\dependencies.py", line 46, in alter_auth
-    user_by_username = get_user_by_username(username)
-                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "D:\SEMESTER 8\TA\proj-ta\db.py", line 33, in get_user_by_username
-    connection = pymysql.connect(host=DB_HOST,
-                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\pymysql\connections.py", line 361, in __init__
-    self.connect()
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\pymysql\connections.py", line 669, in connect
-    self._request_authentication()
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\pymysql\connections.py", line 971, in _request_authentication
-    auth_packet = self._process_auth(plugin_name, auth_packet)
-                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\pymysql\connections.py", line 1062, in _process_auth
-    pkt = self._read_packet()
-          ^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\pymysql\connections.py", line 775, in _read_packet
-    packet.raise_for_error()
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\pymysql\protocol.py", line 219, in raise_for_error
-    err.raise_mysql_exception(self._data)
-  File "C:\Users\yuna\AppData\Roaming\Python\Python311\site-packages\pymysql\err.py", line 150, in raise_mysql_exception
-    raise errorclass(errno, errval)
-pymysql.err.OperationalError: (1045, "Access denied for user 'server_ta'@'180.244.134.243' (using password: YES)")
-</pre>
-                            </div>
-                            <!--css div popup end-->
+                            <span class='badge 
+                            bg-success text-white
+                            '>pass</span>
                         
                     </td>
                 </tr>
@@ -1189,9 +243,9 @@ pymysql.err.OperationalError: (1045, "Access denied for user 'server_ta'@'180.24
         <tr id=' total_row'>
             <td>Total</td>
             <td>8</td>
-            <td>0</td>
-            <td>0</td>
             <td>8</td>
+            <td>0</td>
+            <td>0</td>
             <td>0</td>
             <td>&nbsp;</td>
         </tr>
