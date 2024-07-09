@@ -791,7 +791,7 @@ def update_points_by_key(data: Dict[str, Any], key: str):
             """
             query_params = (
                 data['id_assessment'],
-                data['id_proof'],
+                data['proof'],
                 data['bab'],
                 data['sub_bab'],
                 data['poin'],
