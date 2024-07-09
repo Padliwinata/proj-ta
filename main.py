@@ -1046,7 +1046,7 @@ async def get_current_assessment(sub_bab: str, user: UserDB = Depends(get_user))
             status_code=status.HTTP_404_NOT_FOUND
         )
 
-    assessment = AssessmentDB(**existing_assessment_data.items[0])
+    assessment = AssessmentDB(**existing_assessment_data)
     # existing_point_data = db_point.fetch({'id_assessment': assessment.key, 'sub_bab': sub_bab})
     existing_point_data = get_points_by_assessment_sub_bab(assessment.data_key, sub_bab)
 
