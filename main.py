@@ -512,7 +512,7 @@ async def get_staff(user: User = Depends(get_user)) -> JSONResponse:
     # ])
 
     fetch_response = get_user_by_role_institution('staff', id_institution)
-    fetch_response.extends(get_user_by_role_institution('reviewer', id_institution))
+    fetch_response.extend(get_user_by_role_institution('reviewer', id_institution))
     fetch_response = remove_dict_duplicates(fetch_response)
 
     if not fetch_response:
@@ -624,6 +624,7 @@ async def upload_proof_point(request: Request,
 
     # existing_assessment_data = db_assessment.fetch({'id_admin': user.data_key, 'selesai': False})
     assessment_data = get_unfinished_assessments_by_admin(user.data_key)
+    # print(assessment_data)
 
     if not assessment_data:
         return create_response(
@@ -635,10 +636,10 @@ async def upload_proof_point(request: Request,
     # assessment_data = existing_assessment_data.items[0]
     # assessment_data = AssessmentDB()
 
-    # existing_points = db_point.fetch({'id_assessment': assessment_data.key, 'bab': metadata.bab, 'sub_bab': metadata.sub_bab, 'point': metadata.point})
-    existing_points = get_points_by_all(assessment_data['data_key'], assessment_data['bab'], assessment_data['sub_bab'],
-                                        assessment_data['point'])
-    if existing_points.count > 0:
+    # existing_points = db_point.fetch({'id_assessment': assessment_data.key, 'bab': metadata.bab, 'sub_bab': metadata.sub_bab, 'poin': metadata.point})
+    existing_points = get_points_by_all(assessment_data['data_key'], metadata.bab, metadata.sub_bab,
+                                        metadata.point)
+    if existing_points:
         return create_response(
             message="Point already exist",
             success=False,
@@ -665,17 +666,17 @@ async def upload_proof_point(request: Request,
         insert_new_proof(new_proof.id_user, new_proof.url, new_proof.file_name)
 
     new_point = Point(
-        id_assessment=assessment_data.key,
+        id_assessment=assessment_data['data_key'],
         bab=metadata.bab,
         sub_bab=metadata.sub_bab,
         proof=new_proof,
-        point=metadata.point,
+        poin=metadata.point,
         answer=metadata.answer,
         skor=None
     )
 
     # res = db_point.put(json.loads(new_point.json()))
-    id_point = insert_new_point(json.loads((new_point.json())))
+    id_point = insert_new_point(new_point.dict())
 
     data = json.loads(new_point.json())
 
@@ -699,7 +700,7 @@ async def upload_proof_point(request: Request,
             user=user,
             event=Event.submit_point,
             detail={
-                'id_point': id_point,
+                'id_poin': id_point,
                 'id_assessment': data['id_assessment'],
                 'bab': data['bab'],
                 'sub_bab': data['sub_bab']
@@ -738,8 +739,8 @@ async def update_assessment(request: Request,
 
     assessment = AssessmentDB(**existing_assessment_data)
 
-    # current_point = db_point.fetch({'bab': metadata.bab, 'sub_bab': metadata.sub_bab, 'point': metadata.point})
-    # current_point = db_point.fetch({'id_assessment': assessment.data_key, 'bab': metadata.bab, 'sub_bab': metadata.sub_bab, 'point': metadata.point})
+    # current_point = db_point.fetch({'bab': metadata.bab, 'sub_bab': metadata.sub_bab, 'poin': metadata.point})
+    # current_point = db_point.fetch({'id_assessment': assessment.data_key, 'bab': metadata.bab, 'sub_bab': metadata.sub_bab, 'poin': metadata.point})
     current_point = get_points_by_all(assessment.data_key, metadata.bab, metadata.sub_bab, metadata.point)
     if not current_point:
         return create_response(
@@ -787,7 +788,7 @@ async def update_assessment(request: Request,
             user=user,
             event=Event.edited_point,
             detail={
-                'id_point': key,
+                'id_poin': key,
                 'id_assessment': actual_point.id_assessment,
                 'bab': actual_point.bab,
                 'sub_bab': actual_point.sub_bab
@@ -999,8 +1000,9 @@ async def verify_user(userid: str) -> JSONResponse:
 
 @router.post("/assessment", tags=['Deterrence - Admin'])
 async def start_assessment(user: UserDB = Depends(get_user)) -> JSONResponse:
-    existing_data = db_assessment.fetch({'id_admin': user.data_key, 'selesai': False})
-    if existing_data.count > 0:
+    # existing_data = db_assessment.fetch({'id_admin': user.data_key, 'selesai': False})
+    existing_data = get_unfinished_assessments_by_admin(user.data_key)
+    if existing_data:
         return create_response(
             message="Please finish last assessment first",
             success=False,
@@ -1018,7 +1020,7 @@ async def start_assessment(user: UserDB = Depends(get_user)) -> JSONResponse:
         'tanggal': extra_datetime.strftime('%Y-%m-%d %H:%M:%S'),
         'hasil_internal': None,
         'hasil_external': None,
-        'selesai': False,
+        'is_done': False,
         'tanggal_nilai': None
     }
 
@@ -1035,15 +1037,16 @@ async def start_assessment(user: UserDB = Depends(get_user)) -> JSONResponse:
 
 @router.get("/assessment", tags=['Deterrence - Admin'])
 async def get_current_assessment(sub_bab: str, user: UserDB = Depends(get_user)) -> JSONResponse:
-    existing_assessment_data = db_assessment.fetch({'id_admin': user.data_key, 'selesai': False})
-    if existing_assessment_data.count == 0:
+    # existing_assessment_data = db_assessment.fetch({'id_admin': user.data_key, 'selesai': False})
+    existing_assessment_data = get_unfinished_assessments_by_admin(user.data_key)
+    if not existing_assessment_data:
         return create_response(
             message="No active assessment",
             success=False,
             status_code=status.HTTP_404_NOT_FOUND
         )
 
-    assessment = AssessmentDB(**existing_assessment_data.items[0])
+    assessment = AssessmentDB(**existing_assessment_data)
     # existing_point_data = db_point.fetch({'id_assessment': assessment.key, 'sub_bab': sub_bab})
     existing_point_data = get_points_by_assessment_sub_bab(assessment.data_key, sub_bab)
 
@@ -1056,7 +1059,7 @@ async def get_current_assessment(sub_bab: str, user: UserDB = Depends(get_user))
 
     data = [Point(**x) for x in existing_point_data]
     dict_data = [x.dict() for x in data]
-    response_data = sorted(dict_data, key=lambda x: x['point'])
+    response_data = sorted(dict_data, key=lambda x: x['poin'])
 
     return create_response(
         message="Fetch data success",
@@ -1088,13 +1091,13 @@ async def get_assessment_detail(key: str, sub_bab: str, user: UserDB = Depends(g
 
     data = [Point(**x) for x in existing_point]
     dict_data = [x.dict() for x in data]
-    point_list = sorted(dict_data, key=lambda x: x['point'])
+    point_list = sorted(dict_data, key=lambda x: x['poin'])
 
     assessment = AssessmentDB(**existing_assessment).get_all_dict()
 
     response_data = {
         'assessment': assessment,
-        'point': point_list
+        'poin': point_list
     }
 
     return create_response(
@@ -1141,7 +1144,7 @@ async def get_assessment_insight(key: str, user: UserDB = Depends(get_user)) -> 
 
     response_data = {
         'assessment': assessment,
-        'point': points
+        'poin': points
     }
 
     return create_response(
@@ -1173,6 +1176,8 @@ async def get_all_assessment(user: UserDB = Depends(get_user)) -> JSONResponse:
     raw_data = [AssessmentDB(**x) for x in existing_assessments_data]
     data = [assessment.get_all_dict() for assessment in raw_data]
 
+    # print(existing_assessments_data)
+
     return create_response(
         message="Success fetch data",
         success=True,
@@ -1183,7 +1188,7 @@ async def get_all_assessment(user: UserDB = Depends(get_user)) -> JSONResponse:
 
 @router.get("/assessments/progress", tags=['Deterrence - Admin'])
 async def get_finished_assessments(user: UserDB = Depends(get_user)) -> JSONResponse:
-    if user.role != 'admin':
+    if user.role not in ['admin', 'staff']:
         return create_response(
             message="Forbidden access",
             success=False,
@@ -1201,8 +1206,9 @@ async def get_finished_assessments(user: UserDB = Depends(get_user)) -> JSONResp
 
     assessment = existing_assessment
 
-    existing_points = [db_point.fetch({'id_assessment': assessment['data_key'], 'sub_bab': sub_bab}) for sub_bab in bab]
-    points_status = [point.count for point in existing_points]
+    # existing_points = [db_point.fetch({'id_assessment': assessment['data_key'], 'sub_bab': sub_bab}) for sub_bab in bab]
+    existing_points = [get_points_by_assessment_sub_bab(assessment['data_key'], sub_bab) for sub_bab in bab]
+    points_status = [len(point) if point else 0 for point in existing_points]
 
     point_finished = []
     for i in range(len(bab)):
@@ -1219,7 +1225,7 @@ async def get_finished_assessments(user: UserDB = Depends(get_user)) -> JSONResp
 
 @router.post("/selesai", tags=['Deterrence - Admin'])
 async def selesai_isi(request: Request, id_assessment: str, user: UserDB = Depends(get_user)) -> JSONResponse:
-    if user.role != 'admin':
+    if user.role not in ['admin', 'staff']:
         return create_response(
             message="Forbidden access",
             success=False,
@@ -1237,12 +1243,11 @@ async def selesai_isi(request: Request, id_assessment: str, user: UserDB = Depen
 
     # assessment = db_assessment.get(id_assessment)
     assessment = get_assessment_by_key(id_assessment)
-    assessment['selesai'] = True
+    assessment['is_done'] = True
     key = assessment['data_key']
     del assessment['data_key']
     # db_assessment.update(assessment, key=key)
     update_assessment_by_key(assessment, key)
-
 
     if request.client:
         create_log(
@@ -1264,6 +1269,12 @@ async def selesai_isi(request: Request, id_assessment: str, user: UserDB = Depen
                 message="There's a new assessment to review",
                 host=request.client.host
             )
+
+    if assessment['tanggal_mulai']:
+        assessment['tanggal_mulai'] = assessment['tanggal_mulai'].strftime('%Y-%m-%d %H:%M:%S')
+
+    if assessment['tanggal_nilai']:
+        assessment['tanggal_nilai'] = assessment['tanggal_nilai'].strftime('%Y-%m-%d %H:%M:%S')
 
     return create_response(
         message="Assessment finished",
@@ -1520,7 +1531,7 @@ async def evaluate_assessment(data: AssessmentEval, user: UserDB = Depends(get_u
             status_code=status.HTTP_400_BAD_REQUEST
         )
 
-    sorted_points = sorted(existing_points.items, key=lambda x: x['point'])
+    sorted_points = sorted(existing_points.items, key=lambda x: x['poin'])
     for i in range(len(sorted_points)):
         sorted_points[i]['skor'] = float(data.skor[i]) if data.skor[i] != '-' else None
 

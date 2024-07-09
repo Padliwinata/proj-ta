@@ -409,7 +409,7 @@ def insert_new_notification(data: Dict[str, Any]):
             data_key = generate_random_string()
             new_data = (
                 data_key,
-                data['id_user'],
+                data['id_receiver'],
                 data['event'],
                 data['message'],
                 data['date']
@@ -477,7 +477,7 @@ def insert_new_assessment(data: Dict[str, Any]):
                 data['hasil_internal'],
                 data['hasil_external'],
                 data['tanggal_nilai'],
-                data['selesai']
+                data['is_done']
             )
             cursor.execute(sql, query_params)
             connection.commit()
@@ -499,7 +499,7 @@ def get_unfinished_assessments_by_admin(key: str):
                                  cursorclass=pymysql.cursors.DictCursor)
     try:
         with connection.cursor() as cursor:
-            sql = "SELECT * FROM assessments WHERE id_admin = %s AND selesai = 0"
+            sql = "SELECT * FROM assessments WHERE id_admin = %s AND is_done = 0"
             cursor.execute(sql, (key, ))
             user_data = cursor.fetchone()
             return user_data
@@ -653,11 +653,11 @@ def update_assessment_by_key(data: Dict[str, Any], key: str):
                 data['id_admin'],
                 data['id_reviewer_internal'],
                 data['id_reviewer_external'],
-                data['tanggal'],
+                data['tanggal_mulai'],
                 data['hasil_internal'],
                 data['hasil_external'],
                 data['tanggal_nilai'],
-                data['selesai'],
+                data['is_done'],
                 key
             )
             cursor.execute(sql, query_params)
@@ -740,7 +740,7 @@ def get_points_by_assessment(id_assessment: str):
                                  cursorclass=pymysql.cursors.DictCursor)
     try:
         with connection.cursor() as cursor:
-            sql = "SELECT * FROM assessments WHERE id_assessment = %s"
+            sql = "SELECT * FROM points WHERE id_assessment = %s"
             cursor.execute(sql, (id_assessment, ))
             user_data = cursor.fetchall()
             return user_data
@@ -759,7 +759,7 @@ def get_points_by_assessment_sub_bab(id_assessment: str, sub_bab: str):
                                  cursorclass=pymysql.cursors.DictCursor)
     try:
         with connection.cursor() as cursor:
-            sql = "SELECT * FROM assessments WHERE id_assessment = %s AND sub_bab = %s"
+            sql = "SELECT * FROM points WHERE id_assessment = %s AND sub_bab = %s"
             cursor.execute(sql, (id_assessment, sub_bab))
             user_data = cursor.fetchall()
             return user_data
@@ -791,10 +791,10 @@ def update_points_by_key(data: Dict[str, Any], key: str):
             """
             query_params = (
                 data['id_assessment'],
-                data['id_proof'],
+                data['proof'],
                 data['bab'],
                 data['sub_bab'],
-                data['point'],
+                data['poin'],
                 data['answer'],
                 data['skor'],
                 key
@@ -839,7 +839,7 @@ def insert_new_proof(id_user: str, url: str, file_name: str):
         with connection.cursor() as cursor:
             sql = """
                 INSERT INTO proof (data_key, id_user, url, file_name)
-                VALUES (%s, %s, %s, %s, %s)
+                VALUES (%s, %s, %s, %s)
                 """
             data_key = generate_random_string()
             cursor.execute(sql, (data_key, id_user, url, file_name))
@@ -888,13 +888,13 @@ def insert_new_point(data: Dict[str, Any]):
             sql = """
                 INSERT INTO points
                 (data_key, id_assessment, id_proof, bab, sub_bab, poin, answer, skor)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
                 """
             data_key = generate_random_string()
             query_params = (
                 data_key,
                 data['id_assessment'],
-                data['id_proof'],
+                data['proof'],
                 data['bab'],
                 data['sub_bab'],
                 data['poin'],
