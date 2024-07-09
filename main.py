@@ -1170,14 +1170,16 @@ async def get_all_assessment(user: UserDB = Depends(get_user)) -> JSONResponse:
             status_code=status.HTTP_200_OK
         )
 
-    # raw_data = [AssessmentDB(**x) for x in existing_assessments_data]
-    # data = [assessment.get_all_dict() for assessment in raw_data]
+    raw_data = [AssessmentDB(**x) for x in existing_assessments_data]
+    data = [assessment.get_all_dict() for assessment in raw_data]
+
+    # print(existing_assessments_data)
 
     return create_response(
         message="Success fetch data",
         success=True,
         status_code=status.HTTP_200_OK,
-        data=existing_assessments_data
+        data=data
     )
 
 
@@ -1237,7 +1239,7 @@ async def selesai_isi(request: Request, id_assessment: str, user: UserDB = Depen
 
     # assessment = db_assessment.get(id_assessment)
     assessment = get_assessment_by_key(id_assessment)
-    assessment['selesai'] = True
+    assessment['is_done'] = True
     key = assessment['data_key']
     del assessment['data_key']
     # db_assessment.update(assessment, key=key)

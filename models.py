@@ -172,11 +172,11 @@ class Assessment(BaseModel):
     id_admin: str
     id_reviewer_internal: typing.Optional[str]
     id_reviewer_external: typing.Optional[str]
-    tanggal_mulai: str
+    tanggal_mulai: datetime
     hasil_internal: typing.Optional[int]
     hasil_external: typing.Optional[int]
     tanggal_nilai: typing.Optional[str]
-    selesai: bool
+    is_done: bool
 
     def get_admin(self) -> str:
         # data = db_user.get(self.id_admin)
@@ -205,6 +205,8 @@ class Assessment(BaseModel):
         data['admin'] = self.get_admin()
         data['reviewer_internal'] = self.get_reviewer_internal()
         data['reviewer_external'] = self.get_reviewer_external()
+        if data['tanggal_mulai']:
+            data['tanggal_mulai'] = self.tanggal_mulai.strftime('%Y-%m-%d %H:%M:%S')
         return data
 
 
