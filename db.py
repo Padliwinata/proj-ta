@@ -839,7 +839,7 @@ def insert_new_proof(id_user: str, url: str, file_name: str):
         with connection.cursor() as cursor:
             sql = """
                 INSERT INTO proof (data_key, id_user, url, file_name)
-                VALUES (%s, %s, %s, %s, %s)
+                VALUES (%s, %s, %s, %s)
                 """
             data_key = generate_random_string()
             cursor.execute(sql, (data_key, id_user, url, file_name))
