@@ -1038,7 +1038,7 @@ async def start_assessment(user: UserDB = Depends(get_user)) -> JSONResponse:
 async def get_current_assessment(sub_bab: str, user: UserDB = Depends(get_user)) -> JSONResponse:
     # existing_assessment_data = db_assessment.fetch({'id_admin': user.data_key, 'selesai': False})
     existing_assessment_data = get_unfinished_assessments_by_admin(user.data_key)
-    if existing_assessment_data.count == 0:
+    if not existing_assessment_data:
         return create_response(
             message="No active assessment",
             success=False,
@@ -1205,7 +1205,8 @@ async def get_finished_assessments(user: UserDB = Depends(get_user)) -> JSONResp
 
     assessment = existing_assessment
 
-    existing_points = [db_point.fetch({'id_assessment': assessment['data_key'], 'sub_bab': sub_bab}) for sub_bab in bab]
+    # existing_points = [db_point.fetch({'id_assessment': assessment['data_key'], 'sub_bab': sub_bab}) for sub_bab in bab]
+    existing_points = [get_points_by_assessment_sub_bab(assessment['data_key'], sub_bab) for sub_bab in bab]
     points_status = [point.count for point in existing_points]
 
     point_finished = []
