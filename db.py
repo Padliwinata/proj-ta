@@ -477,7 +477,7 @@ def insert_new_assessment(data: Dict[str, Any]):
                 data['hasil_internal'],
                 data['hasil_external'],
                 data['tanggal_nilai'],
-                data['selesai']
+                data['is_done']
             )
             cursor.execute(sql, query_params)
             connection.commit()
@@ -499,7 +499,7 @@ def get_unfinished_assessments_by_admin(key: str):
                                  cursorclass=pymysql.cursors.DictCursor)
     try:
         with connection.cursor() as cursor:
-            sql = "SELECT * FROM assessments WHERE id_admin = %s AND selesai = 0"
+            sql = "SELECT * FROM assessments WHERE id_admin = %s AND is_done = 0"
             cursor.execute(sql, (key, ))
             user_data = cursor.fetchone()
             return user_data
@@ -657,7 +657,7 @@ def update_assessment_by_key(data: Dict[str, Any], key: str):
                 data['hasil_internal'],
                 data['hasil_external'],
                 data['tanggal_nilai'],
-                data['selesai'],
+                data['is_done'],
                 key
             )
             cursor.execute(sql, query_params)

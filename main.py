@@ -999,7 +999,8 @@ async def verify_user(userid: str) -> JSONResponse:
 
 @router.post("/assessment", tags=['Deterrence - Admin'])
 async def start_assessment(user: UserDB = Depends(get_user)) -> JSONResponse:
-    existing_data = db_assessment.fetch({'id_admin': user.data_key, 'selesai': False})
+    # existing_data = db_assessment.fetch({'id_admin': user.data_key, 'selesai': False})
+    existing_data = get_unfinished_assessments_by_admin(user.data_key)
     if existing_data.count > 0:
         return create_response(
             message="Please finish last assessment first",
@@ -1018,7 +1019,7 @@ async def start_assessment(user: UserDB = Depends(get_user)) -> JSONResponse:
         'tanggal': extra_datetime.strftime('%Y-%m-%d %H:%M:%S'),
         'hasil_internal': None,
         'hasil_external': None,
-        'selesai': False,
+        'is_done': False,
         'tanggal_nilai': None
     }
 
