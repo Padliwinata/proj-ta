@@ -13,7 +13,7 @@ from db import (
     db_log,
     db_notification,
     get_user_by_username,
-    get_user_by_email
+    get_user_by_email, insert_new_log, insert_new_notification
 )
 from settings import SECRET_KEY, ALGORITHM, JWT_EXPIRED
 from models import User, Payload, CustomResponse, UserDB, Event
@@ -103,13 +103,14 @@ def create_log(user: UserDB, event: Event, detail: typing.Dict[str, typing.Any],
         'name': user.full_name,
         'email': user.email,
         'role': user.role,
-        'tanggal': tanggal.strftime('%d %B %Y, %H:%M'),
+        'tanggal': tanggal.strftime('%Y-%m-%d %H:%M:%S'),
         'event': event,
         'detail': detail,
         'id_institution': user.id_institution
     }
 
-    db_log.put(data_to_store)
+    # db_log.put(data_to_store)
+    insert_new_log(data_to_store)
 
     return data_to_store
 
@@ -123,9 +124,10 @@ def create_notification(receivers: typing.List[str], event: Event, message: str,
             'id_receiver': receiver,
             'event': event,
             'message': message,
-            'date': created_date.strftime('%d %B %Y, %H:%M')
+            'date': created_date.strftime('%Y-%m-%d %H:%M:%S')
         }
-        db_notification.put(data)
+        # db_notification.put(data)
+        insert_new_notification(data)
 
     response = {
         'received_by': receivers,
