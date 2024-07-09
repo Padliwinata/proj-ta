@@ -1101,7 +1101,7 @@ async def get_all_assessment(user: UserDB = Depends(get_user)) -> JSONResponse:
 
 @router.get("/assessments/progress", tags=['Deterrence - Admin'])
 async def get_finished_assessments(user: UserDB = Depends(get_user)) -> JSONResponse:
-    if user.role != 'admin':
+    if user.role not in ['admin', 'staff']:
         return create_response(
             message="Forbidden access",
             success=False,
@@ -1136,7 +1136,7 @@ async def get_finished_assessments(user: UserDB = Depends(get_user)) -> JSONResp
 
 @router.post("/selesai", tags=['Deterrence - Admin'])
 async def selesai_isi(request: Request, id_assessment: str, user: UserDB = Depends(get_user)) -> JSONResponse:
-    if user.role != 'admin':
+    if user.role not in ['admin', 'staff']:
         return create_response(
             message="Forbidden access",
             success=False,
