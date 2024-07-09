@@ -3,6 +3,7 @@ import os
 import unittest
 from fastapi.testclient import TestClient
 from main import app
+from html_reporter import HTMLTestRunner
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 
@@ -23,7 +24,7 @@ class TestAssessmentFDP(unittest.TestCase):
             "/api/selesai",
             headers={"Authorization": f"Bearer {access_token}"},
             params={
-                "id_assessment": "05p9ut2hmkx"
+                "id_assessment": "n7v8yzxyhypz"
             }
         )
         
@@ -208,4 +209,12 @@ class TestAssessmentFDP(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    unittest.main()
+    runner = HTMLTestRunner(
+        report_filepath="my_report.html",
+        title="Test Assessment",
+        description="Ini test login",
+        open_in_browser=True
+    )
+
+    # run the test
+    unittest.main(testRunner=runner)
