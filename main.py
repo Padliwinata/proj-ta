@@ -676,7 +676,7 @@ async def upload_proof_point(request: Request,
     )
 
     # res = db_point.put(json.loads(new_point.json()))
-    id_point = insert_new_point(json.loads((new_point.json())))
+    id_point = insert_new_point(new_point.dict())
 
     data = json.loads(new_point.json())
 
