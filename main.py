@@ -1036,7 +1036,8 @@ async def start_assessment(user: UserDB = Depends(get_user)) -> JSONResponse:
 
 @router.get("/assessment", tags=['Deterrence - Admin'])
 async def get_current_assessment(sub_bab: str, user: UserDB = Depends(get_user)) -> JSONResponse:
-    existing_assessment_data = db_assessment.fetch({'id_admin': user.data_key, 'selesai': False})
+    # existing_assessment_data = db_assessment.fetch({'id_admin': user.data_key, 'selesai': False})
+    existing_assessment_data = get_unfinished_assessments_by_admin(user.data_key)
     if existing_assessment_data.count == 0:
         return create_response(
             message="No active assessment",
