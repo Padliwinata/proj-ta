@@ -1538,7 +1538,7 @@ async def evaluate_assessment(data: AssessmentEval, user: UserDB = Depends(get_u
             status_code=status.HTTP_400_BAD_REQUEST
         )
 
-    sorted_points = sorted(existing_points.items, key=lambda x: x['poin'])
+    sorted_points = sorted(existing_points, key=lambda x: x['poin'])
     for i in range(len(sorted_points)):
         sorted_points[i]['skor'] = float(data.skor[i]) if data.skor[i] != '-' else None
 
