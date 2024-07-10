@@ -1175,6 +1175,7 @@ async def get_all_assessment(user: UserDB = Depends(get_user)) -> JSONResponse:
         )
 
     raw_data = [AssessmentDB(**x) for x in existing_assessments_data]
+    print(existing_assessments_data)
     data = [assessment.get_all_dict() for assessment in raw_data]
 
     # print(existing_assessments_data)
