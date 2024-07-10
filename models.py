@@ -139,7 +139,7 @@ class ProofMeta(BaseModel):
     bab: str
     sub_bab: str
     point: float
-    answer: int
+    answer: float
 
 
 class Point(BaseModel):
