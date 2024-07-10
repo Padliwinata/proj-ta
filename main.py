@@ -1349,14 +1349,14 @@ async def get_evaluation(user: UserDB = Depends(get_user)) -> JSONResponse:
         # existing_assessments = db_assessment.fetch({'id_institution': user.id_institution, 'id_reviewer_internal': None, 'selesai': True})
         existing_assessments = get_assessment_for_internal(user.id_institution)
 
-    if existing_assessments.count == 0:
+    if len(existing_assessments) == 0:
         return create_response(
             message='Empty data',
             success=True,
             status_code=status.HTTP_200_OK
         )
 
-    assessments_list = [AssessmentDB(**assessment).get_all_dict() for assessment in existing_assessments.items]
+    assessments_list = [AssessmentDB(**assessment).get_all_dict() for assessment in existing_assessments]
 
     return create_response(
         message="Successfully fetch assessments",
@@ -1546,8 +1546,8 @@ async def evaluate_assessment(data: AssessmentEval, user: UserDB = Depends(get_u
         to_update = PointDB(**point)
         # db_point.update(to_update.dict(), point['data_key'])
         update_points_by_key(to_update.dict(), point['data_key'])
-        print(to_update.dict())
-        print(point)
+        # print(to_update.dict())
+        # print(point)
 
     return create_response(
         message="Success update data",
