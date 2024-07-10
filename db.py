@@ -348,7 +348,7 @@ def insert_new_log(data: Dict[str, Any]) -> Optional[str]:
         with connection.cursor() as cursor:
             sql = """
                     INSERT INTO logs
-                    (data_key, id_institution, username, email, role, tanggal, event)
+                    (data_key, id_institution, name, email, role, tanggal, event)
                     VALUES
                     (%s, %s, %s, %s, %s, %s, %s)
                     """
@@ -491,7 +491,7 @@ def insert_new_assessment(data: Dict[str, Any]):
         connection.close()
 
 
-def get_unfinished_assessments_by_admin(key: str):
+def get_unfinished_assessments_by_institution(key: str):
     connection = pymysql.connect(host=DB_HOST,
                                  user=DB_USERNAME,
                                  password=DB_PASSWORD,
@@ -499,7 +499,7 @@ def get_unfinished_assessments_by_admin(key: str):
                                  cursorclass=pymysql.cursors.DictCursor)
     try:
         with connection.cursor() as cursor:
-            sql = "SELECT * FROM assessments WHERE id_admin = %s AND is_done = 0"
+            sql = "SELECT * FROM assessments WHERE id_institution = %s AND is_done = 0"
             cursor.execute(sql, (key, ))
             user_data = cursor.fetchone()
             return user_data
@@ -923,7 +923,7 @@ def insert_new_report(data: Dict[str, Any]):
         with connection.cursor() as cursor:
             sql = """
                         INSERT INTO logs
-                        (data_key, id_institution, username, email, role, tanggal, event)
+                        (data_key, id_institution, name, email, role, tanggal, event)
                         VALUES
                         (%s, %s, %s, %s, %s, %s, %s)
                         """

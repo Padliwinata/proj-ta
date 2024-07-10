@@ -24,7 +24,7 @@ from db import (
     db_notification,
     get_user_by_username, get_user_by_all, get_institution_by_all, insert_new_institution, insert_new_user,
     insert_new_log, get_user_by_username_email, get_user_by_key, alter_user_status, get_all_user_by_role,
-    get_user_by_role_institution, get_log_by_role_institution, get_unfinished_assessments_by_admin,
+    get_user_by_role_institution, get_log_by_role_institution, get_unfinished_assessments_by_institution,
     get_points_by_all,
     insert_new_proof, insert_new_point, get_points_by_key, update_points_by_key, delete_proof_by_key,
     get_proof_by_filename, get_points_by_proof_filename, insert_new_assessment, get_points_by_assessment_sub_bab,
@@ -459,7 +459,7 @@ async def alternate_staff_status(user_key: str, user: User = Depends(get_user)) 
 
 @router.get("/admin", tags=['General - Super Admin'])
 async def get_admin_list(user: User = Depends(get_user)) -> JSONResponse:
-    if user.role != 'super admin':
+    if user.role != 'super_admin':
         return create_response("Forbidden Access", False, status.HTTP_403_FORBIDDEN, {'role': user.role})
 
     # fetch_data = db_user.fetch({'role': 'admin'})
@@ -624,7 +624,7 @@ async def upload_proof_point(request: Request,
         )
 
     # existing_assessment_data = db_assessment.fetch({'id_admin': user.data_key, 'selesai': False})
-    assessment_data = get_unfinished_assessments_by_admin(user.data_key)
+    assessment_data = get_unfinished_assessments_by_institution(user.data_key)
     # print(assessment_data)
 
     if not assessment_data:
@@ -730,7 +730,7 @@ async def update_assessment(request: Request,
         )
 
     # existing_assessment_data = db_assessment.fetch({'id_admin': user.data_key, 'selesai': False})
-    existing_assessment_data = get_unfinished_assessments_by_admin(user.data_key)
+    existing_assessment_data = get_unfinished_assessments_by_institution(user.data_key)
     if not existing_assessment_data:
         return create_response(
             message="No active assessment",
@@ -1002,7 +1002,7 @@ async def verify_user(userid: str) -> JSONResponse:
 @router.post("/assessment", tags=['Deterrence - Admin'])
 async def start_assessment(user: UserDB = Depends(get_user)) -> JSONResponse:
     # existing_data = db_assessment.fetch({'id_admin': user.data_key, 'selesai': False})
-    existing_data = get_unfinished_assessments_by_admin(user.data_key)
+    existing_data = get_unfinished_assessments_by_institution(user.data_key)
     if existing_data:
         return create_response(
             message="Please finish last assessment first",
@@ -1039,7 +1039,7 @@ async def start_assessment(user: UserDB = Depends(get_user)) -> JSONResponse:
 @router.get("/assessment", tags=['Deterrence - Admin'])
 async def get_current_assessment(sub_bab: str, user: UserDB = Depends(get_user)) -> JSONResponse:
     # existing_assessment_data = db_assessment.fetch({'id_admin': user.data_key, 'selesai': False})
-    existing_assessment_data = get_unfinished_assessments_by_admin(user.data_key)
+    existing_assessment_data = get_unfinished_assessments_by_institution(user.data_key)
     if not existing_assessment_data:
         return create_response(
             message="No active assessment",
@@ -1197,7 +1197,7 @@ async def get_finished_assessments(user: UserDB = Depends(get_user)) -> JSONResp
         )
 
     # existing_assessment = db_assessment.fetch({'id_admin': user.data_key, 'selesai': False})
-    existing_assessment = get_unfinished_assessments_by_admin(user.data_key)
+    existing_assessment = get_unfinished_assessments_by_institution(user.data_key)
     if not existing_assessment:
         return create_response(
             message="Assessment not found",
