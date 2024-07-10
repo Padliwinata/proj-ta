@@ -15,7 +15,7 @@ class TestAssessmentFDP(unittest.TestCase):
     def test_staff_update_assesment_success(self):
         login_response = client.post(
             "/api/auth",
-            data={"username": "bob_marley", "password": "yet_another_secure_password"}
+            data={"username": "staff_perusahaan", "password": "password"}
         )
         assert login_response.status_code == 200
         access_token = login_response.json()["data"]["access_token"]
@@ -24,8 +24,8 @@ class TestAssessmentFDP(unittest.TestCase):
             "/api/point",
             headers={"Authorization": f"Bearer {access_token}"},
             params={
-                "bab": 1,
-                "sub_bab": 1.1,
+                "bab": "1",
+                "sub_bab": "1.1",
                 "point": 1,
                 "answer": 2,
             })
@@ -37,7 +37,7 @@ class TestAssessmentFDP(unittest.TestCase):
     def test_staff_get_assesment_list(self):
         login_response = client.post(
             "/api/auth",
-            data={"username": "bob_marley", "password": "yet_another_secure_password"}
+            data={"username": "staff_perusahaan", "password": "password"}
         )
         assert login_response.status_code == 200
         access_token = login_response.json()["data"]["access_token"]
@@ -54,7 +54,7 @@ class TestAssessmentFDP(unittest.TestCase):
     def test_staff_get_detail_grade(self):
         login_response = client.post(
             "/api/auth",
-            data={"username": "bob_marley", "password": "yet_another_secure_password"}
+            data={"username": "staff_perusahaan", "password": "password"}
         )
         assert login_response.status_code == 200
         access_token = login_response.json()["data"]["access_token"]

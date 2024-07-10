@@ -444,6 +444,27 @@ def get_log_by_role_institution(role: str, institution: str):
         connection.close()
 
 
+def delete_assessment():
+    connection = pymysql.connect(host=DB_HOST,
+                                 user=DB_USERNAME,
+                                 password=DB_PASSWORD,
+                                 database=DB_NAME,
+                                 cursorclass=pymysql.cursors.DictCursor)
+    try:
+        with connection.cursor() as cursor:
+            sql = "DELETE FROM assessments"
+            cursor.execute(sql)
+            connection.commit()
+            # user_data = cursor.fetchone()
+            return True
+    except pymysql.MySQLError as e:
+        print(f"Error: {e}")
+        connection.rollback()
+        return None
+    finally:
+        connection.close()
+
+
 def insert_new_assessment(data: Dict[str, Any]):
     connection = pymysql.connect(host=DB_HOST,
                                  user=DB_USERNAME,
@@ -543,7 +564,7 @@ def get_assessment_for_internal(id_institution: str):
                                  cursorclass=pymysql.cursors.DictCursor)
     try:
         with connection.cursor() as cursor:
-            sql = "SELECT * FROM assessments WHERE id_institution = %s AND id_reviewer_internal IS NULL AND is_done = 1"
+            sql = "SELECT * FROM assessments WHERE id_institution = %s AND id_reviewer_internal = '' AND is_done = 1"
             cursor.execute(sql, (id_institution, ))
             user_data = cursor.fetchall()
             return user_data

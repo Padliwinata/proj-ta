@@ -1,9 +1,12 @@
 import sys
 import os
 import unittest
+
+import pytest
 from fastapi.testclient import TestClient
 from main import app
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from db import get_proof_by_filename, delete_proof_by_key, delete_assessment
 
 
 client = TestClient(app)
@@ -11,6 +14,7 @@ client = TestClient(app)
 
 class TestAssessmentFDP(unittest.TestCase):
 
+    @pytest.mark.order(1)
     def test_admin_start_asessment_success(self):
         # Pastikan last assessment harus sudah finish
         login_response = client.post(
@@ -22,16 +26,17 @@ class TestAssessmentFDP(unittest.TestCase):
 
         response = client.post(
             "/api/assessment",
-            headers={"Authorization": f"Bearer {access_token}"},
-            json={}
+            headers={"Authorization": f"Bearer {access_token}"}
         )
-        print(response.status_code)
-        print(response.json())
+        # print(response.status_code)
+        # print(response.json())
+
         
         assert response.status_code == 201
         assert response.json()["message"] == "Start assessment success"
         assert response.json()["success"] is True
 
+    @pytest.mark.order(2)
     def test_admin_start_asessment_failed(self):
         login_response = client.post(
             "/api/auth",
@@ -45,13 +50,14 @@ class TestAssessmentFDP(unittest.TestCase):
             headers={"Authorization": f"Bearer {access_token}"},
             json={}
         )
-        print(response.status_code)
-        print(response.json())
+        # print(response.status_code)
+        # print(response.json())
         
         assert response.status_code == 400
         assert response.json()["message"] == "Please finish last assessment first"
         assert response.json()["success"] is False
 
+    @pytest.mark.order(3)
     def test_admin_update_assesment_point_not_found(self):
         login_response = client.post(
             "/api/auth",
@@ -74,6 +80,7 @@ class TestAssessmentFDP(unittest.TestCase):
         assert response.json()["message"] == 'Point not found'
         assert response.json()["success"] is False
 
+    @pytest.mark.order(4)
     def test_admin_update_assesment_success(self):
         login_response = client.post(
             "/api/auth",
@@ -91,6 +98,7 @@ class TestAssessmentFDP(unittest.TestCase):
         assert response.json()["message"] == 'Success fetch data'
         assert response.json()["success"] is True
 
+    @pytest.mark.order(5)
     def test_admin_get_assesment_list(self):
         login_response = client.post(
             "/api/auth",
@@ -103,6 +111,8 @@ class TestAssessmentFDP(unittest.TestCase):
             "/api/assessments",
             headers={"Authorization": f"Bearer {access_token}"}
         )
+
+        client.delete('/api/dev/assessments')
 
         assert response.status_code == 200
         assert response.json()["message"] == 'Success fetch data'

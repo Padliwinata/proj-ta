@@ -30,7 +30,7 @@ from db import (
     get_proof_by_filename, get_points_by_proof_filename, insert_new_assessment, get_points_by_assessment_sub_bab,
     get_assessment_by_key, get_points_by_assessment, get_assessment_by_institution, update_assessment_by_key,
     get_user_by_institution_role, get_assessment_for_external, get_assessment_for_internal, update_user_by_key,
-    get_notification_by_receiver
+    get_notification_by_receiver, delete_assessment
 )
 from dependencies import (
     authenticate_user,
@@ -664,15 +664,15 @@ async def upload_proof_point(request: Request,
     if new_proof:
         drive.put(filename, content)
         # db_proof.put(new_proof.dict())
-        insert_new_proof(new_proof.id_user, new_proof.url, new_proof.file_name)
+        proof_key = insert_new_proof(new_proof.id_user, new_proof.url, new_proof.file_name)
 
-    print(metadata)
+    # print(metadata)
 
     new_point = Point(
         id_assessment=assessment_data['data_key'],
         bab=metadata.bab,
         sub_bab=metadata.sub_bab,
-        proof=new_proof,
+        proof=proof_key,
         point=metadata.point,
         answer=metadata.answer,
         skor=None
@@ -680,6 +680,7 @@ async def upload_proof_point(request: Request,
 
     # res = db_point.put(json.loads(new_point.json()))
     id_point = insert_new_point(new_point.dict())
+    # print(new_point.dict())
 
     data = json.loads(new_point.json())
 
@@ -724,7 +725,7 @@ async def update_assessment(request: Request,
                             metadata: ProofMeta = Depends(),
                             user: UserDB = Depends(get_user),
                             file: UploadFile = File(None)) -> JSONResponse:
-    if user.role != 'admin':
+    if user.role not in ['admin', 'staff']:
         return create_response(
             message="Forbidden Access",
             status_code=status.HTTP_403_FORBIDDEN,
@@ -1626,6 +1627,17 @@ async def get_notifications(user: UserDB = Depends(get_user)) -> JSONResponse:
 
 @router.get('/today', include_in_schema=False)
 async def get_date() -> JSONResponse:
+    return create_response(
+        message="Tanggal",
+        success=True,
+        status_code=status.HTTP_200_OK,
+        data={'tanggal': datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+    )
+
+
+@router.delete('/dev/assessments', include_in_schema=False)
+async def delete_assessments() -> JSONResponse:
+    delete_assessment()
     return create_response(
         message="Tanggal",
         success=True,

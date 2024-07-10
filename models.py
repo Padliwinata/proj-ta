@@ -149,7 +149,7 @@ class Point(BaseModel):
     point: float
     answer: float
     skor: typing.Optional[float]
-    proof: typing.Optional[Proof]
+    proof: typing.Union[Proof, str]
 
 
 class PointDB(Point):
