@@ -1349,7 +1349,7 @@ async def get_evaluation(user: UserDB = Depends(get_user)) -> JSONResponse:
         # existing_assessments = db_assessment.fetch({'id_institution': user.id_institution, 'id_reviewer_internal': None, 'selesai': True})
         existing_assessments = get_assessment_for_internal(user.id_institution)
 
-    if len(existing_assessments) == 0:
+    if not existing_assessments:
         return create_response(
             message='Empty data',
             success=True,
