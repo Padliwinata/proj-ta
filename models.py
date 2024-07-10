@@ -175,7 +175,7 @@ class Assessment(BaseModel):
     tanggal_mulai: datetime
     hasil_internal: typing.Optional[int]
     hasil_external: typing.Optional[int]
-    tanggal_nilai: typing.Optional[str]
+    tanggal_nilai: typing.Optional[datetime]
     is_done: bool
 
     def get_admin(self) -> str:
