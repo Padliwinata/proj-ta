@@ -207,6 +207,9 @@ class Assessment(BaseModel):
         data['reviewer_external'] = self.get_reviewer_external()
         if data['tanggal_mulai']:
             data['tanggal_mulai'] = self.tanggal_mulai.strftime('%Y-%m-%d %H:%M:%S')
+
+        if data['tanggal_nilai']:
+            data['tanggal_nilai'] = self.tanggal_mulai.strftime('%Y-%m-%d %H:%M:%S')
         return data
 
 
