@@ -20,7 +20,7 @@ class TestMainPageAdmin(unittest.TestCase):
         access_token = login_response.json()["data"]["access_token"]
 
         # Buka file untuk mengunggahnya
-        file_path = "testing/test_files/lampiran.pdf"
+        file_path = "test_files/lampiran.pdf"
         with open(file_path, "rb") as file:
             response = client.post(
                 "/api/point",
@@ -46,7 +46,7 @@ class TestMainPageAdmin(unittest.TestCase):
         access_token = login_response.json()["data"]["access_token"]
 
         # Buka file untuk mengunggahnya
-        file_path = "testing/test_files/lampiran.pdf"
+        file_path = "test_files/lampiran.pdf"
         with open(file_path, "rb") as file:
             response = client.post(
                 "/api/point",
@@ -72,7 +72,7 @@ class TestMainPageAdmin(unittest.TestCase):
         access_token = login_response.json()["data"]["access_token"]
 
     # Buka file untuk mengunggahnya
-        file_path = "testing/test_files/largefile.pdf"
+        file_path = "test_files/largefile.pdf"
         with open(file_path, "rb") as file:
             response = client.post(
                 "/api/point",
@@ -98,7 +98,7 @@ class TestMainPageAdmin(unittest.TestCase):
         access_token = login_response.json()["data"]["access_token"]
 
         # Assume point already exists
-        file_path = "testing/test_files/lampiran.pdf"
+        file_path = "test_files/lampiran.pdf"
         with open(file_path, "rb") as file:
             response = client.post(
                 "/api/point",
@@ -106,7 +106,7 @@ class TestMainPageAdmin(unittest.TestCase):
                 files={"file": ("lampiran.pdf", file, "application/pdf")},
                 params={
                     "bab": 5,
-                    "sub_bab": 5.9,
+                    "sub_bab": 5.1,
                     "point": 5,
                     "answer": 3,
                 }
