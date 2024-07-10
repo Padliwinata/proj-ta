@@ -264,7 +264,7 @@ async def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]) -> J
     log_data = Log(name=form_data.username, event=Event.logged_in, email=user.email, role=user.role, tanggal=datetime.now().strftime('%Y-%m-%d %H:%M:%S'), id_institution=user.id_institution)
     log_data_json = log_data.json()
     log_data_dict = json.loads(log_data_json)
-    log_data_dict['event'] = 'logged in'
+    log_data_dict['event'] = 'Logged In'
 
     # db_log.put(log_data_dict)
     insert_new_log(log_data_dict)
@@ -572,6 +572,7 @@ async def get_login_log(user: User = Depends(get_user)) -> JSONResponse:
 
     final_data = []
     for data in log_data:
+        data['tanggal'] = data['tanggal'].strftime('%Y-%m-%d %H:%M:%S')
         user_data = Log(**data)
         final_data.append({
             'nama': user_data.name,
@@ -581,7 +582,7 @@ async def get_login_log(user: User = Depends(get_user)) -> JSONResponse:
             'tanggal': user_data.tanggal
         })
 
-    final_data = sorted(final_data, key=lambda x: datetime.strptime(x['tanggal'], '%d %B %Y, %H:%M'), reverse=True)
+    final_data = sorted(final_data, key=lambda x: datetime.strptime(x['tanggal'], '%Y-%m-%d %H:%M:%S'), reverse=True)
 
     return create_response("Fetch Data Success", True, status.HTTP_200_OK, data=final_data)
 
@@ -1462,6 +1463,12 @@ async def start_evaluation(id_assessment: str, user: UserDB = Depends(get_user))
 
     # db_assessment.update(existing_assessment, key)
     update_assessment_by_key(existing_assessment, key)
+
+    if existing_assessment['tanggal_mulai']:
+        existing_assessment['tanggal_mulai'] = existing_assessment['tanggal_mulai'].strftime('%Y-%m-%d %H:%M:%S')
+
+    if existing_assessment['tanggal_nilai']:
+        existing_assessment['tanggal_nilai'] = existing_assessment['tanggal_nilai'].strftime('%Y-%m-%d %H:%M:%S')
 
     return create_response(
         message="Start reviewing success",
