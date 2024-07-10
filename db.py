@@ -678,7 +678,7 @@ def get_points_by_all(id_assessment: str, bab: str, sub_bab: str, point: float):
                                  cursorclass=pymysql.cursors.DictCursor)
     try:
         with connection.cursor() as cursor:
-            sql = "SELECT * FROM points WHERE id_assessment = %s AND bab = %s AND sub_bab = %s AND poin = %s"
+            sql = "SELECT * FROM points WHERE id_assessment = %s AND bab = %s AND sub_bab = %s AND point = %s"
             cursor.execute(sql, (id_assessment, bab, sub_bab, point))
             user_data = cursor.fetchone()
             return user_data
@@ -784,7 +784,7 @@ def update_points_by_key(data: Dict[str, Any], key: str):
                 id_proof = %s,
                 bab = %s,
                 sub_bab = %s,
-                poin = %s,
+                point = %s,
                 answer = %s,
                 skor = %s
             WHERE data_key = %s
@@ -794,7 +794,7 @@ def update_points_by_key(data: Dict[str, Any], key: str):
                 data['proof'],
                 data['bab'],
                 data['sub_bab'],
-                data['poin'],
+                data['point'],
                 data['answer'],
                 data['skor'],
                 key
@@ -887,7 +887,7 @@ def insert_new_point(data: Dict[str, Any]):
         with connection.cursor() as cursor:
             sql = """
                 INSERT INTO points
-                (data_key, id_assessment, id_proof, bab, sub_bab, poin, answer, skor)
+                (data_key, id_assessment, id_proof, bab, sub_bab, point, answer, skor)
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
                 """
             data_key = generate_random_string()
@@ -897,7 +897,7 @@ def insert_new_point(data: Dict[str, Any]):
                 data['proof'],
                 data['bab'],
                 data['sub_bab'],
-                data['poin'],
+                data['point'],
                 data['answer'],
                 data['skor']
             )

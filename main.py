@@ -637,7 +637,7 @@ async def upload_proof_point(request: Request,
     # assessment_data = existing_assessment_data.items[0]
     # assessment_data = AssessmentDB()
 
-    # existing_points = db_point.fetch({'id_assessment': assessment_data.key, 'bab': metadata.bab, 'sub_bab': metadata.sub_bab, 'poin': metadata.point})
+    # existing_points = db_point.fetch({'id_assessment': assessment_data.key, 'bab': metadata.bab, 'sub_bab': metadata.sub_bab, 'point': metadata.point})
     existing_points = get_points_by_all(assessment_data['data_key'], metadata.bab, metadata.sub_bab,
                                         metadata.point)
     if existing_points:
@@ -701,7 +701,7 @@ async def upload_proof_point(request: Request,
             user=user,
             event=Event.submit_point,
             detail={
-                'id_poin': id_point,
+                'id_point': id_point,
                 'id_assessment': data['id_assessment'],
                 'bab': data['bab'],
                 'sub_bab': data['sub_bab']
@@ -740,8 +740,8 @@ async def update_assessment(request: Request,
 
     assessment = AssessmentDB(**existing_assessment_data)
 
-    # current_point = db_point.fetch({'bab': metadata.bab, 'sub_bab': metadata.sub_bab, 'poin': metadata.point})
-    # current_point = db_point.fetch({'id_assessment': assessment.data_key, 'bab': metadata.bab, 'sub_bab': metadata.sub_bab, 'poin': metadata.point})
+    # current_point = db_point.fetch({'bab': metadata.bab, 'sub_bab': metadata.sub_bab, 'point': metadata.point})
+    # current_point = db_point.fetch({'id_assessment': assessment.data_key, 'bab': metadata.bab, 'sub_bab': metadata.sub_bab, 'point': metadata.point})
     current_point = get_points_by_all(assessment.data_key, metadata.bab, metadata.sub_bab, metadata.point)
     if not current_point:
         return create_response(
@@ -789,7 +789,7 @@ async def update_assessment(request: Request,
             user=user,
             event=Event.edited_point,
             detail={
-                'id_poin': key,
+                'id_point': key,
                 'id_assessment': actual_point.id_assessment,
                 'bab': actual_point.bab,
                 'sub_bab': actual_point.sub_bab
@@ -1060,7 +1060,7 @@ async def get_current_assessment(sub_bab: str, user: UserDB = Depends(get_user))
 
     data = [Point(**x) for x in existing_point_data]
     dict_data = [x.dict() for x in data]
-    response_data = sorted(dict_data, key=lambda x: x['poin'])
+    response_data = sorted(dict_data, key=lambda x: x['point'])
 
     return create_response(
         message="Fetch data success",
@@ -1092,7 +1092,7 @@ async def get_assessment_detail(key: str, sub_bab: str, user: UserDB = Depends(g
 
     data = [Point(**x) for x in existing_point]
     dict_data = [x.dict() for x in data]
-    point_list = sorted(dict_data, key=lambda x: x['poin'])
+    point_list = sorted(dict_data, key=lambda x: x['point'])
 
     assessment = AssessmentDB(**existing_assessment).get_all_dict()
 
@@ -1538,7 +1538,7 @@ async def evaluate_assessment(data: AssessmentEval, user: UserDB = Depends(get_u
             status_code=status.HTTP_400_BAD_REQUEST
         )
 
-    sorted_points = sorted(existing_points, key=lambda x: x['poin'])
+    sorted_points = sorted(existing_points, key=lambda x: x['point'])
     for i in range(len(sorted_points)):
         sorted_points[i]['skor'] = float(data.skor[i]) if data.skor[i] != '-' else None
 
