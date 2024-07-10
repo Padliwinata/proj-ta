@@ -1145,7 +1145,7 @@ async def get_assessment_insight(key: str, user: UserDB = Depends(get_user)) -> 
 
     response_data = {
         'assessment': assessment,
-        'poin': points
+        'point': points
     }
 
     return create_response(
