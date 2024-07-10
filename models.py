@@ -153,7 +153,7 @@ class Point(BaseModel):
 
 
 class PointDB(Point):
-    key: str
+    data_key: str
 
 
 class SubPoint(BaseModel):
