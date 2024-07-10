@@ -1546,7 +1546,8 @@ async def evaluate_assessment(data: AssessmentEval, user: UserDB = Depends(get_u
         to_update = PointDB(**point)
         # db_point.update(to_update.dict(), point['data_key'])
         update_points_by_key(to_update.dict(), point['data_key'])
-        # print(to_update.dict())
+        print(to_update.dict())
+        print(point)
 
     return create_response(
         message="Success update data",
