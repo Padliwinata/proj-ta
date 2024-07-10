@@ -1540,6 +1540,7 @@ async def evaluate_assessment(data: AssessmentEval, user: UserDB = Depends(get_u
 
     sorted_points = sorted(existing_points, key=lambda x: x['point'])
     for i in range(len(sorted_points)):
+        print(data.skor[i])
         sorted_points[i]['skor'] = float(data.skor[i]) if data.skor[i] != '-' else None
 
     for point in sorted_points:
