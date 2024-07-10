@@ -30,7 +30,7 @@ from db import (
     get_proof_by_filename, get_points_by_proof_filename, insert_new_assessment, get_points_by_assessment_sub_bab,
     get_assessment_by_key, get_points_by_assessment, get_assessment_by_institution, update_assessment_by_key,
     get_user_by_institution_role, get_assessment_for_external, get_assessment_for_internal, update_user_by_key,
-    get_notification_by_receiver, delete_assessment
+    get_notification_by_receiver, delete_assessment, activate_all_staff
 )
 from dependencies import (
     authenticate_user,
@@ -1638,6 +1638,17 @@ async def get_date() -> JSONResponse:
 @router.delete('/dev/assessments', include_in_schema=False)
 async def delete_assessments() -> JSONResponse:
     delete_assessment()
+    return create_response(
+        message="Tanggal",
+        success=True,
+        status_code=status.HTTP_200_OK,
+        data={'tanggal': datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+    )
+
+
+@router.get('/dev/activate_staff', include_in_schema=False)
+async def activate_staff() -> JSONResponse:
+    activate_all_staff()
     return create_response(
         message="Tanggal",
         success=True,

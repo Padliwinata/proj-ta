@@ -975,3 +975,23 @@ def insert_new_report(data: Dict[str, Any]):
         connection.close()
 
 
+def activate_all_staff():
+    connection = pymysql.connect(host=DB_HOST,
+                                 user=DB_USERNAME,
+                                 password=DB_PASSWORD,
+                                 database=DB_NAME,
+                                 cursorclass=pymysql.cursors.DictCursor)
+    try:
+        with connection.cursor() as cursor:
+            sql = "UPDATE users SET is_active = 1"
+            cursor.execute(sql)
+            connection.commit()
+            return True
+    except pymysql.MySQLError as e:
+        print(f"Error: {e}")
+        connection.rollback()
+        return False
+    finally:
+        connection.close()
+
+

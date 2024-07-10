@@ -1,5 +1,8 @@
 import sys
 import os
+
+import pytest
+
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from fastapi.testclient import TestClient # type: ignore
@@ -8,7 +11,10 @@ from main import app
 client = TestClient(app)
 
 import unittest
+
+
 class TestVerifyStaff(unittest.TestCase):
+    @pytest.mark.order(1)
     def test_admin_activate_staff(self):
         login_response = client.post(
             "/api/auth",
@@ -27,7 +33,7 @@ class TestVerifyStaff(unittest.TestCase):
         # Cari data staff dengan role === 'staff'
         user_data = next((user for user in response.json()["data"] if user["role"] == "staff"), None)
 
-        print(user_data)  # Print the user_data to see the details of the staff user
+        # print(user_data)  # Print the user_data to see the details of the staff user
 
         if user_data:
             user_id = user_data["data_key"]
@@ -56,6 +62,7 @@ class TestVerifyStaff(unittest.TestCase):
             print("No staff user found.")
 
 
+    @pytest.mark.order(2)
     def test_admin_deactivate_staff(self):
         login_response = client.post(
             "/api/auth",
@@ -100,6 +107,8 @@ class TestVerifyStaff(unittest.TestCase):
                 print("The staff is already deactivated, no action taken.")
         else:
             print("No staff user found.")
+
+        client.get('/api/dev/activate_staff')
             
 if __name__ == "__main__":
     unittest.main()

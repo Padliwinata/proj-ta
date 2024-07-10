@@ -59,24 +59,24 @@ class TestMainPageAdmin(unittest.TestCase):
 
     def test_admin_add_reviewer_internal_account(self):
         login_response = client.post(
-        "/api/auth",
-        data={"username": "adminperusahaan", "password": "admin"}
-    )
+            "/api/auth",
+            data={"username": "adminperusahaan", "password": "admin"}
+        )
         assert login_response.status_code == 200
         access_token = login_response.json()["data"]["access_token"]
 
         response = client.post(
-        "/api/account",
-        headers={"Authorization": f"Bearer {access_token}"},
-        json={
-            "full_name": "Reviewer Internal 3",
-            "role": "reviewer",
-            "phone": "12345678901",
-            "email": "reviewer.internal.3@example.com",
-            "username": "reviewer.internal.3",
-            "password": "securepasswordd"
-        }
-    )
+            "/api/account",
+            headers={"Authorization": f"Bearer {access_token}"},
+            json={
+                "full_name": "Reviewer Internal 3",
+                "role": "reviewer",
+                "phone": "12345678901",
+                "email": "reviewer.internal.3@example.com",
+                "username": "reviewer.internal.3",
+                "password": "securepasswordd"
+            }
+        )
         assert response.status_code == 201
         assert response.json()["success"] is True
 
