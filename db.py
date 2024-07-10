@@ -518,7 +518,13 @@ def get_assessment_for_external():
                                  cursorclass=pymysql.cursors.DictCursor)
     try:
         with connection.cursor() as cursor:
-            sql = "SELECT * FROM assessments WHERE id_reviewer_internal IS NOT NULL AND is_done = 1"
+            sql = """
+            SELECT *
+            FROM assessments
+            WHERE id_reviewer_internal IS NOT NULL
+                AND is_done = 1
+                AND id_reviewer_external IS NULL
+            """
             cursor.execute(sql)
             user_data = cursor.fetchall()
             return user_data
