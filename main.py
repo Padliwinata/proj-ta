@@ -60,7 +60,7 @@ from models import (
     AssessmentEval,
     Report,
     ResetPassword,
-    Event, ReportInput, ReportResult
+    Event, ReportInput, ReportResult, PointDB
 )
 from seeder import seed, delete_db, seed_assessment
 from settings import SECRET_KEY, MAX_FILE_SIZE, DEVELOPMENT
@@ -1543,10 +1543,10 @@ async def evaluate_assessment(data: AssessmentEval, user: UserDB = Depends(get_u
         sorted_points[i]['skor'] = float(data.skor[i]) if data.skor[i] != '-' else None
 
     for point in sorted_points:
-        to_update = Point(**point)
+        to_update = PointDB(**point)
         # db_point.update(to_update.dict(), point['data_key'])
         update_points_by_key(to_update.dict(), point['data_key'])
-        print(to_update.dict())
+        # print(to_update.dict())
 
     return create_response(
         message="Success update data",
