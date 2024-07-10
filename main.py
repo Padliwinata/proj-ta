@@ -544,7 +544,7 @@ async def get_staff(user: User = Depends(get_user)) -> JSONResponse:
 
 @router.get("/log", tags=['General - Admin'])
 async def get_login_log(user: User = Depends(get_user)) -> JSONResponse:
-    if user.role != 'admin':
+    if user.role not in ['admin', 'staff']:
         return create_response("Forbidden Access", False, status.HTTP_403_FORBIDDEN, {'role': user.role})
 
     id_institution = user.get_institution()['data_key']
