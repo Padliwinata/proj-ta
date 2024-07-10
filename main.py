@@ -1098,7 +1098,7 @@ async def get_assessment_detail(key: str, sub_bab: str, user: UserDB = Depends(g
 
     response_data = {
         'assessment': assessment,
-        'poin': point_list
+        'point': point_list
     }
 
     return create_response(
