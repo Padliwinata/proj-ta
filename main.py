@@ -1400,6 +1400,9 @@ async def finish_reviewing(id_assessment: str, user: UserDB = Depends(get_user))
 
     existing_assessment['tanggal_nilai'] = extra_datetime.strftime('%Y-%m-%d %H:%M:%S')
 
+    if existing_assessment['tanggal_mulai']:
+        existing_assessment['tanggal_mulai'] = existing_assessment['tanggal_mulai'].strftime('%Y-%m-%d %H:%M:%S')
+
     key = existing_assessment['data_key']
     del existing_assessment['data_key']
     # db_assessment.update(existing_assessment, key)
