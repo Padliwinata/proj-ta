@@ -1101,8 +1101,15 @@ async def get_assessment_detail(key: str, sub_bab: str, user: UserDB = Depends(g
             status_code=status.HTTP_200_OK
         )
 
-    data = [Point(**x) for x in existing_point]
-    dict_data = [x.dict() for x in data]
+    point_data = []
+    for data in existing_point:
+        proof = Proof(**data)
+        point = Point(**data)
+        point.id_proof = proof
+        point_data.append(point)
+
+    # data = [Point(**x) for x in existing_point]
+    dict_data = [x.dict() for x in point_data]
     point_list = sorted(dict_data, key=lambda x: x['point'])
 
     assessment = AssessmentDB(**existing_assessment).get_all_dict()
