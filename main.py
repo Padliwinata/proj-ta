@@ -661,6 +661,7 @@ async def upload_proof_point(request: Request,
             status_code=status.HTTP_400_BAD_REQUEST
         )
 
+    proof_key = None
     if new_proof:
         drive.put(filename, content)
         # db_proof.put(new_proof.dict())
