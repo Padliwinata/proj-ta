@@ -1186,7 +1186,8 @@ async def get_all_assessment(user: UserDB = Depends(get_user)) -> JSONResponse:
     # existing_assessments_data = db_assessment.fetch({'id_institution': user.id_institution})
     if user.id_institution != 'external':
         existing_assessments_data = get_assessment_by_institution(user.id_institution)
-    existing_assessments_data = get_assessment_all()
+    else:
+        existing_assessments_data = get_assessment_all()
     if not existing_assessments_data:
         return create_response(
             message="Empty data",
