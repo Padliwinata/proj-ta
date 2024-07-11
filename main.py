@@ -1062,8 +1062,15 @@ async def get_current_assessment(sub_bab: str, user: UserDB = Depends(get_user))
             status_code=status.HTTP_200_OK
         )
 
-    data = [Point(**x) for x in existing_point_data]
-    dict_data = [x.dict() for x in data]
+    point_data = []
+    for data in existing_point_data:
+        proof = Proof(**data)
+        point = Point(**data)
+        point.id_proof = proof
+        point_data.append(point)
+
+    # data = [Point(**x) for x in existing_point_data]
+    dict_data = [x.dict() for x in point_data]
     response_data = sorted(dict_data, key=lambda x: x['point'])
 
     return create_response(
