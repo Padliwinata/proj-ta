@@ -30,7 +30,7 @@ from db import (
     get_proof_by_filename, get_points_by_proof_filename, insert_new_assessment, get_points_by_assessment_sub_bab,
     get_assessment_by_key, get_points_by_assessment, get_assessment_by_institution, update_assessment_by_key,
     get_user_by_institution_role, get_assessment_for_external, get_assessment_for_internal, update_user_by_key,
-    get_notification_by_receiver, delete_assessment, activate_all_staff
+    get_notification_by_receiver, delete_assessment, activate_all_staff, get_assessment_all
 )
 from dependencies import (
     authenticate_user,
@@ -1184,7 +1184,9 @@ async def get_all_assessment(user: UserDB = Depends(get_user)) -> JSONResponse:
     #     )
 
     # existing_assessments_data = db_assessment.fetch({'id_institution': user.id_institution})
-    existing_assessments_data = get_assessment_by_institution(user.id_institution)
+    if user.id_institution != 'external':
+        existing_assessments_data = get_assessment_by_institution(user.id_institution)
+    existing_assessments_data = get_assessment_all()
     if not existing_assessments_data:
         return create_response(
             message="Empty data",

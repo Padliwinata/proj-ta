@@ -531,6 +531,25 @@ def get_unfinished_assessments_by_institution(key: str):
         connection.close()
 
 
+def get_assessment_all():
+    connection = pymysql.connect(host=DB_HOST,
+                                 user=DB_USERNAME,
+                                 password=DB_PASSWORD,
+                                 database=DB_NAME,
+                                 cursorclass=pymysql.cursors.DictCursor)
+    try:
+        with connection.cursor() as cursor:
+            sql = "SELECT * FROM assessments"
+            cursor.execute(sql)
+            user_data = cursor.fetchall()
+            return user_data
+    except pymysql.MySQLError as e:
+        print(f"Error: {e}")
+        return None
+    finally:
+        connection.close()
+
+
 def get_assessment_for_external():
     connection = pymysql.connect(host=DB_HOST,
                                  user=DB_USERNAME,
