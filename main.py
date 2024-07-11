@@ -673,7 +673,7 @@ async def upload_proof_point(request: Request,
         id_assessment=assessment_data['data_key'],
         bab=metadata.bab,
         sub_bab=metadata.sub_bab,
-        proof=proof_key,
+        id_proof=proof_key,
         point=metadata.point,
         answer=metadata.answer,
         skor=None
