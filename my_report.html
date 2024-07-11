@@ -52,15 +52,15 @@
         <hr>
         <p>
             <strong>Start time:</strong>
-            <span>2024-07-11, 11:50:15</span>
+            <span>2024-07-11, 13:33:16</span>
         </p>
         <p>
             <strong>Duration:</strong>
-            <span>0:00:04.179322</span>
+            <span>0:00:04.975134</span>
         </p>
         <p>
             <strong>Status:</strong>
-            <span>Total: 6</span>
+            <span>Total: 5</span>
             
             
             
@@ -91,53 +91,19 @@
         
             <tr class="fw-bold">
                 <td>TestAssessmentFDP</td>
-                <th>10</th>
-                <th>2</th>
+                <th>6</th>
                 <th>4</th>
+                <th>1</th>
                 <th>0</th>
                 <th>0</th>
-                <td><a href="javascript:showClassDetail('c1', '10')"
+                <td><a href="javascript:showClassDetail('c1', '6')"
                        class="text-decoration-none">Detail</a>
                 </td>
             </tr>
 
             
-                <tr id='ft1.1' class="
-                table-danger
-                ">
-                    <td>
-                        <div class='testcase'>test_admin_finish_asessment</div>
-                    </td>
-
-                    <td colspan='6' class="text-center">
-                        <!--css div popup start-->
-                        
-                            <a class="popup_link badge text-decoration-none
-                            bg-danger text-black
-                            " onfocus='this.blur();'
-                               href="javascript:showTestDetail('div_ft1.1')">fail</a>
-
-                            <div id='div_ft1.1' class="popup_window">
-                                <div style='text-align: right; color:red;cursor:pointer'>
-                                    <a onfocus='this.blur();'
-                                       onclick="document.getElementById('div_ft1.1').style.display = 'none';">
-                                        [x]
-                                    </a>
-                                </div>
-                                <pre>ft1.1: Traceback (most recent call last):
-  File "D:\SEMESTER 8\TA\proj-ta\testing\test_assessment_admin.py", line 35, in test_admin_finish_asessment
-    assert response.status_code == 200
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
-AssertionError
-</pre>
-                            </div>
-                            <!--css div popup end-->
-                        
-                    </td>
-                </tr>
-            
-                <tr id='ft1.2' class="
-                table-danger
+                <tr id='pt1.1' class="
+                table-success
                 ">
                     <td>
                         <div class='testcase'>test_admin_get_assesment_list</div>
@@ -146,26 +112,26 @@ AssertionError
                     <td colspan='6' class="text-center">
                         <!--css div popup start-->
                         
-                            <a class="popup_link badge text-decoration-none
-                            bg-danger text-black
-                            " onfocus='this.blur();'
-                               href="javascript:showTestDetail('div_ft1.2')">fail</a>
+                            <span class='badge 
+                            bg-success text-white
+                            '>pass</span>
+                        
+                    </td>
+                </tr>
+            
+                <tr id='pt1.2' class="
+                table-success
+                ">
+                    <td>
+                        <div class='testcase'>test_admin_start_asessment_failed</div>
+                    </td>
 
-                            <div id='div_ft1.2' class="popup_window">
-                                <div style='text-align: right; color:red;cursor:pointer'>
-                                    <a onfocus='this.blur();'
-                                       onclick="document.getElementById('div_ft1.2').style.display = 'none';">
-                                        [x]
-                                    </a>
-                                </div>
-                                <pre>ft1.2: Traceback (most recent call last):
-  File "D:\SEMESTER 8\TA\proj-ta\testing\test_assessment_admin.py", line 140, in test_admin_get_assesment_list
-    assert response.json()["message"] == 'Success fetch data'
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-AssertionError
-</pre>
-                            </div>
-                            <!--css div popup end-->
+                    <td colspan='6' class="text-center">
+                        <!--css div popup start-->
+                        
+                            <span class='badge 
+                            bg-success text-white
+                            '>pass</span>
                         
                     </td>
                 </tr>
@@ -174,7 +140,7 @@ AssertionError
                 table-danger
                 ">
                     <td>
-                        <div class='testcase'>test_admin_start_asessment_failed</div>
+                        <div class='testcase'>test_admin_start_asessment_success</div>
                     </td>
 
                     <td colspan='6' class="text-center">
@@ -193,41 +159,7 @@ AssertionError
                                     </a>
                                 </div>
                                 <pre>ft1.3: Traceback (most recent call last):
-  File "D:\SEMESTER 8\TA\proj-ta\testing\test_assessment_admin.py", line 78, in test_admin_start_asessment_failed
-    assert response.status_code == 400
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
-AssertionError
-</pre>
-                            </div>
-                            <!--css div popup end-->
-                        
-                    </td>
-                </tr>
-            
-                <tr id='ft1.4' class="
-                table-danger
-                ">
-                    <td>
-                        <div class='testcase'>test_admin_start_asessment_success</div>
-                    </td>
-
-                    <td colspan='6' class="text-center">
-                        <!--css div popup start-->
-                        
-                            <a class="popup_link badge text-decoration-none
-                            bg-danger text-black
-                            " onfocus='this.blur();'
-                               href="javascript:showTestDetail('div_ft1.4')">fail</a>
-
-                            <div id='div_ft1.4' class="popup_window">
-                                <div style='text-align: right; color:red;cursor:pointer'>
-                                    <a onfocus='this.blur();'
-                                       onclick="document.getElementById('div_ft1.4').style.display = 'none';">
-                                        [x]
-                                    </a>
-                                </div>
-                                <pre>ft1.4: Traceback (most recent call last):
-  File "D:\SEMESTER 8\TA\proj-ta\testing\test_assessment_admin.py", line 57, in test_admin_start_asessment_success
+  File "D:\SEMESTER 8\TA\proj-ta\testing\test_assessment_admin.py", line 38, in test_admin_start_asessment_success
     assert response.status_code == 201
            ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 AssertionError
@@ -238,7 +170,7 @@ AssertionError
                     </td>
                 </tr>
             
-                <tr id='pt1.5' class="
+                <tr id='pt1.4' class="
                 table-success
                 ">
                     <td>
@@ -255,7 +187,7 @@ AssertionError
                     </td>
                 </tr>
             
-                <tr id='pt1.6' class="
+                <tr id='pt1.5' class="
                 table-success
                 ">
                     <td>
@@ -276,9 +208,9 @@ AssertionError
         
         <tr id=' total_row'>
             <td>Total</td>
-            <td>6</td>
-            <td>2</td>
+            <td>5</td>
             <td>4</td>
+            <td>1</td>
             <td>0</td>
             <td>0</td>
             <td>&nbsp;</td>

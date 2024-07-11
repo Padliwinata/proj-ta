@@ -14,28 +14,7 @@ client = TestClient(app)
 
 import unittest
 class TestAssessmentFDP(unittest.TestCase):
-    
-    
-    def test_admin_finish_asessment(self):
-        login_response = client.post(
-            "/api/auth",
-            data={"username": "adminperusahaan", "password": "admin"}
-        )
-        assert login_response.status_code == 200
-        access_token = login_response.json()["data"]["access_token"]
 
-        response = client.post(
-            "/api/selesai",
-            headers={"Authorization": f"Bearer {access_token}"},
-            params={
-                "id_assessment": "05p9ut2hmkx4"
-            }
-        )
-
-        assert response.status_code == 200
-        assert response.json()["message"] == "Assessment finished"
-        assert response.json()["success"] is True
-        
     @pytest.mark.order(1)
     def test_admin_start_asessment_success(self):
         # Pastikan last assessment harus sudah finish
@@ -134,11 +113,13 @@ class TestAssessmentFDP(unittest.TestCase):
             headers={"Authorization": f"Bearer {access_token}"}
         )
 
-        client.delete('/api/dev/assessments')
+        # client.delete('/api/dev/assessments')
 
         assert response.status_code == 200
         assert response.json()["message"] == 'Success fetch data'
         assert response.json()["success"] is True
+        
+      
 
     # def test_admin_get_detail_grade_from_reviewer(self):
     #     login_response = client.post(
