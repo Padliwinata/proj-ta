@@ -348,7 +348,7 @@ def insert_new_log(data: Dict[str, Any]) -> Optional[str]:
         with connection.cursor() as cursor:
             sql = """
                     INSERT INTO logs
-                    (data_key, id_institution, username, email, role, tanggal, event)
+                    (data_key, id_institution, name, email, role, tanggal, event)
                     VALUES
                     (%s, %s, %s, %s, %s, %s, %s)
                     """
@@ -444,6 +444,27 @@ def get_log_by_role_institution(role: str, institution: str):
         connection.close()
 
 
+def delete_assessment():
+    connection = pymysql.connect(host=DB_HOST,
+                                 user=DB_USERNAME,
+                                 password=DB_PASSWORD,
+                                 database=DB_NAME,
+                                 cursorclass=pymysql.cursors.DictCursor)
+    try:
+        with connection.cursor() as cursor:
+            sql = "DELETE FROM assessments"
+            cursor.execute(sql)
+            connection.commit()
+            # user_data = cursor.fetchone()
+            return True
+    except pymysql.MySQLError as e:
+        print(f"Error: {e}")
+        connection.rollback()
+        return None
+    finally:
+        connection.close()
+
+
 def insert_new_assessment(data: Dict[str, Any]):
     connection = pymysql.connect(host=DB_HOST,
                                  user=DB_USERNAME,
@@ -491,7 +512,7 @@ def insert_new_assessment(data: Dict[str, Any]):
         connection.close()
 
 
-def get_unfinished_assessments_by_admin(key: str):
+def get_unfinished_assessments_by_institution(key: str):
     connection = pymysql.connect(host=DB_HOST,
                                  user=DB_USERNAME,
                                  password=DB_PASSWORD,
@@ -499,7 +520,7 @@ def get_unfinished_assessments_by_admin(key: str):
                                  cursorclass=pymysql.cursors.DictCursor)
     try:
         with connection.cursor() as cursor:
-            sql = "SELECT * FROM assessments WHERE id_admin = %s AND is_done = 0"
+            sql = "SELECT * FROM assessments WHERE id_institution = %s AND is_done = 0"
             cursor.execute(sql, (key, ))
             user_data = cursor.fetchone()
             return user_data
@@ -518,7 +539,13 @@ def get_assessment_for_external():
                                  cursorclass=pymysql.cursors.DictCursor)
     try:
         with connection.cursor() as cursor:
-            sql = "SELECT * FROM assessments WHERE id_reviewer_internal IS NOT NULL AND id_done = 1"
+            sql = """
+            SELECT *
+            FROM assessments
+            WHERE id_reviewer_internal IS NOT NULL
+                AND is_done = 1
+                AND id_reviewer_external IS NULL
+            """
             cursor.execute(sql)
             user_data = cursor.fetchall()
             return user_data
@@ -537,7 +564,7 @@ def get_assessment_for_internal(id_institution: str):
                                  cursorclass=pymysql.cursors.DictCursor)
     try:
         with connection.cursor() as cursor:
-            sql = "SELECT * FROM assessments WHERE id_institution = %s AND id_reviewer_internal IS NULL AND is_done = 1"
+            sql = "SELECT * FROM assessments WHERE id_institution = %s AND id_reviewer_internal = '' AND is_done = 1"
             cursor.execute(sql, (id_institution, ))
             user_data = cursor.fetchall()
             return user_data
@@ -678,7 +705,7 @@ def get_points_by_all(id_assessment: str, bab: str, sub_bab: str, point: float):
                                  cursorclass=pymysql.cursors.DictCursor)
     try:
         with connection.cursor() as cursor:
-            sql = "SELECT * FROM points WHERE id_assessment = %s AND bab = %s AND sub_bab = %s AND poin = %s"
+            sql = "SELECT * FROM points WHERE id_assessment = %s AND bab = %s AND sub_bab = %s AND point = %s"
             cursor.execute(sql, (id_assessment, bab, sub_bab, point))
             user_data = cursor.fetchone()
             return user_data
@@ -759,7 +786,7 @@ def get_points_by_assessment_sub_bab(id_assessment: str, sub_bab: str):
                                  cursorclass=pymysql.cursors.DictCursor)
     try:
         with connection.cursor() as cursor:
-            sql = "SELECT * FROM points WHERE id_assessment = %s AND sub_bab = %s"
+            sql = "SELECT * FROM points WHERE id_assessment = %s AND sub_bab = %s ORDER BY point"
             cursor.execute(sql, (id_assessment, sub_bab))
             user_data = cursor.fetchall()
             return user_data
@@ -784,7 +811,7 @@ def update_points_by_key(data: Dict[str, Any], key: str):
                 id_proof = %s,
                 bab = %s,
                 sub_bab = %s,
-                poin = %s,
+                point = %s,
                 answer = %s,
                 skor = %s
             WHERE data_key = %s
@@ -794,7 +821,7 @@ def update_points_by_key(data: Dict[str, Any], key: str):
                 data['proof'],
                 data['bab'],
                 data['sub_bab'],
-                data['poin'],
+                data['point'],
                 data['answer'],
                 data['skor'],
                 key
@@ -887,7 +914,7 @@ def insert_new_point(data: Dict[str, Any]):
         with connection.cursor() as cursor:
             sql = """
                 INSERT INTO points
-                (data_key, id_assessment, id_proof, bab, sub_bab, poin, answer, skor)
+                (data_key, id_assessment, id_proof, bab, sub_bab, point, answer, skor)
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
                 """
             data_key = generate_random_string()
@@ -897,7 +924,7 @@ def insert_new_point(data: Dict[str, Any]):
                 data['proof'],
                 data['bab'],
                 data['sub_bab'],
-                data['poin'],
+                data['point'],
                 data['answer'],
                 data['skor']
             )
@@ -923,7 +950,7 @@ def insert_new_report(data: Dict[str, Any]):
         with connection.cursor() as cursor:
             sql = """
                         INSERT INTO logs
-                        (data_key, id_institution, username, email, role, tanggal, event)
+                        (data_key, id_institution, name, email, role, tanggal, event)
                         VALUES
                         (%s, %s, %s, %s, %s, %s, %s)
                         """
@@ -944,6 +971,26 @@ def insert_new_report(data: Dict[str, Any]):
         print(f"Error: {e}")
         connection.rollback()
         return None
+    finally:
+        connection.close()
+
+
+def activate_all_staff():
+    connection = pymysql.connect(host=DB_HOST,
+                                 user=DB_USERNAME,
+                                 password=DB_PASSWORD,
+                                 database=DB_NAME,
+                                 cursorclass=pymysql.cursors.DictCursor)
+    try:
+        with connection.cursor() as cursor:
+            sql = "UPDATE users SET is_active = 1"
+            cursor.execute(sql)
+            connection.commit()
+            return True
+    except pymysql.MySQLError as e:
+        print(f"Error: {e}")
+        connection.rollback()
+        return False
     finally:
         connection.close()
 

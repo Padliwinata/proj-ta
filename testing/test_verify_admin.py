@@ -12,16 +12,16 @@ class TestVerifyAdmin(unittest.TestCase):
     
     def test_superadmin_activate_admin(self):
         login_response = client.post(
-        "/api/auth",
-        data={"username": "username", "password": "password"}
-    )
+            "/api/auth",
+            data={"username": "username", "password": "password"}
+        )
         assert login_response.status_code == 200
         access_token = login_response.json()["data"]["access_token"]
 
         response = client.get(
-        "/api/admin",
-        headers={"Authorization": f"Bearer {access_token}"}
-    )
+            "/api/admin",
+            headers={"Authorization": f"Bearer {access_token}"}
+        )
         assert response.status_code == 200
         assert response.json()["success"] is True
 
@@ -31,15 +31,15 @@ class TestVerifyAdmin(unittest.TestCase):
 
         if not is_active:
             toggle_response = client.get(
-            f"/api/verify/{user_id}",
-            headers={"Authorization": f"Bearer {access_token}"}
-        )
+                f"/api/verify/{user_id}",
+                headers={"Authorization": f"Bearer {access_token}"}
+            )
             assert toggle_response.status_code == 200
 
             response = client.get(
-            "/api/admin",
-            headers={"Authorization": f"Bearer {access_token}"}
-        )
+                "/api/admin",
+                headers={"Authorization": f"Bearer {access_token}"}
+            )
             assert response.status_code == 200
             assert response.json()["success"] is True
 
@@ -51,15 +51,15 @@ class TestVerifyAdmin(unittest.TestCase):
             
     def test_superadmin_deactivate_admin(self):
         login_response = client.post(
-        "/api/auth",
-        data={"username": "username", "password": "password"}
-    )
+            "/api/auth",
+            data={"username": "username", "password": "password"}
+        )
         access_token = login_response.json()["data"]["access_token"]
 
         response = client.get(
-        "/api/admin",
-        headers={"Authorization": f"Bearer {access_token}"}
-    )
+            "/api/admin",
+            headers={"Authorization": f"Bearer {access_token}"}
+        )
 
         assert response.status_code == 200
         assert response.json()["success"] is True
@@ -70,16 +70,16 @@ class TestVerifyAdmin(unittest.TestCase):
 
         if is_active:
             toggle_response = client.get(
-            f"/api/verify/{user_id}",
-            headers={"Authorization": f"Bearer {access_token}"}
-        )
+                f"/api/verify/{user_id}",
+                headers={"Authorization": f"Bearer {access_token}"}
+            )
 
             assert toggle_response.status_code == 200
 
             response = client.get(
-            "/api/admin",
-            headers={"Authorization": f"Bearer {access_token}"}
-        )
+                "/api/admin",
+                headers={"Authorization": f"Bearer {access_token}"}
+            )
 
             assert response.status_code == 200
             assert response.json()["success"] is True

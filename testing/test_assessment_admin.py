@@ -217,4 +217,3 @@ if __name__ == "__main__":
     )
 
     # run the test
-    unittest.main(testRunner=runner)

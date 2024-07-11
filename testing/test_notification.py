@@ -14,15 +14,15 @@ class TestNotification(unittest.TestCase):
     
     def test_superadmin_get_notifications(self):
         login_response = client.post(
-        "/api/auth",
-        data={"username": "username", "password": "password"}
-    )
+            "/api/auth",
+            data={"username": "username", "password": "password"}
+        )
         access_token = login_response.json()["data"]["access_token"]
     
         response = client.get(
-        "/api/notifications",
-        headers={"Authorization": f"Bearer {access_token}"}
-    )
+            "/api/notifications",
+            headers={"Authorization": f"Bearer {access_token}"}
+        )
         assert response.status_code == 200
         assert response.json()["success"] is True
 
@@ -42,15 +42,16 @@ class TestNotification(unittest.TestCase):
     
     def test_staff_get_notifications(self):
         login_response = client.post(
-        "/api/auth",
-        data={"username": "bob_marley", "password": "yet_another_secure_password"}
-    )
+            "/api/auth",
+            data={"username": "staff_perusahaan", "password": "password"}
+        )
+        print(login_response)
         access_token = login_response.json()["data"]["access_token"]
     
         response = client.get(
-        "/api/notifications",
-        headers={"Authorization": f"Bearer {access_token}"}
-    )
+            "/api/notifications",
+            headers={"Authorization": f"Bearer {access_token}"}
+        )
         assert response.status_code == 200
         assert response.json()["success"] is True
 

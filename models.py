@@ -139,21 +139,21 @@ class ProofMeta(BaseModel):
     bab: str
     sub_bab: str
     point: float
-    answer: int
+    answer: float
 
 
 class Point(BaseModel):
     id_assessment: str
     bab: str
     sub_bab: str
-    poin: float
+    point: float
     answer: float
     skor: typing.Optional[float]
-    proof: typing.Optional[Proof]
+    id_proof: typing.Union[Proof, str, None]
 
 
 class PointDB(Point):
-    key: str
+    data_key: str
 
 
 class SubPoint(BaseModel):
@@ -175,7 +175,7 @@ class Assessment(BaseModel):
     tanggal_mulai: datetime
     hasil_internal: typing.Optional[int]
     hasil_external: typing.Optional[int]
-    tanggal_nilai: typing.Optional[str]
+    tanggal_nilai: typing.Optional[datetime]
     is_done: bool
 
     def get_admin(self) -> str:
@@ -207,6 +207,9 @@ class Assessment(BaseModel):
         data['reviewer_external'] = self.get_reviewer_external()
         if data['tanggal_mulai']:
             data['tanggal_mulai'] = self.tanggal_mulai.strftime('%Y-%m-%d %H:%M:%S')
+
+        if data['tanggal_nilai']:
+            data['tanggal_nilai'] = self.tanggal_mulai.strftime('%Y-%m-%d %H:%M:%S')
         return data
 
 

@@ -1,5 +1,8 @@
 import sys
 import os
+
+import pytest
+
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from fastapi.testclient import TestClient # type: ignore
@@ -8,7 +11,10 @@ from main import app
 client = TestClient(app)
 
 import unittest
+
+
 class TestVerifyStaff(unittest.TestCase):
+    @pytest.mark.order(1)
     def test_admin_activate_staff(self):
         login_response = client.post(
             "/api/auth",
@@ -27,10 +33,10 @@ class TestVerifyStaff(unittest.TestCase):
         # Cari data staff dengan role === 'staff'
         user_data = next((user for user in response.json()["data"] if user["role"] == "staff"), None)
 
-        print(user_data)  # Print the user_data to see the details of the staff user
+        # print(user_data)  # Print the user_data to see the details of the staff user
 
         if user_data:
-            user_id = user_data["key"]
+            user_id = user_data["data_key"]
             is_active = user_data["status"]
 
             if not is_active:
@@ -47,7 +53,7 @@ class TestVerifyStaff(unittest.TestCase):
                 assert response.status_code == 200
                 assert response.json()["success"] is True
 
-                updated_user_data = next(user for user in response.json()["data"] if user["key"] == user_id)
+                updated_user_data = next(user for user in response.json()["data"] if user["data_key"] == user_id)
 
                 assert updated_user_data["status"] == (not is_active)
             else:
@@ -56,6 +62,7 @@ class TestVerifyStaff(unittest.TestCase):
             print("No staff user found.")
 
 
+    @pytest.mark.order(2)
     def test_admin_deactivate_staff(self):
         login_response = client.post(
             "/api/auth",
@@ -71,12 +78,13 @@ class TestVerifyStaff(unittest.TestCase):
         assert response.status_code == 200
         assert response.json()["success"] is True
 
-        # Cari data staff dengan role === 'staff'
+        # Cari data staff dengan role == 'staff'
         user_data = next((user for user in response.json()["data"] if user["role"] == "staff"), None)
 
         if user_data:
-            user_id = user_data["key"]
+            user_id = user_data["data_key"]
             is_active = user_data["status"]
+            # print(user_data)
 
             if is_active:
                 toggle_response = client.get(
@@ -92,13 +100,15 @@ class TestVerifyStaff(unittest.TestCase):
                 assert response.status_code == 200
                 assert response.json()["success"] is True
 
-                updated_user_data = next(user for user in response.json()["data"] if user["key"] == user_id)
+                updated_user_data = next(user for user in response.json()["data"] if user["data_key"] == user_id)
 
-                assert updated_user_data["status"] is False  # Assert status is now False
+                assert updated_user_data["status"] is 0  # Assert status is now False
             else:
                 print("The staff is already deactivated, no action taken.")
         else:
             print("No staff user found.")
+
+        client.get('/api/dev/activate_staff')
             
 if __name__ == "__main__":
     unittest.main()
