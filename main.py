@@ -640,6 +640,9 @@ async def upload_proof_point(request: Request,
     # existing_points = db_point.fetch({'id_assessment': assessment_data.key, 'bab': metadata.bab, 'sub_bab': metadata.sub_bab, 'point': metadata.point})
     existing_points = get_points_by_all(assessment_data['data_key'], metadata.bab, metadata.sub_bab,
                                         metadata.point)
+
+    print(existing_points)
+    
     if existing_points:
         return create_response(
             message="Point already exist",
@@ -1236,7 +1239,6 @@ async def get_finished_assessments(user: UserDB = Depends(get_user)) -> JSONResp
         if points_status[i] >= question_number[i]:
             point_finished.append(bab[i])
 
-    print(point_finished)
 
     return create_response(
         message="Success fetch data",
