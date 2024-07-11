@@ -1230,13 +1230,13 @@ async def get_finished_assessments(user: UserDB = Depends(get_user)) -> JSONResp
 
     # existing_points = [db_point.fetch({'id_assessment': assessment['data_key'], 'sub_bab': sub_bab}) for sub_bab in bab]
     existing_points = [get_points_by_assessment_sub_bab(assessment['data_key'], sub_bab) for sub_bab in bab]
-    print(existing_points)
     points_status = [len(point) if point else 0 for point in existing_points]
-    print(points_status)
     point_finished = []
     for i in range(len(bab)):
         if points_status[i] >= question_number[i]:
             point_finished.append(bab[i])
+
+    print(point_finished)
 
     return create_response(
         message="Success fetch data",
