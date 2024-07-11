@@ -555,9 +555,9 @@ async def get_login_log(user: User = Depends(get_user)) -> JSONResponse:
         {'role': 'admin', 'id_institution': id_institution}
     ])
 
-    log_data = get_log_by_role_institution('staff', id_institution)
-    log_data.extend(get_log_by_role_institution('reviewer', id_institution))
-    log_data.extend(get_log_by_role_institution('admin', id_institution))
+    log_data = list(get_log_by_role_institution('staff', id_institution))
+    log_data.extend(list(get_log_by_role_institution('reviewer', id_institution)))
+    log_data.extend(list(get_log_by_role_institution('admin', id_institution)))
     log_data = remove_dict_duplicates(log_data)
 
     if not log_data:
