@@ -5,6 +5,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from fastapi.testclient import TestClient  # type: ignore
 from main import app
 from db import delete_proof_by_key, get_proof_by_filename
+from html_reporter import HTMLTestRunner
 
 client = TestClient(app)
 
@@ -231,4 +232,12 @@ class TestMainPageAdmin(unittest.TestCase):
 
         
 if __name__ == "__main__":
-    unittest.main()
+    runner = HTMLTestRunner(
+        report_filepath="my_report.html",
+        title="Test Upload Proof",
+        description="Ini Test Upload Proof",
+        open_in_browser=True
+    )
+
+    # run the test
+    unittest.main(testRunner=runner)

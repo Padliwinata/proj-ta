@@ -8,6 +8,7 @@ from html_reporter import HTMLTestRunner
 
 client = TestClient(app)
 
+
 import unittest
 class TestMainPageAdmin(unittest.TestCase):
     

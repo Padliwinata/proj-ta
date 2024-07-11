@@ -6,6 +6,8 @@ import pytest
 
 from fastapi.testclient import TestClient # type: ignore
 from main import app
+from html_reporter import HTMLTestRunner
+
 from db import db_assessment
 
 client = TestClient(app)
@@ -71,7 +73,13 @@ class TestPenilaianAssessment(unittest.TestCase):
         assert response.json()["message"] == 'Successfully fetch assessments'
         assert response.json()["success"] is True
         
-    
-        
 if __name__ == "__main__":
-    unittest.main()
+    runner = HTMLTestRunner(
+        report_filepath="my_report.html",
+        title="Test Penilaian Reviewer Internal",
+        description="Test Penilaian Assessment oleh Reviewer Internal",
+        open_in_browser=True
+    )
+
+    # run the test
+    unittest.main(testRunner=runner)

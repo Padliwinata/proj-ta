@@ -7,6 +7,7 @@ from fastapi.testclient import TestClient # type: ignore
 from main import app
 from main import register
 from db import delete_user_by_username
+from html_reporter import HTMLTestRunner
 
 
 client = TestClient(app)
@@ -63,5 +64,12 @@ class TestRegistration(unittest.TestCase):
         delete_user_by_username(username)
 
 if __name__ == "__main__":
-    unittest.main()
+    runner = HTMLTestRunner(
+        report_filepath="my_report.html",
+        title="Test Register Admin",
+        description="Ini Test Register Admin",
+        open_in_browser=True
+    )
 
+    # run the test
+    unittest.main(testRunner=runner)

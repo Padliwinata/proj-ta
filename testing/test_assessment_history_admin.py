@@ -4,6 +4,8 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from fastapi.testclient import TestClient # type: ignore
 from main import app
+from html_reporter import HTMLTestRunner
+
 
 client = TestClient(app)
 
@@ -42,4 +44,12 @@ class TestAssessmentHistoryAdmin(unittest.TestCase):
         assert response.json()["success"] is True
 
 if __name__ == "__main__":
-    unittest.main()
+    runner = HTMLTestRunner(
+        report_filepath="my_report.html",
+        title="Test History Assessment Admin",
+        description="Ini Test History Assessment Admin",
+        open_in_browser=True
+    )
+
+    # run the test
+    unittest.main(testRunner=runner)

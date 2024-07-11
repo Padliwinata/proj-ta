@@ -4,6 +4,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from fastapi.testclient import TestClient # type: ignore
 from main import app
+from html_reporter import HTMLTestRunner
 
 client = TestClient(app)
 
@@ -91,4 +92,12 @@ class TestVerifyAdmin(unittest.TestCase):
             print("The user is already inactive, no action taken.")
 
 if __name__ == "__main__":
-    unittest.main()
+    runner = HTMLTestRunner(
+        report_filepath="my_report.html",
+        title="Test Verify Admin",
+        description="Test Verify Admin oleh Superadmin",
+        open_in_browser=True
+    )
+
+    # run the test
+    unittest.main(testRunner=runner)
