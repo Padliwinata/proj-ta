@@ -1643,7 +1643,9 @@ async def get_notifications(user: UserDB = Depends(get_user)) -> JSONResponse:
 
 @router.post('/excel')
 async def read_report_file(user: UserDB = Depends(get_user), file: UploadFile = File(...)) -> JSONResponse:
-    df = pd.read_excel(file.file, dtype={'Year 1': float, 'Year 2': float})
+    tmp_file = file.file
+    excel_file = tmp_file.read()
+    df = pd.read_excel(excel_file, dtype={'Year 1': float, 'Year 2': float})
     file.file.close()
 
     # print(df.iloc[1, 1])
