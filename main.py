@@ -1643,33 +1643,35 @@ async def get_notifications(user: UserDB = Depends(get_user)) -> JSONResponse:
 
 @router.post('/excel')
 async def read_report_file(user: UserDB = Depends(get_user), file: UploadFile = File(...)) -> JSONResponse:
-    df = pd.read_excel(file.file)
+    df = pd.read_excel(file.file, dtype={'Year 1': float, 'Year 2': float})
     file.file.close()
 
-    revenue_2 = df.iloc[1, 1]
-    revenue_1 = df.iloc[1, 2]
-    cogs_2 = df.iloc[2, 1]
-    cogs_1 = df.iloc[2, 2]
-    sgae_2 = df.iloc[3, 1]
-    sgae_1 = df.iloc[3, 2]
-    depreciation_2 = df.iloc[4, 1]
-    depreciation_1 = df.iloc[4, 2]
-    net_continuous_2 = df.iloc[5, 1]
-    net_continuous_1 = df.iloc[5, 2]
-    account_receivables_2 = df.iloc[6, 1]
-    account_receivables_1 = df.iloc[6, 2]
-    current_assets_2 = df.iloc[7, 1]
-    current_assets_1 = df.iloc[7, 2]
-    ppe_2 = df.iloc[8, 1]
-    ppe_1 = df.iloc[8, 2]
-    securities_2 = df.iloc[9, 1]
-    securities_1 = df.iloc[9, 2]
-    total_ltd_2 = df.iloc[11, 1]
-    total_ltd_1 = df.iloc[11, 2]
-    cash_flow_operate_2 = df.iloc[12, 1]
-    cash_flow_operate_1 = df.iloc[12, 2]
-    total_asset_2 = df.iloc[13, 1]
-    total_asset_1 = df.iloc[13, 2]
+    # print(df.iloc[1, 1])
+
+    revenue_2 = df.iloc[0, 1]
+    revenue_1 = df.iloc[0, 2]
+    cogs_2 = df.iloc[1, 1]
+    cogs_1 = df.iloc[1, 2]
+    sgae_2 = df.iloc[2, 1]
+    sgae_1 = df.iloc[2, 2]
+    depreciation_2 = df.iloc[3, 1]
+    depreciation_1 = df.iloc[3, 2]
+    net_continuous_2 = df.iloc[4, 1]
+    net_continuous_1 = df.iloc[4, 2]
+    account_receivables_2 = df.iloc[5, 1]
+    account_receivables_1 = df.iloc[5, 2]
+    current_assets_2 = df.iloc[6, 1]
+    current_assets_1 = df.iloc[6, 2]
+    ppe_2 = df.iloc[7, 1]
+    ppe_1 = df.iloc[7, 2]
+    securities_2 = df.iloc[8, 1]
+    securities_1 = df.iloc[8, 2]
+    total_ltd_2 = df.iloc[9, 1]
+    total_ltd_1 = df.iloc[9, 2]
+    cash_flow_operate_2 = df.iloc[10, 1]
+    cash_flow_operate_1 = df.iloc[10, 2]
+    total_asset_2 = df.iloc[11, 1]
+    total_asset_1 = df.iloc[11, 2]
 
 
     dsri = (account_receivables_2 / revenue_2) / (account_receivables_1 / revenue_1)
