@@ -642,7 +642,7 @@ async def upload_proof_point(request: Request,
                                         metadata.point)
 
     print(existing_points)
-    
+
     if existing_points:
         return create_response(
             message="Point already exist",
@@ -1641,9 +1641,72 @@ async def get_notifications(user: UserDB = Depends(get_user)) -> JSONResponse:
     )
 
 
-# @router.post('/excel')
-# async def read_report_file(user: UserDB = Depends(get_user), file: UploadFile = File(None)):
-#
+@router.post('/excel')
+async def read_report_file(user: UserDB = Depends(get_user), file: UploadFile = File(...)) -> JSONResponse:
+    df = pd.read_excel(file.file)
+    file.file.close()
+
+    revenue_2 = df.iloc[1, 1]
+    revenue_1 = df.iloc[1, 2]
+    cogs_2 = df.iloc[2, 1]
+    cogs_1 = df.iloc[2, 2]
+    sgae_2 = df.iloc[3, 1]
+    sgae_1 = df.iloc[3, 2]
+    depreciation_2 = df.iloc[4, 1]
+    depreciation_1 = df.iloc[4, 2]
+    net_continuous_2 = df.iloc[5, 1]
+    net_continuous_1 = df.iloc[5, 2]
+    account_receivables_2 = df.iloc[6, 1]
+    account_receivables_1 = df.iloc[6, 2]
+    current_assets_2 = df.iloc[7, 1]
+    current_assets_1 = df.iloc[7, 2]
+    ppe_2 = df.iloc[8, 1]
+    ppe_1 = df.iloc[8, 2]
+    securities_2 = df.iloc[9, 1]
+    securities_1 = df.iloc[9, 2]
+    total_ltd_2 = df.iloc[11, 1]
+    total_ltd_1 = df.iloc[11, 2]
+    cash_flow_operate_2 = df.iloc[12, 1]
+    cash_flow_operate_1 = df.iloc[12, 2]
+    total_asset_2 = df.iloc[13, 1]
+    total_asset_1 = df.iloc[13, 2]
+
+
+    dsri = (account_receivables_2 / revenue_2) / (account_receivables_1 / revenue_1)
+    gmi = ((revenue_1 - cogs_1) / revenue_1) / ((revenue_2 - cogs_2) / revenue_2)
+    aqi = ((1 - (current_assets_2 + ppe_2 + securities_2) / total_asset_2) /
+           (1 - (current_assets_1 + ppe_1 + securities_1) / total_asset_1))
+    sgi = revenue_2 / revenue_1
+    depi = (depreciation_1 / (depreciation_1 + ppe_1)) / (
+                depreciation_2 / (depreciation_2 + ppe_2))
+    sgai = sgae_2 / revenue_2 / (sgae_1 / revenue_1)
+    lvgi = (total_ltd_2 / total_asset_2) / (total_ltd_1 / total_asset_1)
+    tata = (net_continuous_2 - cash_flow_operate_2) / total_asset_2
+
+    # Calculate Beneish M-Score
+    m_score = (
+            -4.84 + 0.920 * dsri + 0.528 * gmi + 0.404 * aqi + 0.892 * sgi + 0.115 * depi - 0.172 * sgai + 4.679 * tata - 0.327 * lvgi)
+
+    report = dict()
+    report['beneish_m'] = m_score
+    report['id_institution'] = user.id_institution
+    report['dsri'] = dsri
+    report['gmi'] = gmi
+    report['aqi'] = aqi
+    report['sgi'] = sgi
+    report['depi'] = depi
+    report['sgai'] = sgai
+    report['lvgi'] = lvgi
+    report['tata'] = tata
+
+    report_result = ReportResult(**report)
+
+    return create_response(
+        message="Success insert report",
+        success=True,
+        status_code=status.HTTP_201_CREATED,
+        data=report_result.dict()
+    )
 
 
 @router.get('/today', include_in_schema=False)
