@@ -1675,7 +1675,6 @@ async def read_report_file(user: UserDB = Depends(get_user), file: UploadFile = 
     total_asset_2 = df.iloc[11, 1]
     total_asset_1 = df.iloc[11, 2]
 
-
     dsri = (account_receivables_2 / revenue_2) / (account_receivables_1 / revenue_1)
     gmi = ((revenue_1 - cogs_1) / revenue_1) / ((revenue_2 - cogs_2) / revenue_2)
     aqi = ((1 - (current_assets_2 + ppe_2 + securities_2) / total_asset_2) /
@@ -1703,7 +1702,32 @@ async def read_report_file(user: UserDB = Depends(get_user), file: UploadFile = 
     report['lvgi'] = lvgi
     report['tata'] = tata
 
-    report_result = ReportResult(**report)
+    report['revenue_2'] = revenue_2
+    report['revenue_1'] = revenue_1
+    report['cogs_2'] = cogs_2
+    report['cogs_1'] = cogs_1
+    report['sgae_2'] = sgae_2
+    report['sgae_1'] = sgae_1
+    report['depreciation_2'] = depreciation_2
+    report['depreciation_1'] = depreciation_1
+    report['net_continuous_2'] = net_continuous_2
+    report['net_continuous_1'] = net_continuous_1
+    report['account_receivables_2'] = account_receivables_2
+    report['account_receivables_1'] = account_receivables_1
+    report['current_assets_2'] = current_assets_2
+    report['current_assets_1'] = current_assets_1
+    report['ppe_2'] = ppe_2
+    report['ppe_1'] = ppe_1
+    report['securities_2'] = securities_2
+    report['securities_1'] = securities_1
+    report['total_ltd_2'] = total_ltd_2
+    report['total_ltd_1'] = total_ltd_1
+    report['cash_flow_operate_2'] = cash_flow_operate_2
+    report['cash_flow_operate_1'] = cash_flow_operate_1
+    report['total_asset_2'] = total_asset_2
+    report['total_asset_1'] = total_asset_1
+
+    report_result = Report(**report)
 
     return create_response(
         message="Success insert report",
