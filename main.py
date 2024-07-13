@@ -776,7 +776,7 @@ async def update_assessment(request: Request,
     if file:
         drive.delete(filename)
         drive.put(filename, content)
-        if not actual_point.proof:
+        if not actual_point.id_proof:
             new_proof = Proof(
                 id_user=user.data_key,
                 url=f"{request.url.hostname}/api/actualfile/{filename}",
@@ -846,6 +846,7 @@ async def delete_proof(filename: str, user: UserDB = Depends(get_user)) -> JSONR
         )
 
     # actual_point = existing_point.items[0]
+    id_proof = existing_proof['id_proof']
     existing_point['id_proof'] = None
 
     key = existing_point['data_key']
