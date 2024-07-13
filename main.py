@@ -1157,7 +1157,7 @@ async def get_assessment_insight(key: str, user: UserDB = Depends(get_user)) -> 
     print(json.dumps(points, indent=4))
 
     for key, value in points.items():
-        existing_skor = len([skor['skor'] for skor in value])
+        existing_skor = len([skor['skor'] if skor['skor'] else 0 for skor in value])
         if existing_skor == question_number[bab.index(key)]:
             points[key] = sum([skor['skor'] for skor in value])
         else:
