@@ -149,6 +149,7 @@ class Point(BaseModel):
     point: float
     answer: float
     skor: typing.Optional[float]
+    skor_external: typing.Optional[float]
     id_proof: typing.Union[Proof, str, None]
 
 

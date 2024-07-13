@@ -1173,7 +1173,7 @@ async def get_assessment_insight(key: str, user: UserDB = Depends(get_user)) -> 
         # print(f"{existing_skor}: {question_number[bab.index(key)]}")
         # print([skor['skor'] for skor in value])
         if existing_skor == question_number[bab.index(key)]:
-            points[key] = sum([skor['skor'] for skor in value])
+            points[key] = [sum([skor['skor'] for skor in value]), sum([skor['skor_external'] for skor in value])]
         else:
             points[key] = None
 
@@ -1581,8 +1581,12 @@ async def evaluate_assessment(data: AssessmentEval, user: UserDB = Depends(get_u
         )
 
     sorted_points = sorted(existing_points, key=lambda x: x['point'])
-    for i in range(len(sorted_points)):
-        sorted_points[i]['skor'] = float(data.skor[i]) if data.skor[i] != '-' else None
+    if external:
+        for i in range(len(sorted_points)):
+            sorted_points[i]['skor_external'] = float(data.skor[i]) if data.skor[i] != '-' else None
+    else:
+        for i in range(len(sorted_points)):
+            sorted_points[i]['skor'] = float(data.skor[i]) if data.skor[i] != '-' else None
 
     for point in sorted_points:
         to_update = PointDB(**point)
