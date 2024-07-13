@@ -837,7 +837,8 @@ def update_points_by_key(data: Dict[str, Any], key: str):
                 sub_bab = %s,
                 point = %s,
                 answer = %s,
-                skor = %s
+                skor = %s,
+                skor_external = %s
             WHERE data_key = %s
             """
             query_params = (
@@ -848,6 +849,7 @@ def update_points_by_key(data: Dict[str, Any], key: str):
                 data['point'],
                 data['answer'],
                 data['skor'],
+                data['skor_external'],
                 key
             )
             cursor.execute(sql, query_params)
