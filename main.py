@@ -1159,7 +1159,7 @@ async def get_assessment_insight(key: str, user: UserDB = Depends(get_user)) -> 
     for key, value in points.items():
         existing_skor = len([skor['skor'] for skor in value if isinstance(skor['skor'], (int, float))])
         # print(f"{existing_skor}: {question_number[bab.index(key)]}")
-        print([skor['skor'] for skor in value])
+        # print([skor['skor'] for skor in value])
         if existing_skor == question_number[bab.index(key)]:
             points[key] = sum([skor['skor'] for skor in value])
         else:
@@ -1237,11 +1237,11 @@ async def get_finished_assessments(user: UserDB = Depends(get_user)) -> JSONResp
     # existing_points = [db_point.fetch({'id_assessment': assessment['data_key'], 'sub_bab': sub_bab}) for sub_bab in bab]
     existing_points = [get_points_by_assessment_sub_bab(assessment['data_key'], sub_bab) for sub_bab in bab]
     points_status = [len(point) if point else 0 for point in existing_points]
+    print(points_status)
     point_finished = []
     for i in range(len(bab)):
         if points_status[i] >= question_number[i]:
             point_finished.append(bab[i])
-
 
     return create_response(
         message="Success fetch data",
