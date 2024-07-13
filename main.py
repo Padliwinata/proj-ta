@@ -1108,7 +1108,10 @@ async def get_assessment_detail(key: str, sub_bab: str, user: UserDB = Depends(g
 
     point_data = []
     for data in existing_point:
-        proof = Proof(**data)
+        proof = None
+        if data['id_user']:
+            proof = Proof(**data)
+        # proof = Proof(**data)
         point = Point(**data)
         point.id_proof = proof
         point_data.append(point)
