@@ -641,7 +641,7 @@ async def upload_proof_point(request: Request,
     existing_points = get_points_by_all(assessment_data['data_key'], metadata.bab, metadata.sub_bab,
                                         metadata.point)
 
-    print(existing_points)
+    # print(existing_points)
 
     if existing_points:
         return create_response(
@@ -1153,6 +1153,8 @@ async def get_assessment_insight(key: str, user: UserDB = Depends(get_user)) -> 
     points = dict()
     for sub_bab in bab:
         points[sub_bab] = [point for point in existing_point if point['sub_bab'] == sub_bab]
+
+    print(points)
 
     # print(json.dumps(points, indent=4))
     for key, value in points.items():
