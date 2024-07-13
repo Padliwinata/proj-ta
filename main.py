@@ -1067,7 +1067,9 @@ async def get_current_assessment(sub_bab: str, user: UserDB = Depends(get_user))
 
     point_data = []
     for data in existing_point_data:
-        proof = Proof(**data)
+        proof = None
+        if data['id_user']:
+            proof = Proof(**data)
         point = Point(**data)
         point.id_proof = proof
         point_data.append(point)
