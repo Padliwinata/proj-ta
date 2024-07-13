@@ -783,7 +783,7 @@ async def update_assessment(request: Request,
                 file_name=filename
             )
 
-            actual_point.proof = new_proof
+            actual_point.id_proof = new_proof
             insert_new_proof(new_proof.id_user, new_proof.url, new_proof.file_name)
             # db_proof.put(new_proof.dict())
 
