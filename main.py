@@ -846,7 +846,7 @@ async def delete_proof(filename: str, user: UserDB = Depends(get_user)) -> JSONR
         )
 
     # actual_point = existing_point.items[0]
-    id_proof = existing_proof['id_proof']
+    # id_proof = existing_proof['data_key']
     existing_point['id_proof'] = None
 
     key = existing_point['data_key']
