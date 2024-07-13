@@ -823,14 +823,14 @@ async def delete_proof(filename: str, user: UserDB = Depends(get_user)) -> JSONR
 
     # existing_proof = db_proof.fetch({'file_name': filename})
     existing_proof = get_proof_by_filename(filename)
-    if existing_proof.count == 0:
+    if not existing_proof:
         return create_response(
             message="Proof not found",
             status_code=status.HTTP_404_NOT_FOUND,
             success=False
         )
 
-    actual_proof = existing_proof.items[0]
+    actual_proof = existing_proof
     # db_proof.delete(actual_proof['data_key'])
     delete_proof_by_key(actual_proof['data_key'])
     drive.delete(filename)
