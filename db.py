@@ -808,7 +808,7 @@ def get_points_by_assessment_sub_bab(id_assessment: str, sub_bab: str):
             sql = """
                 SELECT *
                 FROM points
-                JOIN proof ON points.id_proof = proof.data_key
+                LEFT JOIN proof ON points.id_proof = proof.data_key
                 WHERE id_assessment = %s AND sub_bab = %s ORDER BY point
             """
             cursor.execute(sql, (id_assessment, sub_bab))
