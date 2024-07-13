@@ -970,6 +970,12 @@ async def get_file(filename: str, request: Request) -> JSONResponse:
 @router.get("/actualfile/{filename}", include_in_schema=False)
 async def get_actual_file(filename: str) -> Response:
     response = drive.get(filename)
+    if not response:
+        return create_response(
+            message="File not found",
+            success=False,
+            status_code=status.HTTP_404_NOT_FOUND
+        )
     content = response.read()
 
     file_like = io.BytesIO(content).getvalue()
