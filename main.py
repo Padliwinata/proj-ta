@@ -1154,9 +1154,8 @@ async def get_assessment_insight(key: str, user: UserDB = Depends(get_user)) -> 
     for sub_bab in bab:
         points[sub_bab] = [point for point in existing_point if point['sub_bab'] == sub_bab]
 
-    print(points)
-
-    # print(json.dumps(points, indent=4))
+    print(json.dumps(points, indent=4))
+    
     for key, value in points.items():
         existing_skor = len([skor['skor'] for skor in value if isinstance(skor['skor'], float)])
         if existing_skor == question_number[bab.index(key)]:
