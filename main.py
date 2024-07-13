@@ -1169,13 +1169,19 @@ async def get_assessment_insight(key: str, user: UserDB = Depends(get_user)) -> 
     # print(json.dumps(points, indent=4))
 
     for key, value in points.items():
-        existing_skor = len([skor['skor'] for skor in value if isinstance(skor['skor'], (int, float))])
+        existing_skor_internal = len([skor['skor'] for skor in value if isinstance(skor['skor'], (int, float))])
+        existing_skor_external = len([skor['skor_external'] for skor in value if isinstance(skor['skor_external'], (int, float))])
         # print(f"{existing_skor}: {question_number[bab.index(key)]}")
         # print([skor['skor'] for skor in value])
-        if existing_skor == question_number[bab.index(key)]:
-            points[key] = sum([skor['skor'] for skor in value])
+        if existing_skor_internal == question_number[bab.index(key)]:
+            points[key] = [sum([skor['skor'] for skor in value])]
         else:
-            points[key] = None
+            points[key] = [None]
+
+        if existing_skor_external == question_number[bab.index(key)]:
+            points[key].append(sum([skor['skor_external'] for skor in value]))
+        else:
+            points[key].append(None)
 
     assessment = AssessmentDB(**existing_assessment).get_all_dict()
 
