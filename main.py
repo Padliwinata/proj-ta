@@ -1433,7 +1433,10 @@ async def finish_reviewing(id_assessment: str, user: UserDB = Depends(get_user))
 
     # existing_points = db_point.fetch({'id_assessment': id_assessment})
     existing_points = get_points_by_assessment(id_assessment)
-    total = sum([skor['skor'] for skor in existing_points])
+    if external:
+        total = sum([skor['skor_external'] for skor in existing_points])
+    else:
+        total = sum([skor['skor'] for skor in existing_points])
 
     if external:
         existing_assessment['hasil_external'] = total
