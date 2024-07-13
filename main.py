@@ -1240,7 +1240,7 @@ async def get_finished_assessments(user: UserDB = Depends(get_user)) -> JSONResp
     print(points_status)
     point_finished = []
     for i in range(len(bab)):
-        if points_status[i] >= question_number[i]:
+        if points_status[i] == question_number[i]:
             point_finished.append(bab[i])
 
     return create_response(
