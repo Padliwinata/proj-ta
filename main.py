@@ -1173,7 +1173,7 @@ async def get_assessment_insight(key: str, user: UserDB = Depends(get_user)) -> 
         # print(f"{existing_skor}: {question_number[bab.index(key)]}")
         # print([skor['skor'] for skor in value])
         if existing_skor == question_number[bab.index(key)]:
-            points[key] = [sum([skor['skor'] for skor in value]), sum([skor['skor_external'] for skor in value])]
+            points[key] = sum([skor['skor'] for skor in value])
         else:
             points[key] = None
 
