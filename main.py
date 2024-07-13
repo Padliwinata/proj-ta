@@ -30,7 +30,7 @@ from db import (
     get_proof_by_filename, get_points_by_proof_filename, insert_new_assessment, get_points_by_assessment_sub_bab,
     get_assessment_by_key, get_points_by_assessment, get_assessment_by_institution, update_assessment_by_key,
     get_user_by_institution_role, get_assessment_for_external, get_assessment_for_internal, update_user_by_key,
-    get_notification_by_receiver, delete_assessment, activate_all_staff
+    get_notification_by_receiver, delete_assessment, activate_all_staff, get_assessment_all
 )
 from dependencies import (
     authenticate_user,
@@ -511,8 +511,8 @@ async def get_staff(user: User = Depends(get_user)) -> JSONResponse:
     #     {'role': 'reviewer', 'id_institution': id_institution}
     # ])
 
-    fetch_response = get_user_by_role_institution('staff', id_institution)
-    fetch_response.extend(get_user_by_role_institution('reviewer', id_institution))
+    fetch_response = list(get_user_by_role_institution('staff', id_institution))
+    fetch_response.extend(list(get_user_by_role_institution('reviewer', id_institution)))
     fetch_response = remove_dict_duplicates(fetch_response)
 
     if not fetch_response:
@@ -555,9 +555,9 @@ async def get_login_log(user: User = Depends(get_user)) -> JSONResponse:
         {'role': 'admin', 'id_institution': id_institution}
     ])
 
-    log_data = get_log_by_role_institution('staff', id_institution)
-    log_data.extend(get_log_by_role_institution('reviewer', id_institution))
-    log_data.extend(get_log_by_role_institution('admin', id_institution))
+    log_data = list(get_log_by_role_institution('staff', id_institution))
+    log_data.extend(list(get_log_by_role_institution('reviewer', id_institution)))
+    log_data.extend(list(get_log_by_role_institution('admin', id_institution)))
     log_data = remove_dict_duplicates(log_data)
 
     if not log_data:
@@ -640,6 +640,9 @@ async def upload_proof_point(request: Request,
     # existing_points = db_point.fetch({'id_assessment': assessment_data.key, 'bab': metadata.bab, 'sub_bab': metadata.sub_bab, 'point': metadata.point})
     existing_points = get_points_by_all(assessment_data['data_key'], metadata.bab, metadata.sub_bab,
                                         metadata.point)
+
+    # print(existing_points)
+
     if existing_points:
         return create_response(
             message="Point already exist",
@@ -661,6 +664,7 @@ async def upload_proof_point(request: Request,
             status_code=status.HTTP_400_BAD_REQUEST
         )
 
+    proof_key = None
     if new_proof:
         drive.put(filename, content)
         # db_proof.put(new_proof.dict())
@@ -672,7 +676,7 @@ async def upload_proof_point(request: Request,
         id_assessment=assessment_data['data_key'],
         bab=metadata.bab,
         sub_bab=metadata.sub_bab,
-        proof=proof_key,
+        id_proof=proof_key,
         point=metadata.point,
         answer=metadata.answer,
         skor=None
@@ -1061,8 +1065,17 @@ async def get_current_assessment(sub_bab: str, user: UserDB = Depends(get_user))
             status_code=status.HTTP_200_OK
         )
 
-    data = [Point(**x) for x in existing_point_data]
-    dict_data = [x.dict() for x in data]
+    point_data = []
+    for data in existing_point_data:
+        proof = None
+        if data['id_user']:
+            proof = Proof(**data)
+        point = Point(**data)
+        point.id_proof = proof
+        point_data.append(point)
+
+    # data = [Point(**x) for x in existing_point_data]
+    dict_data = [x.dict() for x in point_data]
     response_data = sorted(dict_data, key=lambda x: x['point'])
 
     return create_response(
@@ -1093,8 +1106,15 @@ async def get_assessment_detail(key: str, sub_bab: str, user: UserDB = Depends(g
             status_code=status.HTTP_200_OK
         )
 
-    data = [Point(**x) for x in existing_point]
-    dict_data = [x.dict() for x in data]
+    point_data = []
+    for data in existing_point:
+        proof = Proof(**data)
+        point = Point(**data)
+        point.id_proof = proof
+        point_data.append(point)
+
+    # data = [Point(**x) for x in existing_point]
+    dict_data = [x.dict() for x in point_data]
     point_list = sorted(dict_data, key=lambda x: x['point'])
 
     assessment = AssessmentDB(**existing_assessment).get_all_dict()
@@ -1137,8 +1157,11 @@ async def get_assessment_insight(key: str, user: UserDB = Depends(get_user)) -> 
         points[sub_bab] = [point for point in existing_point if point['sub_bab'] == sub_bab]
 
     # print(json.dumps(points, indent=4))
+
     for key, value in points.items():
-        existing_skor = len([skor['skor'] for skor in value if isinstance(skor['skor'], float)])
+        existing_skor = len([skor['skor'] for skor in value if isinstance(skor['skor'], (int, float))])
+        # print(f"{existing_skor}: {question_number[bab.index(key)]}")
+        # print([skor['skor'] for skor in value])
         if existing_skor == question_number[bab.index(key)]:
             points[key] = sum([skor['skor'] for skor in value])
         else:
@@ -1169,7 +1192,10 @@ async def get_all_assessment(user: UserDB = Depends(get_user)) -> JSONResponse:
     #     )
 
     # existing_assessments_data = db_assessment.fetch({'id_institution': user.id_institution})
-    existing_assessments_data = get_assessment_by_institution(user.id_institution)
+    if user.id_institution != 'external':
+        existing_assessments_data = get_assessment_by_institution(user.id_institution)
+    else:
+        existing_assessments_data = get_assessment_all()
     if not existing_assessments_data:
         return create_response(
             message="Empty data",
@@ -1213,10 +1239,10 @@ async def get_finished_assessments(user: UserDB = Depends(get_user)) -> JSONResp
     # existing_points = [db_point.fetch({'id_assessment': assessment['data_key'], 'sub_bab': sub_bab}) for sub_bab in bab]
     existing_points = [get_points_by_assessment_sub_bab(assessment['data_key'], sub_bab) for sub_bab in bab]
     points_status = [len(point) if point else 0 for point in existing_points]
-
+    # print(assessment['data_key'])
     point_finished = []
     for i in range(len(bab)):
-        if points_status[i] >= question_number[i]:
+        if points_status[i] == question_number[i]:
             point_finished.append(bab[i])
 
     return create_response(
@@ -1620,9 +1646,104 @@ async def get_notifications(user: UserDB = Depends(get_user)) -> JSONResponse:
     )
 
 
-# @router.post('/excel')
-# async def read_report_file(user: UserDB = Depends(get_user), file: UploadFile = File(None)):
-#
+@router.post('/excel')
+async def read_report_file(user: UserDB = Depends(get_user), file: UploadFile = File(...)) -> JSONResponse:
+    tmp_file = file.file
+    excel_file = tmp_file.read()
+    df = pd.read_excel(excel_file, dtype={'Year 1': float, 'Year 2': float})
+    file.file.close()
+
+    # print(df.iloc[1, 1])
+
+    tahun_2 = df.iloc[0, 1]
+    tahun_1 = df.iloc[0, 2]
+    revenue_2 = df.iloc[1, 1]
+    revenue_1 = df.iloc[1, 2]
+    cogs_2 = df.iloc[2, 1]
+    cogs_1 = df.iloc[2, 2]
+    sgae_2 = df.iloc[3, 1]
+    sgae_1 = df.iloc[3, 2]
+    depreciation_2 = df.iloc[4, 1]
+    depreciation_1 = df.iloc[4, 2]
+    net_continuous_2 = df.iloc[5, 1]
+    net_continuous_1 = df.iloc[5, 2]
+    account_receivables_2 = df.iloc[6, 1]
+    account_receivables_1 = df.iloc[6, 2]
+    current_assets_2 = df.iloc[7, 1]
+    current_assets_1 = df.iloc[7, 2]
+    ppe_2 = df.iloc[8, 1]
+    ppe_1 = df.iloc[8, 2]
+    securities_2 = df.iloc[9, 1]
+    securities_1 = df.iloc[9, 2]
+    total_ltd_2 = df.iloc[10, 1]
+    total_ltd_1 = df.iloc[10, 2]
+    cash_flow_operate_2 = df.iloc[11, 1]
+    cash_flow_operate_1 = df.iloc[11, 2]
+    total_asset_2 = df.iloc[12, 1]
+    total_asset_1 = df.iloc[12, 2]
+
+    dsri = (account_receivables_2 / revenue_2) / (account_receivables_1 / revenue_1)
+    gmi = ((revenue_1 - cogs_1) / revenue_1) / ((revenue_2 - cogs_2) / revenue_2)
+    aqi = ((1 - (current_assets_2 + ppe_2 + securities_2) / total_asset_2) /
+           (1 - (current_assets_1 + ppe_1 + securities_1) / total_asset_1))
+    sgi = revenue_2 / revenue_1
+    depi = (depreciation_1 / (depreciation_1 + ppe_1)) / (
+                depreciation_2 / (depreciation_2 + ppe_2))
+    sgai = sgae_2 / revenue_2 / (sgae_1 / revenue_1)
+    lvgi = (total_ltd_2 / total_asset_2) / (total_ltd_1 / total_asset_1)
+    tata = (net_continuous_2 - cash_flow_operate_2) / total_asset_2
+
+    # Calculate Beneish M-Score
+    m_score = (
+            -4.84 + 0.920 * dsri + 0.528 * gmi + 0.404 * aqi + 0.892 * sgi + 0.115 * depi - 0.172 * sgai + 4.679 * tata - 0.327 * lvgi)
+
+    report = dict()
+    report['beneish_m'] = m_score
+    report['id_institution'] = user.id_institution
+    report['dsri'] = dsri
+    report['gmi'] = gmi
+    report['aqi'] = aqi
+    report['sgi'] = sgi
+    report['depi'] = depi
+    report['sgai'] = sgai
+    report['lvgi'] = lvgi
+    report['tata'] = tata
+
+    report['tahun_2'] = tahun_2
+    report['tahun_1'] = tahun_1
+    report['revenue_2'] = revenue_2
+    report['revenue_1'] = revenue_1
+    report['cogs_2'] = cogs_2
+    report['cogs_1'] = cogs_1
+    report['sgae_2'] = sgae_2
+    report['sgae_1'] = sgae_1
+    report['depreciation_2'] = depreciation_2
+    report['depreciation_1'] = depreciation_1
+    report['net_continuous_2'] = net_continuous_2
+    report['net_continuous_1'] = net_continuous_1
+    report['account_receivables_2'] = account_receivables_2
+    report['account_receivables_1'] = account_receivables_1
+    report['current_assets_2'] = current_assets_2
+    report['current_assets_1'] = current_assets_1
+    report['ppe_2'] = ppe_2
+    report['ppe_1'] = ppe_1
+    report['securities_2'] = securities_2
+    report['securities_1'] = securities_1
+    report['total_ltd_2'] = total_ltd_2
+    report['total_ltd_1'] = total_ltd_1
+    report['cash_flow_operate_2'] = cash_flow_operate_2
+    report['cash_flow_operate_1'] = cash_flow_operate_1
+    report['total_asset_2'] = total_asset_2
+    report['total_asset_1'] = total_asset_1
+
+    report_result = Report(**report)
+
+    return create_response(
+        message="Success insert report",
+        success=True,
+        status_code=status.HTTP_201_CREATED,
+        data=report_result.dict()
+    )
 
 
 @router.get('/today', include_in_schema=False)

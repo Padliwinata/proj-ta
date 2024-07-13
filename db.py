@@ -531,6 +531,25 @@ def get_unfinished_assessments_by_institution(key: str):
         connection.close()
 
 
+def get_assessment_all():
+    connection = pymysql.connect(host=DB_HOST,
+                                 user=DB_USERNAME,
+                                 password=DB_PASSWORD,
+                                 database=DB_NAME,
+                                 cursorclass=pymysql.cursors.DictCursor)
+    try:
+        with connection.cursor() as cursor:
+            sql = "SELECT * FROM assessments"
+            cursor.execute(sql)
+            user_data = cursor.fetchall()
+            return user_data
+    except pymysql.MySQLError as e:
+        print(f"Error: {e}")
+        return None
+    finally:
+        connection.close()
+
+
 def get_assessment_for_external():
     connection = pymysql.connect(host=DB_HOST,
                                  user=DB_USERNAME,
@@ -786,7 +805,12 @@ def get_points_by_assessment_sub_bab(id_assessment: str, sub_bab: str):
                                  cursorclass=pymysql.cursors.DictCursor)
     try:
         with connection.cursor() as cursor:
-            sql = "SELECT * FROM points WHERE id_assessment = %s AND sub_bab = %s ORDER BY point"
+            sql = """
+                SELECT *
+                FROM points
+                LEFT JOIN proof ON points.id_proof = proof.data_key
+                WHERE id_assessment = %s AND sub_bab = %s ORDER BY point
+            """
             cursor.execute(sql, (id_assessment, sub_bab))
             user_data = cursor.fetchall()
             return user_data
@@ -818,7 +842,7 @@ def update_points_by_key(data: Dict[str, Any], key: str):
             """
             query_params = (
                 data['id_assessment'],
-                data['proof'],
+                data['id_proof'],
                 data['bab'],
                 data['sub_bab'],
                 data['point'],
@@ -921,7 +945,7 @@ def insert_new_point(data: Dict[str, Any]):
             query_params = (
                 data_key,
                 data['id_assessment'],
-                data['proof'],
+                data['id_proof'],
                 data['bab'],
                 data['sub_bab'],
                 data['point'],

@@ -11,3 +11,4 @@ mailersend
 pytest
 pymysql
 pandas
+openpyxl
