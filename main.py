@@ -1417,6 +1417,7 @@ async def get_report_list(user: UserDB = Depends(get_user)) -> JSONResponse:
         )
 
     data = get_report_beneish()
+    data['tanggal'] = data['tanggal'].strftime('%Y-%m-%d %H:%M:%S')
 
     return create_response(
         message="Fetch data success",
