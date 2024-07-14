@@ -1390,6 +1390,7 @@ async def get_beneish_score(data: ReportInput, user: UserDB = Depends(get_user))
     report['sgai'] = sgai
     report['lvgi'] = lvgi
     report['tata'] = tata
+    report['id_user'] = user.data_key
     report_object = Report(**report)
     report_dict = report_object.dict()
     report_dict['tanggal'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
