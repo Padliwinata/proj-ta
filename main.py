@@ -1391,7 +1391,7 @@ async def get_beneish_score(data: ReportInput, user: UserDB = Depends(get_user))
     report['lvgi'] = lvgi
     report['tata'] = tata
     report_object = Report(**report)
-    insert_report_beneish_m(tuple(report_object.dict().values()))
+    insert_report_beneish_m(report_object.dict())
     # db_report.insert(report_object.dict())
 
     report_result = ReportResult(**report)
