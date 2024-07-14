@@ -993,14 +993,14 @@ def insert_report_beneish_m(data: Dict[str, Any]):
                     total_ltd_1, cash_flow_operate_1, revenue_2, cogs_2, sgae_2, depreciation_2, 
                     net_continuous_2, account_receivables_2, current_assets_2, ppe_2, securities_2, 
                     total_asset_2, total_ltd_2, cash_flow_operate_2, tahun_1, tahun_2, id_institution, 
-                    beneish_m, tanggal
+                    beneish_m, tanggal, dsri, gmi, aqi, sgi, depi, sgai, lvgi, tata
                 ) VALUES (
                     %(data_key)s, %(id_user)s, %(revenue_1)s, %(cogs_1)s, %(sgae_1)s, %(depreciation_1)s, %(net_continuous_1)s, 
                     %(account_receivables_1)s, %(current_assets_1)s, %(ppe_1)s, %(securities_1)s, %(total_asset_1)s, 
                     %(total_ltd_1)s, %(cash_flow_operate_1)s, %(revenue_2)s, %(cogs_2)s, %(sgae_2)s, %(depreciation_2)s, 
                     %(net_continuous_2)s, %(account_receivables_2)s, %(current_assets_2)s, %(ppe_2)s, %(securities_2)s, 
                     %(total_asset_2)s, %(total_ltd_2)s, %(cash_flow_operate_2)s, %(tahun_1)s, %(tahun_2)s, %(id_institution)s, 
-                    %(beneish_m)s, %(tanggal)s
+                    %(beneish_m)s, %(tanggal)s, %(dsri)s, %(gmi)s, %(aqi)s, %(sgi)s, %(depi)s, %(sgai)s, %(lvgi)s, %(tata)s
                 )
                 """
             data_key = generate_random_string()
