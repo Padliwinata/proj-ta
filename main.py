@@ -1416,14 +1416,15 @@ async def get_report_list(user: UserDB = Depends(get_user)) -> JSONResponse:
             status_code=status.HTTP_403_FORBIDDEN
         )
 
-    data = get_report_beneish()
-    data['tanggal'] = data['tanggal'].strftime('%Y-%m-%d %H:%M:%S')
+    reports = get_report_beneish()
+    for report in reports:
+        report['tanggal'] = report['tanggal'].strftime('%Y-%m-%d %H:%M:%S')
 
     return create_response(
         message="Fetch data success",
         success=True,
         status_code=status.HTTP_200_OK,
-        data=data
+        data=reports
     )
 
 
