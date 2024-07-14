@@ -257,7 +257,7 @@ class ReportInput(BaseModel):
 class Report(ReportInput):
     id_institution: str
     beneish_m: float
-    tanggal: datetime
+    # tanggal: datetime
 
 
 class ReportResult(BaseModel):
