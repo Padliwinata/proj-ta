@@ -30,7 +30,8 @@ from db import (
     get_proof_by_filename, get_points_by_proof_filename, insert_new_assessment, get_points_by_assessment_sub_bab,
     get_assessment_by_key, get_points_by_assessment, get_assessment_by_institution, update_assessment_by_key,
     get_user_by_institution_role, get_assessment_for_external, get_assessment_for_internal, update_user_by_key,
-    get_notification_by_receiver, delete_assessment, activate_all_staff, get_assessment_all, drive_s3
+    get_notification_by_receiver, delete_assessment, activate_all_staff, get_assessment_all, drive_s3,
+    insert_report_beneish_m
 )
 from dependencies import (
     authenticate_user,
@@ -666,7 +667,7 @@ async def upload_proof_point(request: Request,
 
     proof_key = None
     if new_proof:
-        drive.put(filename, content)
+        # drive.put(filename, content)
         drive_s3.put_object(Key=filename, Body=content)
         # db_proof.put(new_proof.dict())
         proof_key = insert_new_proof(new_proof.id_user, new_proof.url, new_proof.file_name)
@@ -781,8 +782,8 @@ async def update_assessment(request: Request,
         finally:
             pass
 
-        drive.delete(filename)
-        drive.put(filename, content)
+        # drive.delete(filename)
+        # drive.put(filename, content)
         drive_s3.put_object(Key=filename, Body=content)
         if not actual_point.id_proof:
             new_proof = Proof(
@@ -841,7 +842,7 @@ async def delete_proof(filename: str, user: UserDB = Depends(get_user)) -> JSONR
     actual_proof = existing_proof
     # db_proof.delete(actual_proof['data_key'])
     delete_proof_by_key(actual_proof['data_key'])
-    drive.delete(filename)
+    # drive.delete(filename)
     try:
         obj = drive_s3.Object(bucket_name=BUCKET_NAME, key=filename)
         obj.delete()
@@ -974,13 +975,13 @@ async def get_file(filename: str, request: Request) -> JSONResponse:
             success=False,
             status_code=status.HTTP_404_NOT_FOUND
         )
-    response = drive.get(filename)
-    if not response:
-        return create_response(
-            message="File not found",
-            success=False,
-            status_code=status.HTTP_404_NOT_FOUND
-        )
+    # response = drive.get(filename)
+    # if not response:
+    #     return create_response(
+    #         message="File not found",
+    #         success=False,
+    #         status_code=status.HTTP_404_NOT_FOUND
+    #     )
 
     return create_response(
         message="Fetch file success",
@@ -992,7 +993,7 @@ async def get_file(filename: str, request: Request) -> JSONResponse:
 
 @router.get("/actualfile/{filename}", include_in_schema=False)
 async def get_actual_file(filename: str) -> Response:
-    response = drive.get(filename)
+    # response = drive.get(filename)
     response = drive_s3.Object(bucket_name=BUCKET_NAME, key=filename)
     if not response:
         return create_response(
@@ -1390,6 +1391,7 @@ async def get_beneish_score(data: ReportInput, user: UserDB = Depends(get_user))
     report['lvgi'] = lvgi
     report['tata'] = tata
     report_object = Report(**report)
+    insert_report_beneish_m(tuple(report_object.dict().values()))
     # db_report.insert(report_object.dict())
 
     report_result = ReportResult(**report)
