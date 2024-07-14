@@ -1395,7 +1395,7 @@ async def get_beneish_score(data: ReportInput, user: UserDB = Depends(get_user))
     report_dict['tanggal'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     report_dict['id_user'] = user.data_key
 
-    insert_report_beneish_m(report_object.dict())
+    insert_report_beneish_m(report_dict)
     # db_report.insert(report_object.dict())
 
     report_result = ReportResult(**report)
