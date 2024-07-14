@@ -31,7 +31,7 @@ from db import (
     get_assessment_by_key, get_points_by_assessment, get_assessment_by_institution, update_assessment_by_key,
     get_user_by_institution_role, get_assessment_for_external, get_assessment_for_internal, update_user_by_key,
     get_notification_by_receiver, delete_assessment, activate_all_staff, get_assessment_all, drive_s3,
-    insert_report_beneish_m, get_report_beneish
+    insert_report_beneish_m, get_report_beneish, get_report_by_id
 )
 from dependencies import (
     authenticate_user,
@@ -1425,6 +1425,26 @@ async def get_report_list(user: UserDB = Depends(get_user)) -> JSONResponse:
         success=True,
         status_code=status.HTTP_200_OK,
         data=reports
+    )
+
+
+@router.get('/report/{key}')
+async def get_report_by_key(key: str, user: UserDB = Depends(get_user)) -> JSONResponse:
+    if user.role not in ['admin', 'staff']:
+        return create_response(
+            message="Forbidden access",
+            success=False,
+            status_code=status.HTTP_403_FORBIDDEN
+        )
+    
+    report = get_report_by_id(key)
+    report['tanggal'] = report['tanggal'].strftime('%Y-%m-%d %H:%M:%S')
+
+    return create_response(
+        message="Fetch data success",
+        success=True,
+        status_code=status.HTTP_200_OK,
+        data=report
     )
 
 

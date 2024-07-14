@@ -1016,6 +1016,42 @@ def insert_report_beneish_m(data: Dict[str, Any]):
         connection.close()
 
 
+def get_report_by_id(key: str):
+    connection = pymysql.connect(host=DB_HOST,
+                                 user=DB_USERNAME,
+                                 password=DB_PASSWORD,
+                                 database=DB_NAME,
+                                 cursorclass=pymysql.cursors.DictCursor)
+
+    try:
+        with connection.cursor() as cursor:
+            sql = """
+                    SELECT
+                        reports.data_key,
+                        users.full_name,
+                        reports.tahun_1,
+                        reports.tahun_2,
+                        reports.tanggal,
+                        reports.beneish_m
+                    FROM 
+                        reports
+                    JOIN
+                        users
+                    ON
+                        reports.id_user = users.data_key
+                    WHERE
+                        data_key = %s;
+                    """
+            cursor.execute(sql, (key, ))
+            user_data = cursor.fetchone()
+            return user_data
+    except pymysql.MySQLError as e:
+        print(f"Error: {e}")
+        return None
+    finally:
+        connection.close()
+
+
 def get_report_beneish():
     connection = pymysql.connect(host=DB_HOST,
                                  user=DB_USERNAME,
