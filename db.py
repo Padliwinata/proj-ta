@@ -1,3 +1,4 @@
+import datetime
 import random
 import string
 from typing import Optional, Dict, Any
@@ -977,7 +978,7 @@ def insert_new_point(data: Dict[str, Any]):
         connection.close()
 
 
-def insert_report_beneish_m(*data):
+def insert_report_beneish_m(data: Dict[str, Any]):
     connection = pymysql.connect(host=DB_HOST,
                                  user=DB_USERNAME,
                                  password=DB_PASSWORD,
@@ -986,21 +987,25 @@ def insert_report_beneish_m(*data):
     try:
         with connection.cursor() as cursor:
             sql = """
-                INSERT INTO reports
-                (`data_key`, `id_user`, `revenue_1`, `cogs_1`, `sgae_1`, `depreciation_1`, `net_continuous_1`, `account_receivables_1`, `current_assets_1`, `ppe_1`, `securities_1`, `total_asset_1`, `current_liabilities_1`, `total_ltd_1`, `cash_flow_operate_1`, `revenue_2`, `cogs_2`, `sgae_2`, `depreciation_2`, `net_continuous_2`, `account_receivables_2`, `current_assets_2`, `ppe_2`, `securities_2`, `total_asset_2`, `current_liabilities_2`, `total_ltd_2`, `cash_flow_operate_2`, `tahun_1`, `tahun_2`, `id_institution`, `tanggal`)
-                VALUES
-                (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                INSERT INTO reports (
+                    data_key, revenue_1, cogs_1, sgae_1, depreciation_1, net_continuous_1, 
+                    account_receivables_1, current_assets_1, ppe_1, securities_1, total_asset_1, 
+                    total_ltd_1, cash_flow_operate_1, revenue_2, cogs_2, sgae_2, depreciation_2, 
+                    net_continuous_2, account_receivables_2, current_assets_2, ppe_2, securities_2, 
+                    total_asset_2, total_ltd_2, cash_flow_operate_2, tahun_1, tahun_2, id_institution, 
+                    beneish_m, tanggal
+                ) VALUES (
+                    %(data_key)s, %(revenue_1)s, %(cogs_1)s, %(sgae_1)s, %(depreciation_1)s, %(net_continuous_1)s, 
+                    %(account_receivables_1)s, %(current_assets_1)s, %(ppe_1)s, %(securities_1)s, %(total_asset_1)s, 
+                    %(total_ltd_1)s, %(cash_flow_operate_1)s, %(revenue_2)s, %(cogs_2)s, %(sgae_2)s, %(depreciation_2)s, 
+                    %(net_continuous_2)s, %(account_receivables_2)s, %(current_assets_2)s, %(ppe_2)s, %(securities_2)s, 
+                    %(total_asset_2)s, %(total_ltd_2)s, %(cash_flow_operate_2)s, %(tahun_1)s, %(tahun_2)s, %(id_institution)s, 
+                    %(beneish_m)s, %(tanggal)s
+                )
                 """
             data_key = generate_random_string()
-            # new_data = (
-            #     data_key,
-            #     data['id_institution'],
-            #     data['name'],
-            #     data['email'],
-            #     data['role'],
-            #     data['tanggal'],
-            #     data['event']
-            # )
+            data['data_key'] = data_key
+            data['tanggal'] = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             cursor.execute(sql, data)
             connection.commit()
             return data_key
