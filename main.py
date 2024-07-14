@@ -31,7 +31,7 @@ from db import (
     get_assessment_by_key, get_points_by_assessment, get_assessment_by_institution, update_assessment_by_key,
     get_user_by_institution_role, get_assessment_for_external, get_assessment_for_internal, update_user_by_key,
     get_notification_by_receiver, delete_assessment, activate_all_staff, get_assessment_all, drive_s3,
-    insert_report_beneish_m
+    insert_report_beneish_m, get_report_beneish
 )
 from dependencies import (
     authenticate_user,
@@ -1404,6 +1404,25 @@ async def get_beneish_score(data: ReportInput, user: UserDB = Depends(get_user))
         success=True,
         status_code=status.HTTP_201_CREATED,
         data=report_result.dict()
+    )
+
+
+@router.get('/report', tags=['Detection - Admin'])
+async def get_report_list(user: UserDB = Depends(get_user)) -> JSONResponse:
+    if user.role not in ['admin', 'staff']:
+        return create_response(
+            message="Forbidden access",
+            success=False,
+            status_code=status.HTTP_403_FORBIDDEN
+        )
+
+    data = get_report_beneish()
+
+    return create_response(
+        message="Fetch data success",
+        success=True,
+        status_code=status.HTTP_200_OK,
+        data=data
     )
 
 

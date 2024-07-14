@@ -260,6 +260,14 @@ class Report(ReportInput):
     # tanggal: datetime
 
 
+class ReportList(BaseModel):
+    nama: str
+    tahun_1: int
+    tahun_2: str
+    tanggal: typing.Union[str, datetime, None]
+    beneish_m: float
+
+
 class ReportResult(BaseModel):
     id_institution: str
     beneish_m: float
