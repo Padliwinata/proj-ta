@@ -1439,6 +1439,12 @@ async def get_report_by_key(key: str, user: UserDB = Depends(get_user)) -> JSONR
         )
 
     report = get_report_by_id(key)
+    if not report:
+        return create_response(
+            message="Data not found",
+            success=False,
+            status_code=status.HTTP_404_NOT_FOUND
+        )
     report['tanggal'] = report['tanggal'].strftime('%Y-%m-%d %H:%M:%S')
 
     return create_response(
