@@ -63,7 +63,7 @@ from models import (
     Event, ReportInput, ReportResult, PointDB
 )
 from seeder import seed, delete_db, seed_assessment
-from settings import SECRET_KEY, MAX_FILE_SIZE, DEVELOPMENT
+from settings import SECRET_KEY, MAX_FILE_SIZE, DEVELOPMENT, BUCKET_NAME
 
 from utils import encrypt_password, remove_dict_duplicates
 
@@ -775,8 +775,15 @@ async def update_assessment(request: Request,
 
     filename = f"{user.get_institution()['data_key']}_{metadata.bab}_{metadata.sub_bab.replace('.', '')}_{metadata.point}.pdf"
     if file:
+        try:
+            obj = drive_s3.Object(bucket_name=BUCKET_NAME, key=filename)
+            obj.delete()
+        finally:
+            pass
+
         drive.delete(filename)
         drive.put(filename, content)
+        drive_s3.put_object(Key=filename, Body=content)
         if not actual_point.id_proof:
             new_proof = Proof(
                 id_user=user.data_key,
@@ -835,6 +842,11 @@ async def delete_proof(filename: str, user: UserDB = Depends(get_user)) -> JSONR
     # db_proof.delete(actual_proof['data_key'])
     delete_proof_by_key(actual_proof['data_key'])
     drive.delete(filename)
+    try:
+        obj = drive_s3.Object(bucket_name=BUCKET_NAME, key=filename)
+        obj.delete()
+    finally:
+        pass
 
     # existing_point = db_point.fetch({'proof.file_name': filename})
     existing_point = get_points_by_proof_filename(filename)
@@ -953,6 +965,15 @@ async def delete_database() -> JSONResponse:
 
 @router.get("/file/{filename}", tags=['General'])
 async def get_file(filename: str, request: Request) -> JSONResponse:
+    try:
+        obj = drive_s3.Object(bucket_name='proof', key=filename)
+        obj.get()
+    except Exception as e:
+        return create_response(
+            message="File not found",
+            success=False,
+            status_code=status.HTTP_404_NOT_FOUND
+        )
     response = drive.get(filename)
     if not response:
         return create_response(
@@ -960,6 +981,7 @@ async def get_file(filename: str, request: Request) -> JSONResponse:
             success=False,
             status_code=status.HTTP_404_NOT_FOUND
         )
+
     return create_response(
         message="Fetch file success",
         success=True,
@@ -971,15 +993,17 @@ async def get_file(filename: str, request: Request) -> JSONResponse:
 @router.get("/actualfile/{filename}", include_in_schema=False)
 async def get_actual_file(filename: str) -> Response:
     response = drive.get(filename)
+    response = drive_s3.Object(bucket_name=BUCKET_NAME, key=filename)
     if not response:
         return create_response(
             message="File not found",
             success=False,
             status_code=status.HTTP_404_NOT_FOUND
         )
-    content = response.read()
+    # content = response.read()
 
-    file_like = io.BytesIO(content).getvalue()
+    # file_like = io.BytesIO(content).getvalue()
+    file_like = response.get()['Body']
 
     # headers = {
     #     'Content-Disposition': f'attachment; filename="{filename}"'
