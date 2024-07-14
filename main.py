@@ -1436,7 +1436,7 @@ async def get_report_by_key(key: str, user: UserDB = Depends(get_user)) -> JSONR
             success=False,
             status_code=status.HTTP_403_FORBIDDEN
         )
-    
+
     report = get_report_by_id(key)
     report['tanggal'] = report['tanggal'].strftime('%Y-%m-%d %H:%M:%S')
 

@@ -1027,18 +1027,9 @@ def get_report_by_id(key: str):
         with connection.cursor() as cursor:
             sql = """
                     SELECT
-                        reports.data_key,
-                        users.full_name,
-                        reports.tahun_1,
-                        reports.tahun_2,
-                        reports.tanggal,
-                        reports.beneish_m
+                        *
                     FROM 
                         reports
-                    JOIN
-                        users
-                    ON
-                        reports.id_user = users.data_key
                     WHERE
                         data_key = %s;
                     """
