@@ -12,3 +12,4 @@ pytest
 pymysql
 pandas
 openpyxl
+boto3
