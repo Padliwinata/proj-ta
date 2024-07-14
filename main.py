@@ -30,7 +30,7 @@ from db import (
     get_proof_by_filename, get_points_by_proof_filename, insert_new_assessment, get_points_by_assessment_sub_bab,
     get_assessment_by_key, get_points_by_assessment, get_assessment_by_institution, update_assessment_by_key,
     get_user_by_institution_role, get_assessment_for_external, get_assessment_for_internal, update_user_by_key,
-    get_notification_by_receiver, delete_assessment, activate_all_staff, get_assessment_all
+    get_notification_by_receiver, delete_assessment, activate_all_staff, get_assessment_all, drive_s3
 )
 from dependencies import (
     authenticate_user,
@@ -667,6 +667,7 @@ async def upload_proof_point(request: Request,
     proof_key = None
     if new_proof:
         drive.put(filename, content)
+        drive_s3.put_object(Key=filename, Body=content)
         # db_proof.put(new_proof.dict())
         proof_key = insert_new_proof(new_proof.id_user, new_proof.url, new_proof.file_name)
 

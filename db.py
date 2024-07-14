@@ -2,10 +2,11 @@ import random
 import string
 from typing import Optional, Dict, Any
 
+import boto3
 import deta
 import pymysql.cursors
 
-from settings import DATA_KEY, DB_HOST, DB_NAME, DB_PASSWORD, DB_USERNAME
+from settings import DATA_KEY, DB_HOST, DB_NAME, DB_PASSWORD, DB_USERNAME, ENDPOINT_URL, AWS_SECRET_ACCESS_KEY, AWS_ACCESS_KEY_ID, BUCKET_NAME
 
 
 deta_obj = deta.Deta(DATA_KEY)
@@ -21,6 +22,16 @@ db_assessment = deta_obj.Base("assessment")
 db_notification = deta_obj.Base("notification")
 
 drive = deta_obj.Drive("document")
+
+
+s3 = boto3.resource(
+    's3',
+    endpoint_url=ENDPOINT_URL,
+    aws_access_key_id=AWS_ACCESS_KEY_ID,
+    aws_secret_access_key=AWS_SECRET_ACCESS_KEY
+)
+
+drive_s3 = s3.Bucket(BUCKET_NAME)
 
 
 def generate_random_string() -> str:
