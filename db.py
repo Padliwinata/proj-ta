@@ -213,7 +213,7 @@ def hide_user(key: str):
             sql = "SELECT * FROM users WHERE data_key = %s"
             cursor.execute(sql, (key,))
             user_data = cursor.fetchone()
-            alter_query = "UPDATE users SET is_active = %s WHERE data_key = %s"
+            alter_query = "UPDATE users SET is_show = %s WHERE data_key = %s"
             if user_data['is_show']:
                 status = 0
             else:
