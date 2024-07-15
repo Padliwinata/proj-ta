@@ -506,7 +506,8 @@ async def get_admin_list(user: User = Depends(get_user)) -> JSONResponse:
             'institusi': user.get_institution(),
             'id': data['data_key'],
             'email': data['email'],
-            'is_active': data['is_active']
+            'is_active': data['is_active'],
+            'is_show': data['is_show']
         })
 
     response = CustomResponse(
