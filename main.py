@@ -31,7 +31,7 @@ from db import (
     get_assessment_by_key, get_points_by_assessment, get_assessment_by_institution, update_assessment_by_key,
     get_user_by_institution_role, get_assessment_for_external, get_assessment_for_internal, update_user_by_key,
     get_notification_by_receiver, delete_assessment, activate_all_staff, get_assessment_all, drive_s3,
-    insert_report_beneish_m, get_report_beneish, get_report_by_id, delete_user
+    insert_report_beneish_m, get_report_beneish, get_report_by_id, delete_user, confirm_user
 )
 from dependencies import (
     authenticate_user,
@@ -181,19 +181,6 @@ async def register(data: RegisterForm) -> JSONResponse:
             status_code=status.HTTP_400_BAD_REQUEST
         )
 
-    # user_data = dict()
-    # user_data['username'] = new_data['username']
-    # user_data['full_name'] = new_data['full_name']
-    # user_data['phone'] = new_data['phone']
-    # user_data['email'] = new_data['email']
-    # user_data['password'] = new_data['password']
-    #
-    # user_data['is_active'] = False
-    # user_data['id_institution'] = institution_key
-    # new_user = User(**user_data)
-    # new_user.password = data.password.get_secret_value().encode('utf-8')
-    # res = db_user.put(json.loads(new_user.json()))
-
     user_key = insert_new_user(
         username=new_data['username'],
         password=new_data['password'].get_secret_value().encode('utf-8'),
@@ -201,7 +188,7 @@ async def register(data: RegisterForm) -> JSONResponse:
         email=new_data['email'],
         phone=new_data['phone'],
         is_active=False,
-        is_show=True,
+        is_show=False,
         id_institution=institution_key,
         role='admin'
     )
@@ -227,6 +214,23 @@ async def register(data: RegisterForm) -> JSONResponse:
     return JSONResponse(
         response.dict(),
         status_code=status.HTTP_201_CREATED
+    )
+
+
+@router.post('/confirm', tags=['General - Super Admin'])
+async def confirm_register_user(key: str, user: UserDB = Depends(get_user)) -> JSONResponse:
+    if user.role != 'super_admin':
+        return create_response("Forbidden Access", False, status.HTTP_403_FORBIDDEN, {'role': user.role})
+
+    res = confirm_user(key)
+    if not res:
+        return create_response("User Not Found", False, status.HTTP_404_NOT_FOUND)
+
+    return create_response(
+        message="Confirm User Success",
+        success=True,
+        status_code=status.HTTP_200_OK,
+        data=res
     )
 
 
@@ -459,7 +463,7 @@ async def alternate_staff_status(user_key: str, user: User = Depends(get_user)) 
     return create_response("Success altering user status", True, status.HTTP_200_OK, existing_user)
 
 
-@router.delete('/hide', tags=['General - Super Admin'])
+@router.delete('/reject', tags=['General - Super Admin'])
 async def delete_registering_admin(key: str, user: UserDB = Depends(get_user)) -> JSONResponse:
     if user.role != 'super_admin':
         return create_response("Forbidden Access", False, status.HTTP_403_FORBIDDEN, {'role': user.role})

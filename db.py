@@ -41,6 +41,26 @@ def generate_random_string() -> str:
     return random_string
 
 
+def get_user_not_confirmed():
+    connection = pymysql.connect(host=DB_HOST,
+                                 user=DB_USERNAME,
+                                 password=DB_PASSWORD,
+                                 database=DB_NAME,
+                                 cursorclass=pymysql.cursors.DictCursor)
+
+    try:
+        with connection.cursor() as cursor:
+            sql = "SELECT * FROM users WHERE is_show = 0"
+            cursor.execute(sql)
+            user_data = cursor.fetchall()
+            return user_data
+    except pymysql.MySQLError as e:
+        print(f"Error: {e}")
+        return None
+    finally:
+        connection.close()
+
+
 def get_user_by_institution_role(id_institution: str, role: str):
     connection = pymysql.connect(host=DB_HOST,
                                  user=DB_USERNAME,
@@ -194,6 +214,26 @@ def get_all_user_by_role(role: str):
             cursor.execute(sql, (role,))
             user_data = cursor.fetchall()
             return user_data
+    except pymysql.MySQLError as e:
+        print(f"Error: {e}")
+        return None
+    finally:
+        connection.close()
+
+
+def confirm_user(key: str):
+    connection = pymysql.connect(host=DB_HOST,
+                                 user=DB_USERNAME,
+                                 password=DB_PASSWORD,
+                                 database=DB_NAME,
+                                 cursorclass=pymysql.cursors.DictCursor)
+
+    try:
+        with connection.cursor() as cursor:
+            sql = "UPDATE users SET is_show = 1 WHERE data_key = %s"
+            cursor.execute(sql, (key,))
+            connection.commit()
+            return key
     except pymysql.MySQLError as e:
         print(f"Error: {e}")
         return None
