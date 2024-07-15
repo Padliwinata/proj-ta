@@ -437,7 +437,7 @@ async def register_staff(data: AddUser, user: User = Depends(get_user)) -> JSONR
 
 @router.patch('/alter', tags=['General - Admin'])
 async def alternate_staff_status(user_key: str, user: User = Depends(get_user)) -> JSONResponse:
-    if user.role != 'admin':
+    if user.role not in ['admin', 'super_admin']:
         return create_response("Forbidden Access", False, status.HTTP_403_FORBIDDEN, {'role': user.role})
     if not user_key:
         return create_response("Missing user key", False, status.HTTP_400_BAD_REQUEST)
@@ -459,7 +459,7 @@ async def alternate_staff_status(user_key: str, user: User = Depends(get_user)) 
     return create_response("Success altering user status", True, status.HTTP_200_OK, existing_user)
 
 
-@router.patch('/hide', tags=['General - Super Admin'])
+@router.delete('/hide', tags=['General - Super Admin'])
 async def delete_registering_admin(key: str, user: UserDB = Depends(get_user)) -> JSONResponse:
     if user.role != 'super_admin':
         return create_response("Forbidden Access", False, status.HTTP_403_FORBIDDEN, {'role': user.role})
