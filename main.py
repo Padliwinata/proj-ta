@@ -648,7 +648,7 @@ async def upload_proof_point(request: Request,
 
         new_proof = Proof(
             id_user=user.data_key,
-            url=f"{request.url.hostname}/file/{filename}",
+            url=f"{request.url.hostname}/api/actualfile/{filename}",
             file_name=filename
         )
 
@@ -802,7 +802,7 @@ async def update_assessment(request: Request,
                 status_code=status.HTTP_400_BAD_REQUEST
             )
 
-    filename = f"{user.get_institution()['data_key']}_{metadata.bab}_{metadata.sub_bab.replace('.', '')}_{metadata.point}.pdf"
+    filename = f"{existing_assessment_data['data_key']}_{metadata.bab}_{metadata.sub_bab.replace('.', '')}_{metadata.point}.pdf"
     if file:
         try:
             obj = drive_s3.Object(bucket_name=BUCKET_NAME, key=filename)
@@ -926,7 +926,7 @@ async def upload_proofs_point(request: Request,
 
     new_proof = Proof(
         id_user=user.data_key,
-        url=f"{request.url.hostname}/file/{filename}",
+        url=f"{request.url.hostname}/api/actualfile/{filename}",
         file_name=filename
     )
 
