@@ -149,6 +149,7 @@ class Point(BaseModel):
     point: float
     answer: float
     skor: typing.Optional[float]
+    skor_external: typing.Optional[float]
     id_proof: typing.Union[Proof, str, None]
 
 
@@ -234,7 +235,6 @@ class ReportInput(BaseModel):
     ppe_1: float
     securities_1: float
     total_asset_1: float
-    # current_liabilities_1: float
     total_ltd_1: float
     cash_flow_operate_1: float
     revenue_2: float
@@ -247,7 +247,6 @@ class ReportInput(BaseModel):
     ppe_2: float
     securities_2: float
     total_asset_2: float
-    # current_liabilities_2: float
     total_ltd_2: float
     cash_flow_operate_2: float
     tahun_1: float
@@ -257,6 +256,15 @@ class ReportInput(BaseModel):
 
 class Report(ReportInput):
     id_institution: str
+    beneish_m: float
+    # tanggal: datetime
+
+
+class ReportList(BaseModel):
+    nama: str
+    tahun_1: int
+    tahun_2: str
+    tanggal: typing.Union[str, datetime, None]
     beneish_m: float
 
 

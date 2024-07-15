@@ -1,11 +1,13 @@
+import datetime
 import random
 import string
 from typing import Optional, Dict, Any
 
+import boto3
 import deta
 import pymysql.cursors
 
-from settings import DATA_KEY, DB_HOST, DB_NAME, DB_PASSWORD, DB_USERNAME
+from settings import DATA_KEY, DB_HOST, DB_NAME, DB_PASSWORD, DB_USERNAME, ENDPOINT_URL, AWS_SECRET_ACCESS_KEY, AWS_ACCESS_KEY_ID, BUCKET_NAME
 
 
 deta_obj = deta.Deta(DATA_KEY)
@@ -21,6 +23,16 @@ db_assessment = deta_obj.Base("assessment")
 db_notification = deta_obj.Base("notification")
 
 drive = deta_obj.Drive("document")
+
+
+s3 = boto3.resource(
+    's3',
+    endpoint_url=ENDPOINT_URL,
+    aws_access_key_id=AWS_ACCESS_KEY_ID,
+    aws_secret_access_key=AWS_SECRET_ACCESS_KEY
+)
+
+drive_s3 = s3.Bucket(BUCKET_NAME)
 
 
 def generate_random_string() -> str:
@@ -837,7 +849,8 @@ def update_points_by_key(data: Dict[str, Any], key: str):
                 sub_bab = %s,
                 point = %s,
                 answer = %s,
-                skor = %s
+                skor = %s,
+                skor_external = %s
             WHERE data_key = %s
             """
             query_params = (
@@ -848,6 +861,7 @@ def update_points_by_key(data: Dict[str, Any], key: str):
                 data['point'],
                 data['answer'],
                 data['skor'],
+                data['skor_external'],
                 key
             )
             cursor.execute(sql, query_params)
@@ -959,6 +973,105 @@ def insert_new_point(data: Dict[str, Any]):
     except pymysql.MySQLError as e:
         print(f"Error: {e}")
         connection.rollback()
+        return None
+    finally:
+        connection.close()
+
+
+def insert_report_beneish_m(data: Dict[str, Any]):
+    connection = pymysql.connect(host=DB_HOST,
+                                 user=DB_USERNAME,
+                                 password=DB_PASSWORD,
+                                 database=DB_NAME,
+                                 cursorclass=pymysql.cursors.DictCursor)
+    try:
+        with connection.cursor() as cursor:
+            sql = """
+                INSERT INTO reports (
+                    data_key, id_user, revenue_1, cogs_1, sgae_1, depreciation_1, net_continuous_1, 
+                    account_receivables_1, current_assets_1, ppe_1, securities_1, total_asset_1, 
+                    total_ltd_1, cash_flow_operate_1, revenue_2, cogs_2, sgae_2, depreciation_2, 
+                    net_continuous_2, account_receivables_2, current_assets_2, ppe_2, securities_2, 
+                    total_asset_2, total_ltd_2, cash_flow_operate_2, tahun_1, tahun_2, id_institution, 
+                    beneish_m, tanggal, dsri, gmi, aqi, sgi, depi, sgai, lvgi, tata
+                ) VALUES (
+                    %(data_key)s, %(id_user)s, %(revenue_1)s, %(cogs_1)s, %(sgae_1)s, %(depreciation_1)s, %(net_continuous_1)s, 
+                    %(account_receivables_1)s, %(current_assets_1)s, %(ppe_1)s, %(securities_1)s, %(total_asset_1)s, 
+                    %(total_ltd_1)s, %(cash_flow_operate_1)s, %(revenue_2)s, %(cogs_2)s, %(sgae_2)s, %(depreciation_2)s, 
+                    %(net_continuous_2)s, %(account_receivables_2)s, %(current_assets_2)s, %(ppe_2)s, %(securities_2)s, 
+                    %(total_asset_2)s, %(total_ltd_2)s, %(cash_flow_operate_2)s, %(tahun_1)s, %(tahun_2)s, %(id_institution)s, 
+                    %(beneish_m)s, %(tanggal)s, %(dsri)s, %(gmi)s, %(aqi)s, %(sgi)s, %(depi)s, %(sgai)s, %(lvgi)s, %(tata)s
+                )
+                """
+            data_key = generate_random_string()
+            data['data_key'] = data_key
+            cursor.execute(sql, data)
+            connection.commit()
+            return data_key
+    except pymysql.MySQLError as e:
+        print(f"Error: {e}")
+        connection.rollback()
+        return None
+    finally:
+        connection.close()
+
+
+def get_report_by_id(key: str):
+    connection = pymysql.connect(host=DB_HOST,
+                                 user=DB_USERNAME,
+                                 password=DB_PASSWORD,
+                                 database=DB_NAME,
+                                 cursorclass=pymysql.cursors.DictCursor)
+
+    try:
+        with connection.cursor() as cursor:
+            sql = """
+                    SELECT
+                        *
+                    FROM 
+                        reports
+                    WHERE
+                        data_key = %s;
+                    """
+            cursor.execute(sql, (key, ))
+            user_data = cursor.fetchone()
+            return user_data
+    except pymysql.MySQLError as e:
+        print(f"Error: {e}")
+        return None
+    finally:
+        connection.close()
+
+
+def get_report_beneish():
+    connection = pymysql.connect(host=DB_HOST,
+                                 user=DB_USERNAME,
+                                 password=DB_PASSWORD,
+                                 database=DB_NAME,
+                                 cursorclass=pymysql.cursors.DictCursor)
+
+    try:
+        with connection.cursor() as cursor:
+            sql = """
+                SELECT
+                    reports.data_key,
+                    users.full_name,
+                    reports.tahun_1,
+                    reports.tahun_2,
+                    reports.tanggal,
+                    reports.beneish_m
+                FROM 
+                    reports
+                JOIN
+                    users
+                ON
+                    reports.id_user = users.data_key;
+                """
+            cursor.execute(sql)
+            user_data = cursor.fetchall()
+            return user_data
+    except pymysql.MySQLError as e:
+        print(f"Error: {e}")
         return None
     finally:
         connection.close()

@@ -30,7 +30,8 @@ from db import (
     get_proof_by_filename, get_points_by_proof_filename, insert_new_assessment, get_points_by_assessment_sub_bab,
     get_assessment_by_key, get_points_by_assessment, get_assessment_by_institution, update_assessment_by_key,
     get_user_by_institution_role, get_assessment_for_external, get_assessment_for_internal, update_user_by_key,
-    get_notification_by_receiver, delete_assessment, activate_all_staff, get_assessment_all
+    get_notification_by_receiver, delete_assessment, activate_all_staff, get_assessment_all, drive_s3,
+    insert_report_beneish_m, get_report_beneish, get_report_by_id
 )
 from dependencies import (
     authenticate_user,
@@ -63,7 +64,7 @@ from models import (
     Event, ReportInput, ReportResult, PointDB
 )
 from seeder import seed, delete_db, seed_assessment
-from settings import SECRET_KEY, MAX_FILE_SIZE, DEVELOPMENT
+from settings import SECRET_KEY, MAX_FILE_SIZE, DEVELOPMENT, BUCKET_NAME
 
 from utils import encrypt_password, remove_dict_duplicates
 
@@ -666,7 +667,8 @@ async def upload_proof_point(request: Request,
 
     proof_key = None
     if new_proof:
-        drive.put(filename, content)
+        # drive.put(filename, content)
+        drive_s3.put_object(Key=filename, Body=content)
         # db_proof.put(new_proof.dict())
         proof_key = insert_new_proof(new_proof.id_user, new_proof.url, new_proof.file_name)
 
@@ -774,17 +776,24 @@ async def update_assessment(request: Request,
 
     filename = f"{user.get_institution()['data_key']}_{metadata.bab}_{metadata.sub_bab.replace('.', '')}_{metadata.point}.pdf"
     if file:
-        drive.delete(filename)
-        drive.put(filename, content)
-        if not actual_point.proof:
+        try:
+            obj = drive_s3.Object(bucket_name=BUCKET_NAME, key=filename)
+            obj.delete()
+        finally:
+            pass
+
+        # drive.delete(filename)
+        # drive.put(filename, content)
+        drive_s3.put_object(Key=filename, Body=content)
+        if not actual_point.id_proof:
             new_proof = Proof(
                 id_user=user.data_key,
                 url=f"{request.url.hostname}/api/actualfile/{filename}",
                 file_name=filename
             )
 
-            actual_point.proof = new_proof
-            insert_new_proof(new_proof.id_user, new_proof.url, new_proof.file_name)
+            # actual_point.id_proof = new_proof
+            actual_point.id_proof = insert_new_proof(new_proof.id_user, new_proof.url, new_proof.file_name)
             # db_proof.put(new_proof.dict())
 
     actual_point.answer = metadata.answer
@@ -823,17 +832,22 @@ async def delete_proof(filename: str, user: UserDB = Depends(get_user)) -> JSONR
 
     # existing_proof = db_proof.fetch({'file_name': filename})
     existing_proof = get_proof_by_filename(filename)
-    if existing_proof.count == 0:
+    if not existing_proof:
         return create_response(
             message="Proof not found",
             status_code=status.HTTP_404_NOT_FOUND,
             success=False
         )
 
-    actual_proof = existing_proof.items[0]
+    actual_proof = existing_proof
     # db_proof.delete(actual_proof['data_key'])
     delete_proof_by_key(actual_proof['data_key'])
-    drive.delete(filename)
+    # drive.delete(filename)
+    try:
+        obj = drive_s3.Object(bucket_name=BUCKET_NAME, key=filename)
+        obj.delete()
+    finally:
+        pass
 
     # existing_point = db_point.fetch({'proof.file_name': filename})
     existing_point = get_points_by_proof_filename(filename)
@@ -846,6 +860,7 @@ async def delete_proof(filename: str, user: UserDB = Depends(get_user)) -> JSONR
         )
 
     # actual_point = existing_point.items[0]
+    # id_proof = existing_proof['data_key']
     existing_point['id_proof'] = None
 
     key = existing_point['data_key']
@@ -951,13 +966,23 @@ async def delete_database() -> JSONResponse:
 
 @router.get("/file/{filename}", tags=['General'])
 async def get_file(filename: str, request: Request) -> JSONResponse:
-    response = drive.get(filename)
-    if not response:
+    try:
+        obj = drive_s3.Object(bucket_name='proof', key=filename)
+        obj.get()
+    except Exception as e:
         return create_response(
             message="File not found",
             success=False,
             status_code=status.HTTP_404_NOT_FOUND
         )
+    # response = drive.get(filename)
+    # if not response:
+    #     return create_response(
+    #         message="File not found",
+    #         success=False,
+    #         status_code=status.HTTP_404_NOT_FOUND
+    #     )
+
     return create_response(
         message="Fetch file success",
         success=True,
@@ -968,10 +993,18 @@ async def get_file(filename: str, request: Request) -> JSONResponse:
 
 @router.get("/actualfile/{filename}", include_in_schema=False)
 async def get_actual_file(filename: str) -> Response:
-    response = drive.get(filename)
-    content = response.read()
+    # response = drive.get(filename)
+    response = drive_s3.Object(bucket_name=BUCKET_NAME, key=filename)
+    if not response:
+        return create_response(
+            message="File not found",
+            success=False,
+            status_code=status.HTTP_404_NOT_FOUND
+        )
+    # content = response.read()
 
-    file_like = io.BytesIO(content).getvalue()
+    # file_like = io.BytesIO(content).getvalue()
+    file_like = response.get()['Body']
 
     # headers = {
     #     'Content-Disposition': f'attachment; filename="{filename}"'
@@ -1108,7 +1141,10 @@ async def get_assessment_detail(key: str, sub_bab: str, user: UserDB = Depends(g
 
     point_data = []
     for data in existing_point:
-        proof = Proof(**data)
+        proof = None
+        if data['id_user']:
+            proof = Proof(**data)
+        # proof = Proof(**data)
         point = Point(**data)
         point.id_proof = proof
         point_data.append(point)
@@ -1159,13 +1195,19 @@ async def get_assessment_insight(key: str, user: UserDB = Depends(get_user)) -> 
     # print(json.dumps(points, indent=4))
 
     for key, value in points.items():
-        existing_skor = len([skor['skor'] for skor in value if isinstance(skor['skor'], (int, float))])
+        existing_skor_internal = len([skor['skor'] for skor in value if isinstance(skor['skor'], (int, float))])
+        existing_skor_external = len([skor['skor_external'] for skor in value if isinstance(skor['skor_external'], (int, float))])
         # print(f"{existing_skor}: {question_number[bab.index(key)]}")
         # print([skor['skor'] for skor in value])
-        if existing_skor == question_number[bab.index(key)]:
-            points[key] = sum([skor['skor'] for skor in value])
+        if existing_skor_internal == question_number[bab.index(key)]:
+            points[key] = [sum([skor['skor'] for skor in value])]
         else:
-            points[key] = None
+            points[key] = [None]
+
+        if existing_skor_external == question_number[bab.index(key)]:
+            points[key].append(sum([skor['skor_external'] for skor in value]))
+        else:
+            points[key].append(None)
 
     assessment = AssessmentDB(**existing_assessment).get_all_dict()
 
@@ -1348,8 +1390,15 @@ async def get_beneish_score(data: ReportInput, user: UserDB = Depends(get_user))
     report['sgai'] = sgai
     report['lvgi'] = lvgi
     report['tata'] = tata
+    report['tanggal'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    report['id_user'] = user.data_key
     report_object = Report(**report)
-    db_report.insert(report_object.dict())
+    report_dict = report_object.dict()
+    report_dict['tanggal'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    report_dict['id_user'] = user.data_key
+
+    insert_report_beneish_m(report)
+    # db_report.insert(report_object.dict())
 
     report_result = ReportResult(**report)
     return create_response(
@@ -1357,6 +1406,53 @@ async def get_beneish_score(data: ReportInput, user: UserDB = Depends(get_user))
         success=True,
         status_code=status.HTTP_201_CREATED,
         data=report_result.dict()
+    )
+
+
+@router.get('/report', tags=['Detection - Admin'])
+async def get_report_list(user: UserDB = Depends(get_user)) -> JSONResponse:
+    if user.role not in ['admin', 'staff']:
+        return create_response(
+            message="Forbidden access",
+            success=False,
+            status_code=status.HTTP_403_FORBIDDEN
+        )
+
+    reports = get_report_beneish()
+    for report in reports:
+        report['tanggal'] = report['tanggal'].strftime('%Y-%m-%d %H:%M:%S')
+
+    return create_response(
+        message="Fetch data success",
+        success=True,
+        status_code=status.HTTP_200_OK,
+        data=reports
+    )
+
+
+@router.get('/report/{key}')
+async def get_report_by_key(key: str, user: UserDB = Depends(get_user)) -> JSONResponse:
+    if user.role not in ['admin', 'staff']:
+        return create_response(
+            message="Forbidden access",
+            success=False,
+            status_code=status.HTTP_403_FORBIDDEN
+        )
+
+    report = get_report_by_id(key)
+    if not report:
+        return create_response(
+            message="Data not found",
+            success=False,
+            status_code=status.HTTP_404_NOT_FOUND
+        )
+    report['tanggal'] = report['tanggal'].strftime('%Y-%m-%d %H:%M:%S')
+
+    return create_response(
+        message="Fetch data success",
+        success=True,
+        status_code=status.HTTP_200_OK,
+        data=report
     )
 
 
@@ -1417,7 +1513,10 @@ async def finish_reviewing(id_assessment: str, user: UserDB = Depends(get_user))
 
     # existing_points = db_point.fetch({'id_assessment': id_assessment})
     existing_points = get_points_by_assessment(id_assessment)
-    total = sum([skor['skor'] for skor in existing_points])
+    if external:
+        total = sum([skor['skor_external'] for skor in existing_points])
+    else:
+        total = sum([skor['skor'] for skor in existing_points])
 
     if external:
         existing_assessment['hasil_external'] = total
@@ -1571,8 +1670,12 @@ async def evaluate_assessment(data: AssessmentEval, user: UserDB = Depends(get_u
         )
 
     sorted_points = sorted(existing_points, key=lambda x: x['point'])
-    for i in range(len(sorted_points)):
-        sorted_points[i]['skor'] = float(data.skor[i]) if data.skor[i] != '-' else None
+    if external:
+        for i in range(len(sorted_points)):
+            sorted_points[i]['skor_external'] = float(data.skor[i]) if data.skor[i] != '-' else None
+    else:
+        for i in range(len(sorted_points)):
+            sorted_points[i]['skor'] = float(data.skor[i]) if data.skor[i] != '-' else None
 
     for point in sorted_points:
         to_update = PointDB(**point)
