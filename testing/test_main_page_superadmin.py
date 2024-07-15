@@ -90,6 +90,26 @@ class TestVerifyAdmin(unittest.TestCase):
             assert updated_user_data["is_active"] == (not is_active)
         else:
             print("The user is already inactive, no action taken.")
+            
+    def test_superadmin_get_admin_list(self): #FR-SUP-03
+        login_response = client.post(
+        "/api/auth",
+        data={"username": "username", "password": "password"}
+    )
+        access_token = login_response.json()["data"]["access_token"]
+    
+        response = client.get(
+        "/api/admin",
+        headers={"Authorization": f"Bearer {access_token}"}
+    )
+        
+        print(response.status_code)
+        print(response.json())
+
+        
+        assert response.status_code == 200
+        assert response.json()["success"] is True
+        
 
 if __name__ == "__main__":
     runner = HTMLTestRunner(
