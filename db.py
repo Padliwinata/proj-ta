@@ -201,7 +201,7 @@ def get_all_user_by_role(role: str):
         connection.close()
 
 
-def hide_user(key: str):
+def delete_user(key: str):
     connection = pymysql.connect(host=DB_HOST,
                                  user=DB_USERNAME,
                                  password=DB_PASSWORD,
@@ -210,18 +210,10 @@ def hide_user(key: str):
 
     try:
         with connection.cursor() as cursor:
-            sql = "SELECT * FROM users WHERE data_key = %s"
+            sql = "DELETE FROM users WHERE data_key = %s"
             cursor.execute(sql, (key,))
-            user_data = cursor.fetchone()
-            alter_query = "UPDATE users SET is_show = %s WHERE data_key = %s"
-            if user_data['is_show']:
-                status = 0
-            else:
-                status = 1
-            cursor.execute(alter_query, (status, key))
             connection.commit()
-            user_data['is_show'] = not user_data['is_show']
-            return user_data
+            return key
     except pymysql.MySQLError as e:
         print(f"Error: {e}")
         return None
