@@ -652,9 +652,6 @@ async def upload_proof_point(request: Request,
             file_name=filename
         )
 
-
-
-    # existing_assessment_data = db_assessment.fetch({'id_admin': user.data_key, 'selesai': False})
     assessment_data = get_unfinished_assessments_by_institution(user.id_institution)
     # print(assessment_data)
 
@@ -668,7 +665,6 @@ async def upload_proof_point(request: Request,
     # assessment_data = existing_assessment_data.items[0]
     # assessment_data = AssessmentDB()
 
-    # existing_points = db_point.fetch({'id_assessment': assessment_data.key, 'bab': metadata.bab, 'sub_bab': metadata.sub_bab, 'point': metadata.point})
     existing_points = get_points_by_all(assessment_data['data_key'], metadata.bab, metadata.sub_bab,
                                         metadata.point)
 
