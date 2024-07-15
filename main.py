@@ -31,7 +31,7 @@ from db import (
     get_assessment_by_key, get_points_by_assessment, get_assessment_by_institution, update_assessment_by_key,
     get_user_by_institution_role, get_assessment_for_external, get_assessment_for_internal, update_user_by_key,
     get_notification_by_receiver, delete_assessment, activate_all_staff, get_assessment_all, drive_s3,
-    insert_report_beneish_m, get_report_beneish, get_report_by_id
+    insert_report_beneish_m, get_report_beneish, get_report_by_id, hide_user
 )
 from dependencies import (
     authenticate_user,
@@ -201,6 +201,7 @@ async def register(data: RegisterForm) -> JSONResponse:
         email=new_data['email'],
         phone=new_data['phone'],
         is_active=False,
+        is_show=True,
         id_institution=institution_key,
         role='admin'
     )
@@ -456,6 +457,27 @@ async def alternate_staff_status(user_key: str, user: User = Depends(get_user)) 
     existing_user['is_active'] = not existing_user['is_active']
 
     return create_response("Success altering user status", True, status.HTTP_200_OK, existing_user)
+
+
+@router.patch('/hide', tags=['General - Super Admin'])
+async def hide_registering_admin(key: str, user: UserDB = Depends(get_user)) -> JSONResponse:
+    if user.role != 'super_admin':
+        return create_response("Forbidden Access", False, status.HTTP_403_FORBIDDEN, {'role': user.role})
+    if not key:
+        return create_response("Missing user key", False, status.HTTP_400_BAD_REQUEST)
+
+    existing_user = get_user_by_key(key)
+    if not existing_user:
+        return create_response(
+            message="User not found",
+            success=False,
+            status_code=status.HTTP_400_BAD_REQUEST
+        )
+
+    hide_user(key)
+    existing_user['is_show'] = not existing_user['is_show']
+
+    return create_response("Success altering user appearance", True, status.HTTP_200_OK, existing_user)
 
 
 @router.get("/admin", tags=['General - Super Admin'])
