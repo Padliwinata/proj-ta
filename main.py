@@ -860,6 +860,7 @@ async def delete_proof(filename: str, user: UserDB = Depends(get_user)) -> JSONR
 
     # existing_proof = db_proof.fetch({'file_name': filename})
     existing_proof = get_proof_by_filename(filename)
+    existing_point = get_points_by_proof_filename(filename)
     if not existing_proof:
         return create_response(
             message="Proof not found",
@@ -869,6 +870,7 @@ async def delete_proof(filename: str, user: UserDB = Depends(get_user)) -> JSONR
 
     actual_proof = existing_proof
     # db_proof.delete(actual_proof['data_key'])
+    # print(actual_proof)
     delete_proof_by_key(actual_proof['data_key'])
     # drive.delete(filename)
     try:
@@ -878,14 +880,13 @@ async def delete_proof(filename: str, user: UserDB = Depends(get_user)) -> JSONR
         pass
 
     # existing_point = db_point.fetch({'proof.file_name': filename})
-    existing_point = get_points_by_proof_filename(filename)
-    if not existing_point:
-        return create_response(
-            message="Proof successfully deleted without updating point",
-            status_code=status.HTTP_200_OK,
-            success=True,
-            data=actual_proof
-        )
+    # if not existing_point:
+    #     return create_response(
+    #         message="Proof successfully deleted without updating point",
+    #         status_code=status.HTTP_200_OK,
+    #         success=True,
+    #         data=actual_proof
+    #     )
 
     # actual_point = existing_point.items[0]
     # id_proof = existing_proof['data_key']

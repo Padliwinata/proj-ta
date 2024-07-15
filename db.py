@@ -838,9 +838,10 @@ def get_points_by_proof_filename(filename: str):
             sql = """
             SELECT points.*
             FROM points
-            JOIN proof ON points.id_proof = proof.data_key
+            LEFT JOIN proof ON points.id_proof = proof.data_key
             WHERE proof.file_name = %s
             """
+
             cursor.execute(sql, (filename,))
             user_data = cursor.fetchone()
             return user_data
