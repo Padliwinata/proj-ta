@@ -1701,9 +1701,11 @@ async def evaluate_assessment(data: AssessmentEval, user: UserDB = Depends(get_u
     if external:
         for i in range(len(sorted_points)):
             sorted_points[i]['skor_external'] = float(data.skor[i]) if data.skor[i] != '-' else None
+            sorted_points[i]['tepat_external'] = data.tepat[i]
     else:
         for i in range(len(sorted_points)):
             sorted_points[i]['skor'] = float(data.skor[i]) if data.skor[i] != '-' else None
+            sorted_points[i]['tepat'] = data.tepat[i]
 
     for point in sorted_points:
         to_update = PointDB(**point)

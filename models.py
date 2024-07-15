@@ -150,7 +150,9 @@ class Point(BaseModel):
     point: float
     answer: float
     skor: typing.Optional[float]
+    tepat: typing.Optional[bool]
     skor_external: typing.Optional[float]
+    tepat_external: typing.Optional[bool]
     id_proof: typing.Union[Proof, str, None]
 
 
@@ -222,6 +224,7 @@ class AssessmentDB(Assessment):
 class AssessmentEval(BaseModel):
     id_assessment: str
     sub_bab: str
+    tepat: typing.List[bool]
     skor: typing.List[str]
 
 
