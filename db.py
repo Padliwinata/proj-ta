@@ -201,6 +201,26 @@ def get_all_user_by_role(role: str):
         connection.close()
 
 
+def delete_user(key: str):
+    connection = pymysql.connect(host=DB_HOST,
+                                 user=DB_USERNAME,
+                                 password=DB_PASSWORD,
+                                 database=DB_NAME,
+                                 cursorclass=pymysql.cursors.DictCursor)
+
+    try:
+        with connection.cursor() as cursor:
+            sql = "DELETE FROM users WHERE data_key = %s"
+            cursor.execute(sql, (key,))
+            connection.commit()
+            return key
+    except pymysql.MySQLError as e:
+        print(f"Error: {e}")
+        return None
+    finally:
+        connection.close()
+
+
 def alter_user_status(key: str):
     connection = pymysql.connect(host=DB_HOST,
                                  user=DB_USERNAME,
@@ -323,7 +343,8 @@ def insert_new_user(username: str,
                     phone: str,
                     role: str,
                     id_institution: str,
-                    is_active: bool) -> Optional[str]:
+                    is_active: bool,
+                    is_show: bool) -> Optional[str]:
     connection = pymysql.connect(host=DB_HOST,
                                  user=DB_USERNAME,
                                  password=DB_PASSWORD,
@@ -333,13 +354,13 @@ def insert_new_user(username: str,
         with connection.cursor() as cursor:
             sql = """
                 INSERT INTO users
-                (data_key, id_institution, username, full_name, password, email, role, is_active, phone)
+                (data_key, id_institution, username, full_name, password, email, role, is_active, is_show, phone)
                 VALUES
-                (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 """
             data_key = generate_random_string()
             cursor.execute(sql, (data_key, id_institution, username, full_name,
-                                 password, email, role, is_active, phone))
+                                 password, email, role, is_active, is_show, phone))
             connection.commit()
             return data_key
     except pymysql.MySQLError as e:

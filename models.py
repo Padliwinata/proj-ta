@@ -80,6 +80,7 @@ class User(BaseModel):
     role: UserRole = UserRole.admin
     id_institution: str
     is_active: bool
+    is_show: typing.Optional[bool]
     phone: str
 
     def get_institution(self) -> typing.Dict[str, typing.Any]:
