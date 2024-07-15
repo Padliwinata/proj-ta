@@ -230,7 +230,7 @@ async def confirm_register_user(key: str, user: UserDB = Depends(get_user)) -> J
         message="Confirm User Success",
         success=True,
         status_code=status.HTTP_200_OK,
-        data=res
+        data={'id_user': res}
     )
 
 
@@ -639,16 +639,20 @@ async def upload_proof_point(request: Request,
         else:
             content = await file.read()
 
+    existing_assessment_data = get_unfinished_assessments_by_institution(user.id_institution)
+
     filename = ''
     new_proof = None
     if file:
-        filename = f"{user.get_institution()['data_key']}_{metadata.bab}_{metadata.sub_bab.replace('.', '')}_{metadata.point}.pdf"
+        filename = f"{existing_assessment_data['data_key']}_{metadata.bab}_{metadata.sub_bab.replace('.', '')}_{metadata.point}.pdf"
 
         new_proof = Proof(
             id_user=user.data_key,
             url=f"{request.url.hostname}/file/{filename}",
             file_name=filename
         )
+
+
 
     # existing_assessment_data = db_assessment.fetch({'id_admin': user.data_key, 'selesai': False})
     assessment_data = get_unfinished_assessments_by_institution(user.id_institution)
@@ -691,12 +695,14 @@ async def upload_proof_point(request: Request,
             status_code=status.HTTP_400_BAD_REQUEST
         )
 
-    proof_key = None
-    if new_proof:
-        # drive.put(filename, content)
-        drive_s3.put_object(Key=filename, Body=content)
-        # db_proof.put(new_proof.dict())
-        proof_key = insert_new_proof(new_proof.id_user, new_proof.url, new_proof.file_name)
+    existing_proof_data = get_proof_by_filename(filename)
+    if not existing_proof_data:
+        proof_key = None
+        if new_proof:
+            # drive.put(filename, content)
+            drive_s3.put_object(Key=filename, Body=content)
+            # db_proof.put(new_proof.dict())
+            proof_key = insert_new_proof(new_proof.id_user, new_proof.url, new_proof.file_name)
 
     # print(metadata)
 
