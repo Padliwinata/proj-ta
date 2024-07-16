@@ -41,6 +41,26 @@ def generate_random_string() -> str:
     return random_string
 
 
+def get_user_not_confirmed():
+    connection = pymysql.connect(host=DB_HOST,
+                                 user=DB_USERNAME,
+                                 password=DB_PASSWORD,
+                                 database=DB_NAME,
+                                 cursorclass=pymysql.cursors.DictCursor)
+
+    try:
+        with connection.cursor() as cursor:
+            sql = "SELECT * FROM users WHERE is_show = 0"
+            cursor.execute(sql)
+            user_data = cursor.fetchall()
+            return user_data
+    except pymysql.MySQLError as e:
+        print(f"Error: {e}")
+        return None
+    finally:
+        connection.close()
+
+
 def get_user_by_institution_role(id_institution: str, role: str):
     connection = pymysql.connect(host=DB_HOST,
                                  user=DB_USERNAME,
@@ -194,6 +214,26 @@ def get_all_user_by_role(role: str):
             cursor.execute(sql, (role,))
             user_data = cursor.fetchall()
             return user_data
+    except pymysql.MySQLError as e:
+        print(f"Error: {e}")
+        return None
+    finally:
+        connection.close()
+
+
+def confirm_user(key: str):
+    connection = pymysql.connect(host=DB_HOST,
+                                 user=DB_USERNAME,
+                                 password=DB_PASSWORD,
+                                 database=DB_NAME,
+                                 cursorclass=pymysql.cursors.DictCursor)
+
+    try:
+        with connection.cursor() as cursor:
+            sql = "UPDATE users SET is_show = 1 WHERE data_key = %s"
+            cursor.execute(sql, (key,))
+            connection.commit()
+            return key
     except pymysql.MySQLError as e:
         print(f"Error: {e}")
         return None
@@ -798,9 +838,10 @@ def get_points_by_proof_filename(filename: str):
             sql = """
             SELECT points.*
             FROM points
-            JOIN proof ON points.id_proof = proof.data_key
+            LEFT JOIN proof ON points.id_proof = proof.data_key
             WHERE proof.file_name = %s
             """
+
             cursor.execute(sql, (filename,))
             user_data = cursor.fetchone()
             return user_data
@@ -871,7 +912,9 @@ def update_points_by_key(data: Dict[str, Any], key: str):
                 point = %s,
                 answer = %s,
                 skor = %s,
-                skor_external = %s
+                skor_external = %s,
+                tepat = %s,
+                tepat_external = %s
             WHERE data_key = %s
             """
             query_params = (
@@ -883,6 +926,8 @@ def update_points_by_key(data: Dict[str, Any], key: str):
                 data['answer'],
                 data['skor'],
                 data['skor_external'],
+                data['tepat'],
+                data['tepat_external'],
                 key
             )
             cursor.execute(sql, query_params)
@@ -1149,6 +1194,82 @@ def activate_all_staff():
         print(f"Error: {e}")
         connection.rollback()
         return False
+    finally:
+        connection.close()
+
+
+def get_all_notifications(key: str):
+    connection = pymysql.connect(host=DB_HOST,
+                                 user=DB_USERNAME,
+                                 password=DB_PASSWORD,
+                                 database=DB_NAME,
+                                 cursorclass=pymysql.cursors.DictCursor)
+    try:
+        with connection.cursor() as cursor:
+            sql = "SELECT * FROM notifications WHERE id_user = %s"
+            cursor.execute(sql, (key, ))
+            data = cursor.fetchall()
+            return data
+    except pymysql.MySQLError as e:
+        print(f"Error: {e}")
+        connection.rollback()
+        return False
+    finally:
+        connection.close()
+
+
+def get_unread_notifications(key: str):
+    connection = pymysql.connect(host=DB_HOST,
+                                 user=DB_USERNAME,
+                                 password=DB_PASSWORD,
+                                 database=DB_NAME,
+                                 cursorclass=pymysql.cursors.DictCursor)
+    try:
+        with connection.cursor() as cursor:
+            sql = "SELECT * FROM notifications WHERE id_user = %s AND is_read = 0"
+            cursor.execute(sql, (key,))
+            data = cursor.fetchall()
+            return data
+    except pymysql.MySQLError as e:
+        print(f"Error: {e}")
+        connection.rollback()
+        return False
+    finally:
+        connection.close()
+
+
+def insert_notification(id_user: str, event: str, message: str):
+    connection = pymysql.connect(host=DB_HOST,
+                                 user=DB_USERNAME,
+                                 password=DB_PASSWORD,
+                                 database=DB_NAME,
+                                 cursorclass=pymysql.cursors.DictCursor)
+    try:
+        with connection.cursor() as cursor:
+            sql = """
+            INSERT INTO notifications
+            (data_key, id_user, event, message, date, is_delete, is_read)
+            VALUES
+            (%s, %s, %s, %s, %s, %s, %s)
+            """
+            data_key = generate_random_string()
+            date = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            new_data = (
+                data_key,
+                id_user,
+                event,
+                message,
+                date,
+                0,
+                0
+            )
+            cursor.execute(sql, new_data)
+            connection.commit()
+            return data_key
+    except pymysql.MySQLError as e:
+        print(f"Error: {e}")
+        connection.rollback()
+        return None
     finally:
         connection.close()
 

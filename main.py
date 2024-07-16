@@ -31,7 +31,8 @@ from db import (
     get_assessment_by_key, get_points_by_assessment, get_assessment_by_institution, update_assessment_by_key,
     get_user_by_institution_role, get_assessment_for_external, get_assessment_for_internal, update_user_by_key,
     get_notification_by_receiver, delete_assessment, activate_all_staff, get_assessment_all, drive_s3,
-    insert_report_beneish_m, get_report_beneish, get_report_by_id, delete_user
+    insert_report_beneish_m, get_report_beneish, get_report_by_id, delete_user, confirm_user, insert_notification,
+    get_all_notifications, get_unread_notifications
 )
 from dependencies import (
     authenticate_user,
@@ -41,7 +42,7 @@ from dependencies import (
     get_payload_from_token,
     create_response,
     create_log,
-    create_notification, alter_auth
+    alter_auth
 )
 from exceptions import DependencyException
 from models import (
@@ -181,19 +182,6 @@ async def register(data: RegisterForm) -> JSONResponse:
             status_code=status.HTTP_400_BAD_REQUEST
         )
 
-    # user_data = dict()
-    # user_data['username'] = new_data['username']
-    # user_data['full_name'] = new_data['full_name']
-    # user_data['phone'] = new_data['phone']
-    # user_data['email'] = new_data['email']
-    # user_data['password'] = new_data['password']
-    #
-    # user_data['is_active'] = False
-    # user_data['id_institution'] = institution_key
-    # new_user = User(**user_data)
-    # new_user.password = data.password.get_secret_value().encode('utf-8')
-    # res = db_user.put(json.loads(new_user.json()))
-
     user_key = insert_new_user(
         username=new_data['username'],
         password=new_data['password'].get_secret_value().encode('utf-8'),
@@ -201,7 +189,7 @@ async def register(data: RegisterForm) -> JSONResponse:
         email=new_data['email'],
         phone=new_data['phone'],
         is_active=False,
-        is_show=True,
+        is_show=False,
         id_institution=institution_key,
         role='admin'
     )
@@ -224,9 +212,33 @@ async def register(data: RegisterForm) -> JSONResponse:
         message="User registered successfully",
         data=payload
     )
+
+    insert_notification(
+        id_user="1tfp6lvcegkc",
+        message="Admin baru telah daftar",
+        event="Registered User"
+    )
+
     return JSONResponse(
         response.dict(),
         status_code=status.HTTP_201_CREATED
+    )
+
+
+@router.post('/confirm', tags=['General - Super Admin'])
+async def confirm_register_user(key: str, user: UserDB = Depends(get_user)) -> JSONResponse:
+    if user.role != 'super_admin':
+        return create_response("Forbidden Access", False, status.HTTP_403_FORBIDDEN, {'role': user.role})
+
+    res = confirm_user(key)
+    if not res:
+        return create_response("User Not Found", False, status.HTTP_404_NOT_FOUND)
+
+    return create_response(
+        message="Confirm User Success",
+        success=True,
+        status_code=status.HTTP_200_OK,
+        data={'id_user': res}
     )
 
 
@@ -425,6 +437,7 @@ async def register_staff(data: AddUser, user: User = Depends(get_user)) -> JSONR
         full_name=parsed_data['full_name'],
         email=parsed_data['email'],
         is_active=parsed_data['is_active'],
+        is_show=True,
         phone=parsed_data['phone'],
         id_institution=parsed_data['id_institution'],
         role=parsed_data['role']
@@ -459,7 +472,7 @@ async def alternate_staff_status(user_key: str, user: User = Depends(get_user)) 
     return create_response("Success altering user status", True, status.HTTP_200_OK, existing_user)
 
 
-@router.delete('/hide', tags=['General - Super Admin'])
+@router.delete('/reject', tags=['General - Super Admin'])
 async def delete_registering_admin(key: str, user: UserDB = Depends(get_user)) -> JSONResponse:
     if user.role != 'super_admin':
         return create_response("Forbidden Access", False, status.HTTP_403_FORBIDDEN, {'role': user.role})
@@ -635,18 +648,19 @@ async def upload_proof_point(request: Request,
         else:
             content = await file.read()
 
+    existing_assessment_data = get_unfinished_assessments_by_institution(user.id_institution)
+
     filename = ''
     new_proof = None
     if file:
-        filename = f"{user.get_institution()['data_key']}_{metadata.bab}_{metadata.sub_bab.replace('.', '')}_{metadata.point}.pdf"
+        filename = f"{existing_assessment_data['data_key']}_{metadata.bab}_{metadata.sub_bab.replace('.', '')}_{metadata.point}.pdf"
 
         new_proof = Proof(
             id_user=user.data_key,
-            url=f"{request.url.hostname}/file/{filename}",
+            url=f"{request.url.hostname}/api/actualfile/{filename}",
             file_name=filename
         )
 
-    # existing_assessment_data = db_assessment.fetch({'id_admin': user.data_key, 'selesai': False})
     assessment_data = get_unfinished_assessments_by_institution(user.id_institution)
     # print(assessment_data)
 
@@ -660,7 +674,6 @@ async def upload_proof_point(request: Request,
     # assessment_data = existing_assessment_data.items[0]
     # assessment_data = AssessmentDB()
 
-    # existing_points = db_point.fetch({'id_assessment': assessment_data.key, 'bab': metadata.bab, 'sub_bab': metadata.sub_bab, 'point': metadata.point})
     existing_points = get_points_by_all(assessment_data['data_key'], metadata.bab, metadata.sub_bab,
                                         metadata.point)
 
@@ -687,12 +700,14 @@ async def upload_proof_point(request: Request,
             status_code=status.HTTP_400_BAD_REQUEST
         )
 
-    proof_key = None
-    if new_proof:
-        # drive.put(filename, content)
-        drive_s3.put_object(Key=filename, Body=content)
-        # db_proof.put(new_proof.dict())
-        proof_key = insert_new_proof(new_proof.id_user, new_proof.url, new_proof.file_name)
+    existing_proof_data = get_proof_by_filename(filename)
+    if not existing_proof_data:
+        proof_key = None
+        if new_proof:
+            # drive.put(filename, content)
+            drive_s3.put_object(Key=filename, Body=content)
+            # db_proof.put(new_proof.dict())
+            proof_key = insert_new_proof(new_proof.id_user, new_proof.url, new_proof.file_name)
 
     # print(metadata)
 
@@ -796,7 +811,7 @@ async def update_assessment(request: Request,
                 status_code=status.HTTP_400_BAD_REQUEST
             )
 
-    filename = f"{user.get_institution()['data_key']}_{metadata.bab}_{metadata.sub_bab.replace('.', '')}_{metadata.point}.pdf"
+    filename = f"{existing_assessment_data['data_key']}_{metadata.bab}_{metadata.sub_bab.replace('.', '')}_{metadata.point}.pdf"
     if file:
         try:
             obj = drive_s3.Object(bucket_name=BUCKET_NAME, key=filename)
@@ -854,6 +869,7 @@ async def delete_proof(filename: str, user: UserDB = Depends(get_user)) -> JSONR
 
     # existing_proof = db_proof.fetch({'file_name': filename})
     existing_proof = get_proof_by_filename(filename)
+    existing_point = get_points_by_proof_filename(filename)
     if not existing_proof:
         return create_response(
             message="Proof not found",
@@ -863,6 +879,7 @@ async def delete_proof(filename: str, user: UserDB = Depends(get_user)) -> JSONR
 
     actual_proof = existing_proof
     # db_proof.delete(actual_proof['data_key'])
+    # print(actual_proof)
     delete_proof_by_key(actual_proof['data_key'])
     # drive.delete(filename)
     try:
@@ -872,14 +889,13 @@ async def delete_proof(filename: str, user: UserDB = Depends(get_user)) -> JSONR
         pass
 
     # existing_point = db_point.fetch({'proof.file_name': filename})
-    existing_point = get_points_by_proof_filename(filename)
-    if not existing_point:
-        return create_response(
-            message="Proof successfully deleted without updating point",
-            status_code=status.HTTP_200_OK,
-            success=True,
-            data=actual_proof
-        )
+    # if not existing_point:
+    #     return create_response(
+    #         message="Proof successfully deleted without updating point",
+    #         status_code=status.HTTP_200_OK,
+    #         success=True,
+    #         data=actual_proof
+    #     )
 
     # actual_point = existing_point.items[0]
     # id_proof = existing_proof['data_key']
@@ -920,7 +936,7 @@ async def upload_proofs_point(request: Request,
 
     new_proof = Proof(
         id_user=user.data_key,
-        url=f"{request.url.hostname}/file/{filename}",
+        url=f"{request.url.hostname}/api/actualfile/{filename}",
         file_name=filename
     )
 
@@ -1026,7 +1042,7 @@ async def get_actual_file(filename: str) -> Response:
     # content = response.read()
 
     # file_like = io.BytesIO(content).getvalue()
-    file_like = response.get()['Body']
+    file_like = response.get()['Body'].read()
 
     # headers = {
     #     'Content-Disposition': f'attachment; filename="{filename}"'
@@ -1266,7 +1282,6 @@ async def get_all_assessment(user: UserDB = Depends(get_user)) -> JSONResponse:
             success=True,
             status_code=status.HTTP_200_OK
         )
-
     raw_data = [AssessmentDB(**x) for x in existing_assessments_data]
     data = [assessment.get_all_dict() for assessment in raw_data]
 
@@ -1357,18 +1372,22 @@ async def selesai_isi(request: Request, id_assessment: str, user: UserDB = Depen
         notification_receivers = get_user_by_institution_role(user.id_institution, 'reviewer')
         if len(notification_receivers) > 0:
             receivers_id = [receiver['data_key'] for receiver in notification_receivers]
-            create_notification(
-                receivers=receivers_id,
-                event=Event.submitted_assessment,
-                message="There's a new assessment to review",
-                host=request.client.host
-            )
+
 
     if assessment['tanggal_mulai']:
         assessment['tanggal_mulai'] = assessment['tanggal_mulai'].strftime('%Y-%m-%d %H:%M:%S')
 
     if assessment['tanggal_nilai']:
         assessment['tanggal_nilai'] = assessment['tanggal_nilai'].strftime('%Y-%m-%d %H:%M:%S')
+
+    receivers = get_user_by_institution_role(user.id_institution, 'reviewer')
+
+    for data in receivers:
+        insert_notification(
+            id_user=data['data_key'],
+            event="Assessment Finished",
+            message="Asesmen siap direview"
+        )
 
     return create_response(
         message="Assessment finished",
@@ -1558,6 +1577,15 @@ async def finish_reviewing(id_assessment: str, user: UserDB = Depends(get_user))
     # db_assessment.update(existing_assessment, key)
     update_assessment_by_key(existing_assessment, key)
 
+    receivers = get_user_by_institution_role(existing_assessment['id_institution'], 'admin')
+
+    for data in receivers:
+        insert_notification(
+            id_user=data['data_key'],
+            message=f"Asesmen {key} telah selesai direview",
+            event="Finished Review"
+        )
+
     return create_response(
         message="Reviewer finished",
         success=True,
@@ -1695,9 +1723,11 @@ async def evaluate_assessment(data: AssessmentEval, user: UserDB = Depends(get_u
     if external:
         for i in range(len(sorted_points)):
             sorted_points[i]['skor_external'] = float(data.skor[i]) if data.skor[i] != '-' else None
+            sorted_points[i]['tepat_external'] = data.tepat[i]
     else:
         for i in range(len(sorted_points)):
             sorted_points[i]['skor'] = float(data.skor[i]) if data.skor[i] != '-' else None
+            sorted_points[i]['tepat'] = data.tepat[i]
 
     for point in sorted_points:
         to_update = PointDB(**point)
@@ -1900,6 +1930,28 @@ async def activate_staff() -> JSONResponse:
         success=True,
         status_code=status.HTTP_200_OK,
         data={'tanggal': datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+    )
+
+
+@router.get('/notifications', tags=['General'])
+async def get_notifications(user: UserDB = Depends(get_user)) -> JSONResponse:
+    notifications = get_unread_notifications(user.data_key)
+    return create_response(
+        message="Success fetch data",
+        success=True,
+        status_code=status.HTTP_200_OK,
+        data=notifications
+    )
+
+
+@router.get('/notifications/all', tags=['General'])
+async def get_notifications(user: UserDB = Depends(get_user)) -> JSONResponse:
+    notifications = get_all_notifications(user.data_key)
+    return create_response(
+        message="Success fetch data",
+        success=True,
+        status_code=status.HTTP_200_OK,
+        data=notifications
     )
 
 
