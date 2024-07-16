@@ -1381,9 +1381,9 @@ async def selesai_isi(request: Request, id_assessment: str, user: UserDB = Depen
 
     receivers = get_user_by_institution_role(user.id_institution, 'reviewer')
 
-    for key in receivers:
+    for data in receivers:
         insert_notification(
-            id_user=key,
+            id_user=data['data_key'],
             event="Assessment Finished",
             message="Asesmen siap direview"
         )
@@ -1578,9 +1578,9 @@ async def finish_reviewing(id_assessment: str, user: UserDB = Depends(get_user))
 
     receivers = get_user_by_institution_role(existing_assessment['id_institution'], 'admin')
 
-    for key in receivers:
+    for data in receivers:
         insert_notification(
-            id_user=key,
+            id_user=data['data_key'],
             message=f"Asesmen {key} telah selesai direview",
             event="Finished Review"
         )
