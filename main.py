@@ -1931,8 +1931,8 @@ async def activate_staff() -> JSONResponse:
     )
 
 
-@router.get('/notifications', tags=['General'])
-async def get_notifications(user: UserDB = Depends(get_user))
+# @router.get('/notifications', tags=['General'])
+# async def get_notifications(user: UserDB = Depends(get_user))
 
 
 app.include_router(router)
