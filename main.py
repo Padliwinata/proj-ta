@@ -437,6 +437,7 @@ async def register_staff(data: AddUser, user: User = Depends(get_user)) -> JSONR
         full_name=parsed_data['full_name'],
         email=parsed_data['email'],
         is_active=parsed_data['is_active'],
+        is_show=True,
         phone=parsed_data['phone'],
         id_institution=parsed_data['id_institution'],
         role=parsed_data['role']
