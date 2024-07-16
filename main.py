@@ -31,7 +31,8 @@ from db import (
     get_assessment_by_key, get_points_by_assessment, get_assessment_by_institution, update_assessment_by_key,
     get_user_by_institution_role, get_assessment_for_external, get_assessment_for_internal, update_user_by_key,
     get_notification_by_receiver, delete_assessment, activate_all_staff, get_assessment_all, drive_s3,
-    insert_report_beneish_m, get_report_beneish, get_report_by_id, delete_user, confirm_user, insert_notification
+    insert_report_beneish_m, get_report_beneish, get_report_by_id, delete_user, confirm_user, insert_notification,
+    get_all_notifications, get_unread_notifications
 )
 from dependencies import (
     authenticate_user,
@@ -1931,8 +1932,26 @@ async def activate_staff() -> JSONResponse:
     )
 
 
-# @router.get('/notifications', tags=['General'])
-# async def get_notifications(user: UserDB = Depends(get_user))
+@router.get('/notifications', tags=['General'])
+async def get_notifications(user: UserDB = Depends(get_user)) -> JSONResponse:
+    notifications = get_unread_notifications(user.data_key)
+    return create_response(
+        message="Success fetch data",
+        success=True,
+        status_code=status.HTTP_200_OK,
+        data=notifications
+    )
+
+
+@router.get('/notifications/all', tags=['General'])
+async def get_notifications(user: UserDB = Depends(get_user)) -> JSONResponse:
+    notifications = get_all_notifications(user.data_key)
+    return create_response(
+        message="Success fetch data",
+        success=True,
+        status_code=status.HTTP_200_OK,
+        data=notifications
+    )
 
 
 app.include_router(router)

@@ -128,6 +128,8 @@ class Notification(BaseModel):
     event: Event
     message: str
     date: str
+    is_read: bool
+    is_delete: bool
 
 
 class Proof(BaseModel):
