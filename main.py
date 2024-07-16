@@ -41,7 +41,7 @@ from dependencies import (
     get_payload_from_token,
     create_response,
     create_log,
-    create_notification, alter_auth
+    alter_auth
 )
 from exceptions import DependencyException
 from models import (
@@ -1929,6 +1929,10 @@ async def activate_staff() -> JSONResponse:
         status_code=status.HTTP_200_OK,
         data={'tanggal': datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
     )
+
+
+@router.get('/notifications', tags=['General'])
+async def get_notifications(user: UserDB = Depends(get_user))
 
 
 app.include_router(router)
