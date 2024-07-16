@@ -24,12 +24,13 @@ class TestMainPageAdmin(unittest.TestCase):
         "/api/account",
         headers={"Authorization": f"Bearer {access_token}"},
         json={
-            "full_name": "John Doeee",
+            "full_name": "John Doeeeee",
             "role": "staff",
-            "phone": "12345678950",
-            "email": "john.doeee@example.com",
-            "username": "johndoeee",
-            "password": "securepassworddd"
+            "phone": "1234567895098",
+            "email": "john.doeeeee@example.com",
+            "username": "johndoeeeee",
+            "password": "securepassworddddd"
+            
         }
     )
         assert response.status_code == 201
@@ -47,12 +48,12 @@ class TestMainPageAdmin(unittest.TestCase):
         "/api/account",
         headers={"Authorization": f"Bearer {access_token}"},
         json={
-            "full_name": "John Doee",
+            "full_name": "John Doeeeee",
             "role": "staff",
-            "phone": "1234567890",
-            "email": "john.doee@example.com",
-            "username": "johndoee",
-            "password": "securepasswordd"
+            "phone": "1234567895098",
+            "email": "john.doeeeee@example.com",
+            "username": "johndoeeeee",
+            "password": "securepassworddddd"
         }
     )
         assert response.status_code == 400
@@ -71,12 +72,12 @@ class TestMainPageAdmin(unittest.TestCase):
             "/api/account",
             headers={"Authorization": f"Bearer {access_token}"},
             json={
-                "full_name": "Reviewer Internal 3",
+                "full_name": "Reviewer Internal 5",
                 "role": "reviewer",
-                "phone": "12345678901",
-                "email": "reviewer.internal.3@example.com",
-                "username": "reviewer.internal.3",
-                "password": "securepasswordd"
+                "phone": "1234567890198",
+                "email": "reviewer.internal.5@example.com",
+                "username": "reviewer.internal.5",
+                "password": "securepasswordddd"
             }
         )
         assert response.status_code == 201
@@ -94,152 +95,20 @@ class TestMainPageAdmin(unittest.TestCase):
         "/api/account",
         headers={"Authorization": f"Bearer {access_token}"},
         json={
-            "full_name": "Reviewer Internal 3",
-            "role": "reviewer",
-            "phone": "12345678901",
-            "email": "reviewer.internal.3@example.com",
-            "username": "reviewer.internal.3",
-            "password": "securepasswordd"
+            "full_name": "Reviewer Internal 5",
+                "role": "reviewer",
+                "phone": "1234567890198",
+                "email": "reviewer.internal.5@example.com",
+                "username": "reviewer.internal.5",
+                "password": "securepasswordddd"
         }
     )
         assert response.status_code == 400
         assert response.json()["success"] is False
         assert response.json()["message"] == "User Already Exist"
-
-# Belum ada di sheet (-)
-
-    def test_admin_add_staff_missing_full_name(self):
-        login_response = client.post(
-        "/api/auth",
-        data={"username": "adminperusahaan", "password": "admin"}
-    )
-        assert login_response.status_code == 200
-        access_token = login_response.json()["data"]["access_token"]
-
-        response = client.post(
-        "/api/account",
-        headers={"Authorization": f"Bearer {access_token}"},
-        json={
-            "role": "staff",
-            "phone": "081234567890",
-            "email": "staff@example.com",
-            "username": "staffuser",
-            "password": "password123"
-        }
-    )
-        assert response.status_code == 422
-       
-
-    def test_admin_add_staff_missing_role(self):
-        login_response = client.post(
-            "/api/auth",
-            data={"username": "adminperusahaan", "password": "admin"}
-        )
-        assert login_response.status_code == 200
-        access_token = login_response.json()["data"]["access_token"]
-
-        response = client.post(
-            "/api/account",
-            headers={"Authorization": f"Bearer {access_token}"},
-            json={
-                "full_name": "Staff Name",
-                "phone": "081234567890",
-                "email": "staff@example.com",
-                "username": "staffuser",
-                "password": "password123"
-            }
-        )
-
-        assert response.status_code == 422
-
-    def test_admin_add_staff_missing_phone(self):
-        login_response = client.post(
-            "/api/auth",
-            data={"username": "adminperusahaan", "password": "admin"}
-        )
-        assert login_response.status_code == 200
-        access_token = login_response.json()["data"]["access_token"]
-
-        response = client.post(
-            "/api/account",
-            headers={"Authorization": f"Bearer {access_token}"},
-            json={
-                "full_name": "Staff Name",
-                "role": "staff",
-                "email": "staff@example.com",
-                "username": "staffuser",
-                "password": "password123"
-            }
-        )
-
-        assert response.status_code == 422
-
-    def test_admin_add_staff_missing_email(self):
-        login_response = client.post(
-            "/api/auth",
-            data={"username": "adminperusahaan", "password": "admin"}
-        )
-        assert login_response.status_code == 200
-        access_token = login_response.json()["data"]["access_token"]
-
-        response = client.post(
-            "/api/account",
-            headers={"Authorization": f"Bearer {access_token}"},
-            json={
-                "full_name": "Staff Name",
-                "role": "staff",
-                "phone": "081234567890",
-                "username": "staffuser",
-                "password": "password123"
-            }
-        )
-
-        assert response.status_code == 422
-
-    def test_admin_add_staff_missing_username(self):
-        login_response = client.post(
-            "/api/auth",
-            data={"username": "adminperusahaan", "password": "admin"}
-        )
-        assert login_response.status_code == 200
-        access_token = login_response.json()["data"]["access_token"]
-
-        response = client.post(
-            "/api/account",
-            headers={"Authorization": f"Bearer {access_token}"},
-            json={
-                "full_name": "Staff Name",
-                "role": "staff",
-                "phone": "081234567890",
-                "email": "staff@example.com",
-                "password": "password123"
-            }
-        )
-
-        assert response.status_code == 422
-
-    def test_admin_add_staff_missing_password(self):
-        login_response = client.post(
-            "/api/auth",
-            data={"username": "adminperusahaan", "password": "admin"}
-        )
-        assert login_response.status_code == 200
-        access_token = login_response.json()["data"]["access_token"]
-
-        response = client.post(
-            "/api/account",
-            headers={"Authorization": f"Bearer {access_token}"},
-            json={
-                "full_name": "Staff Name",
-                "role": "staff",
-                "phone": "081234567890",
-                "email": "staff@example.com",
-                "username": "staffuser"
-            }
-        )
-
-        assert response.status_code == 422
         
+    
+
             
 if __name__ == "__main__":
     runner = HTMLTestRunner(

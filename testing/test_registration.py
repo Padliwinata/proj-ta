@@ -18,16 +18,16 @@ class TestRegistration(unittest.TestCase):
         response = client.post(
             "/api/register",
             json={
-                "username": "admintesting10",
-                "email": "admin10@testing.com",
-                "password": "passworddddd",
-                "full_name": "Admin Testing 10",
+                "username": "admintesting13",
+                "email": "admin13@testing.com",
+                "password": "password",
+                "full_name": "Admin Testing 13",
                 "role": "admin",
-                "phone": "082991883774430",
-                "institution_name": "Admin Institutionnnnn",
+                "phone": "123456789",
+                "institution_name": "Admin Institutiooon",
                 "institution_address": "Jl. Pahlawann",
-                "institution_phone": "082993884775530",
-                "institution_email": "adminnnnn@institution.com"
+                "institution_phone": "987654321",
+                "institution_email": "admin13@institution.com"
             }
         )
 
@@ -40,16 +40,16 @@ class TestRegistration(unittest.TestCase):
         response = client.post(
         "/api/register",
         json={
-                "username": "admintesting10",
-                "email": "admin10@testing.com",
-                "password": "passworddddd",
-                "full_name": "Admin Testing 10",
+                "username": "admintesting13",
+                "email": "admin13@testing.com",
+                "password": "password",
+                "full_name": "Admin Testing 13",
                 "role": "admin",
-                "phone": "082991883774430",
-                "institution_name": "Admin Institutionnnnn",
+                "phone": "123456789",
+                "institution_name": "Admin Institutiooon",
                 "institution_address": "Jl. Pahlawann",
-                "institution_phone": "082993884775530",
-                "institution_email": "adminnnnn@institution.com"
+                "institution_phone": "987654321",
+                "institution_email": "admin13@institution.com"
         }
     )
         

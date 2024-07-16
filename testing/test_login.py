@@ -13,41 +13,41 @@ class TestLogin(unittest.TestCase):
     # def remove_access_token(self):
     #     return {"access_token": None}
 
-    def test_login_superadmin(self):
-        response = client.post(
-        "/api/auth",
-        data={"username": "username", "password": "password"}
-    )
-        assert response.status_code == 200
-        assert response.json()["success"] is True
-        assert "access_token" in response.json()["data"]
-        
-    def test_login_superadmin_failed(self):
-        response = client.post(
-        "/api/auth",
-        data={"username": "superadminnonexist", "password": "wrongpassword"}
-    )
-        assert response.status_code == 401
-        assert response.json()["success"] is False
-        assert response.json()["message"] == "User not found"
-
-    # def test_login_admin(self):
+    # def test_login_superadmin(self):
     #     response = client.post(
     #     "/api/auth",
-    #     data={"username": "adminperusahaan", "password": "admin"}
+    #     data={"username": "username", "password": "password"}
     # )
     #     assert response.status_code == 200
     #     assert response.json()["success"] is True
     #     assert "access_token" in response.json()["data"]
-
-    # def test_login_admin_failed(self):
+        
+    # def test_login_superadmin_failed(self):
     #     response = client.post(
     #     "/api/auth",
-    #     data={"username": "adminnonexist", "password": "wrongpassword"}
+    #     data={"username": "superadminnonexist", "password": "wrongpassword"}
     # )
     #     assert response.status_code == 401
     #     assert response.json()["success"] is False
     #     assert response.json()["message"] == "User not found"
+
+    def test_login_admin(self):
+        response = client.post(
+        "/api/auth",
+        data={"username": "adminperusahaan", "password": "admin"}
+    )
+        assert response.status_code == 200
+        assert response.json()["success"] is True
+        assert "access_token" in response.json()["data"]
+
+    def test_login_admin_failed(self):
+        response = client.post(
+        "/api/auth",
+        data={"username": "adminnonexist", "password": "wrongpassword"}
+    )
+        assert response.status_code == 401
+        assert response.json()["success"] is False
+        assert response.json()["message"] == "User not found"
 
     # def test_login_staff(self):
     #     response = client.post(

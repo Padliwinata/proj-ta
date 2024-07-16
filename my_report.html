@@ -2,7 +2,7 @@
 <html lang="en">
 
 <head>
-    <title>Test Verify Admin</title>
+    <title>Test Register Admin</title>
     <!-- Bootstrap 5 -->
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -45,22 +45,22 @@
 <div class="container">
     <!-- Heading -->
     <div class='mt-3'>
-        <h2 class='text-uppercase'>Test Verify Admin</h2>
+        <h2 class='text-uppercase'>Test Register Admin</h2>
         
-            <p class="fst-italic">Test Verify Admin oleh Superadmin</p>
+            <p class="fst-italic">Ini Test Register Admin</p>
         
         <hr>
         <p>
             <strong>Start time:</strong>
-            <span>2024-07-15, 13:10:34</span>
+            <span>2024-07-16, 13:55:19</span>
         </p>
         <p>
             <strong>Duration:</strong>
-            <span>0:00:24.463562</span>
+            <span>0:00:04.998924</span>
         </p>
         <p>
             <strong>Status:</strong>
-            <span>Total: 3</span>
+            <span>Total: 2</span>
             
             
             
@@ -90,13 +90,13 @@
         </thead>
         
             <tr class="fw-bold">
-                <td>TestVerifyAdmin</td>
-                <th>3</th>
-                <th>3</th>
+                <td>TestRegistration</td>
+                <th>2</th>
+                <th>2</th>
                 <th>0</th>
                 <th>0</th>
                 <th>0</th>
-                <td><a href="javascript:showClassDetail('c1', '3')"
+                <td><a href="javascript:showClassDetail('c1', '2')"
                        class="text-decoration-none">Detail</a>
                 </td>
             </tr>
@@ -106,7 +106,7 @@
                 table-success
                 ">
                     <td>
-                        <div class='testcase'>test_superadmin_activate_admin</div>
+                        <div class='testcase'>test_admin_registration</div>
                     </td>
 
                     <td colspan='6' class="text-center">
@@ -123,41 +123,24 @@
                 table-success
                 ">
                     <td>
-                        <div class='testcase'>test_superadmin_deactivate_admin</div>
-                    </td>
-
-                    <td colspan='6' class="text-center">
-                        <!--css div popup start-->
-                        
-                            <span class='badge 
-                            bg-success text-white
-                            '>pass</span>
-                        
-                    </td>
-                </tr>
-            
-                <tr id='pt1.3' class="
-                table-success
-                ">
-                    <td>
-                        <div class='testcase'>test_superadmin_get_admin_list</div>
+                        <div class='testcase'>test_admin_registration_account_exist</div>
                     </td>
 
                     <td colspan='6' class="text-center">
                         <!--css div popup start-->
                         
                             <a class="popup_link badge text-decoration-none" onfocus='this.blur();'
-                               href="javascript:showTestDetail('div_pt1.3')">pass</a>
+                               href="javascript:showTestDetail('div_pt1.2')">pass</a>
 
-                            <div id='div_pt1.3' class="popup_window">
+                            <div id='div_pt1.2' class="popup_window">
                                 <div style='text-align: right; color:red;cursor:pointer'>
                                     <a onfocus='this.blur();'
-                                       onclick="document.getElementById('div_pt1.3').style.display = 'none';">
+                                       onclick="document.getElementById('div_pt1.2').style.display = 'none';">
                                         [x]
                                     </a>
                                 </div>
-                                <pre>pt1.3: 200
-{'success': True, 'code': 200, 'message': 'Fetch Data Success', 'data': [{'institusi': {'name': 'asprak', 'address': 'TULT 0604', 'phone': '+6285179762170', 'email': 'company@email.com', 'data_key': 'uxalzb21mwcr'}, 'id': 'ah7282mq7stu', 'email': 'sam@example.com', 'is_active': 0}, {'institusi': {'name': 'IFLab', 'address': 'TULT 0610', 'phone': '+6285179762170', 'email': 'iflab@example.com', 'data_key': 'gc8uupscjs0e'}, 'id': 'ev9ag3o7lxed', 'email': 'alice@example.com', 'is_active': 1}]}
+                                <pre>pt1.2: 400
+{'success': False, 'code': 400, 'message': 'Username or email already exist', 'data': None}
 </pre>
                             </div>
                             <!--css div popup end-->
@@ -169,8 +152,8 @@
         
         <tr id=' total_row'>
             <td>Total</td>
-            <td>3</td>
-            <td>3</td>
+            <td>2</td>
+            <td>2</td>
             <td>0</td>
             <td>0</td>
             <td>0</td>
