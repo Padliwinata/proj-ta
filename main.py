@@ -31,7 +31,7 @@ from db import (
     get_assessment_by_key, get_points_by_assessment, get_assessment_by_institution, update_assessment_by_key,
     get_user_by_institution_role, get_assessment_for_external, get_assessment_for_internal, update_user_by_key,
     get_notification_by_receiver, delete_assessment, activate_all_staff, get_assessment_all, drive_s3,
-    insert_report_beneish_m, get_report_beneish, get_report_by_id, delete_user, confirm_user
+    insert_report_beneish_m, get_report_beneish, get_report_by_id, delete_user, confirm_user, insert_notification
 )
 from dependencies import (
     authenticate_user,
@@ -211,6 +211,13 @@ async def register(data: RegisterForm) -> JSONResponse:
         message="User registered successfully",
         data=payload
     )
+
+    insert_notification(
+        id_user="1tfp6lvcegkc",
+        message="Admin baru telah daftar",
+        event="Registered User"
+    )
+
     return JSONResponse(
         response.dict(),
         status_code=status.HTTP_201_CREATED
@@ -1363,18 +1370,22 @@ async def selesai_isi(request: Request, id_assessment: str, user: UserDB = Depen
         notification_receivers = get_user_by_institution_role(user.id_institution, 'reviewer')
         if len(notification_receivers) > 0:
             receivers_id = [receiver['data_key'] for receiver in notification_receivers]
-            create_notification(
-                receivers=receivers_id,
-                event=Event.submitted_assessment,
-                message="There's a new assessment to review",
-                host=request.client.host
-            )
+
 
     if assessment['tanggal_mulai']:
         assessment['tanggal_mulai'] = assessment['tanggal_mulai'].strftime('%Y-%m-%d %H:%M:%S')
 
     if assessment['tanggal_nilai']:
         assessment['tanggal_nilai'] = assessment['tanggal_nilai'].strftime('%Y-%m-%d %H:%M:%S')
+
+    receivers = get_user_by_institution_role(user.id_institution, 'reviewer')
+
+    for key in receivers:
+        insert_notification(
+            id_user=key,
+            event="Assessment Finished",
+            message="Asesmen siap direview"
+        )
 
     return create_response(
         message="Assessment finished",
@@ -1563,6 +1574,15 @@ async def finish_reviewing(id_assessment: str, user: UserDB = Depends(get_user))
     del existing_assessment['data_key']
     # db_assessment.update(existing_assessment, key)
     update_assessment_by_key(existing_assessment, key)
+
+    receivers = get_user_by_institution_role(existing_assessment['id_institution'], 'admin')
+
+    for key in receivers:
+        insert_notification(
+            id_user=key,
+            message=f"Asesmen {key} telah selesai direview",
+            event="Finished Review"
+        )
 
     return create_response(
         message="Reviewer finished",

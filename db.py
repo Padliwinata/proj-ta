@@ -1198,3 +1198,38 @@ def activate_all_staff():
         connection.close()
 
 
+def insert_notification(id_user: str, event: str, message: str):
+    connection = pymysql.connect(host=DB_HOST,
+                                 user=DB_USERNAME,
+                                 password=DB_PASSWORD,
+                                 database=DB_NAME,
+                                 cursorclass=pymysql.cursors.DictCursor)
+    try:
+        with connection.cursor() as cursor:
+            sql = """
+            INSERT INTO notifications
+            (data_key, id_user, event, message, date, is_delete)
+            VALUES
+            (%s, %s, %s, %s, %s, %s)
+            """
+            data_key = generate_random_string()
+            date = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            new_data = (
+                data_key,
+                id_user,
+                event,
+                message,
+                date,
+                0
+            )
+            cursor.execute(sql, new_data)
+            connection.commit()
+            return data_key
+    except pymysql.MySQLError as e:
+        print(f"Error: {e}")
+        connection.rollback()
+        return None
+    finally:
+        connection.close()
+
+
