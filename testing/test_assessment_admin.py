@@ -1,18 +1,19 @@
 import sys
 import os
-import unittest
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-import pytest
-from fastapi.testclient import TestClient
+from fastapi.testclient import TestClient # type: ignore
 from main import app
+
 from html_reporter import HTMLTestRunner
+import pytest
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from db import get_proof_by_filename, delete_proof_by_key, delete_assessment
 
 
 client = TestClient(app)
 
-
+import unittest
 class TestAssessmentFDP(unittest.TestCase):
 
     @pytest.mark.order(1)
@@ -113,7 +114,7 @@ class TestAssessmentFDP(unittest.TestCase):
             headers={"Authorization": f"Bearer {access_token}"}
         )
 
-        client.delete('/api/dev/assessments')
+        # client.delete('/api/dev/assessments')
 
         assert response.status_code == 200
         assert response.json()["message"] == 'Success fetch data'

@@ -24,12 +24,12 @@ class TestMainPageAdmin(unittest.TestCase):
         "/api/account",
         headers={"Authorization": f"Bearer {access_token}"},
         json={
-            "full_name": "John Doeeeee",
+            "full_name": "John Doeeeeeeeeeeeee",
             "role": "staff",
-            "phone": "1234567895098",
-            "email": "john.doeeeee@example.com",
-            "username": "johndoeeeee",
-            "password": "securepassworddddd"
+            "phone": "1234567895098099",
+            "email": "john.doeeeeeee@example.com",
+            "username": "johndoeeeeeee",
+            "password": "securepassworddddddd"
             
         }
     )
@@ -48,12 +48,12 @@ class TestMainPageAdmin(unittest.TestCase):
         "/api/account",
         headers={"Authorization": f"Bearer {access_token}"},
         json={
-            "full_name": "John Doeeeee",
+            "full_name": "John Doeeeeeeeeeeeee",
             "role": "staff",
-            "phone": "1234567895098",
-            "email": "john.doeeeee@example.com",
-            "username": "johndoeeeee",
-            "password": "securepassworddddd"
+            "phone": "1234567895098099",
+            "email": "john.doeeeeeee@example.com",
+            "username": "johndoeeeeeee",
+            "password": "securepassworddddddd"
         }
     )
         assert response.status_code == 400
@@ -72,12 +72,12 @@ class TestMainPageAdmin(unittest.TestCase):
             "/api/account",
             headers={"Authorization": f"Bearer {access_token}"},
             json={
-                "full_name": "Reviewer Internal 5",
+                "full_name": "Reviewer Internal 20",
                 "role": "reviewer",
-                "phone": "1234567890198",
-                "email": "reviewer.internal.5@example.com",
-                "username": "reviewer.internal.5",
-                "password": "securepasswordddd"
+                "phone": "12345678901980899",
+                "email": "reviewer.internal.20@example.com",
+                "username": "reviewer.internal.20",
+                "password": "securepasswordddddd"
             }
         )
         assert response.status_code == 201
@@ -95,18 +95,55 @@ class TestMainPageAdmin(unittest.TestCase):
         "/api/account",
         headers={"Authorization": f"Bearer {access_token}"},
         json={
-            "full_name": "Reviewer Internal 5",
+                "full_name": "Reviewer Internal 20",
                 "role": "reviewer",
-                "phone": "1234567890198",
-                "email": "reviewer.internal.5@example.com",
-                "username": "reviewer.internal.5",
-                "password": "securepasswordddd"
+                "phone": "12345678901980899",
+                "email": "reviewer.internal.20@example.com",
+                "username": "reviewer.internal.20",
+                "password": "securepasswordddddd"
         }
     )
         assert response.status_code == 400
         assert response.json()["success"] is False
         assert response.json()["message"] == "User Already Exist"
         
+    def test_admin_get_staff_list(self): #FR-SUP-03
+        login_response = client.post(
+        "/api/auth",
+        data={"username": "adminperusahaan", "password": "admin"}
+    )
+        access_token = login_response.json()["data"]["access_token"]
+    
+        response = client.get(
+        "/api/staff",
+        headers={"Authorization": f"Bearer {access_token}"}
+    )
+        
+        print(response.status_code)
+        print(response.json())
+
+        
+        assert response.status_code == 200
+        assert response.json()["success"] is True
+        
+    def test_admin_get_reviewer_internal_list(self): #FR-SUP-03
+        login_response = client.post(
+        "/api/auth",
+        data={"username": "adminperusahaan", "password": "admin"}
+    )
+        access_token = login_response.json()["data"]["access_token"]
+    
+        response = client.get(
+        "/api/staff",
+        headers={"Authorization": f"Bearer {access_token}"}
+    )
+        
+        print(response.status_code)
+        print(response.json())
+
+        
+        assert response.status_code == 200
+        assert response.json()["success"] is True
     
 
             
