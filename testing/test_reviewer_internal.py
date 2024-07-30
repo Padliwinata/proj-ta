@@ -28,7 +28,7 @@ class TestPenilaianAssessment(unittest.TestCase):
             "/api/assessments/evaluation",
             headers={"Authorization": f"Bearer {access_token}"},
             params={
-                "id_assessment": "iv8xqg940eo5" #harus diganti dengan id assessment yang belum dinilai
+                "id_assessment": "rjalpkhf6k0o" #harus diganti dengan id assessment yang belum dinilai
             })
 
         assert response.status_code == 200
@@ -48,7 +48,7 @@ class TestPenilaianAssessment(unittest.TestCase):
             "/api/assessments/evaluation",
             headers={"Authorization": f"Bearer {access_token}"},
             params={
-                "id_assessment": "iv8xqg940eo5" 
+                "id_assessment": "rjalpkhf6k0o" 
             })
 
         assert response.status_code == 400
@@ -56,7 +56,7 @@ class TestPenilaianAssessment(unittest.TestCase):
         assert response.json()["success"] is False
         
     @pytest.mark.order(3)
-    def test_reviewer_internal_get_assesment_list(self):
+    def test_reviewer_internal_get_assesment_list_before_review(self):
         login_response = client.post(
             "/api/auth",
            data={"username": "emma_jones", "password": "password"}
@@ -70,7 +70,7 @@ class TestPenilaianAssessment(unittest.TestCase):
         )
 
         assert response.status_code == 200
-        assert response.json()["message"] == 'Empty data'
+        assert response.json()["message"] == 'Successfully fetch assessments'
         assert response.json()["success"] is True
         
     @pytest.mark.order(4)
@@ -91,6 +91,24 @@ class TestPenilaianAssessment(unittest.TestCase):
         assert response.json()["message"] == 'Empty data'
         assert response.json()["success"] is True
         
+    def test_reviewer_internal_get_assesment_list_after_reviewed(self):
+        login_response = client.post(
+            "/api/auth",
+            data={"username": "emma_jones", "password": "password"}
+        )
+        assert login_response.status_code == 200
+        access_token = login_response.json()["data"]["access_token"]
+
+        response = client.get(
+            "/api/assessments",
+            headers={"Authorization": f"Bearer {access_token}"}
+        )
+
+        # client.delete('/api/dev/assessments')
+
+        assert response.status_code == 200
+        assert response.json()["message"] == 'Success fetch data'
+        assert response.json()["success"] is True        
 if __name__ == "__main__":
     runner = HTMLTestRunner(
         report_filepath="my_report.html",
