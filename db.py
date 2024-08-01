@@ -498,7 +498,25 @@ def insert_new_notification(data: Dict[str, Any]):
         connection.close()
 
 
-def get_log_by_role_institution(role: str, institution: str):
+# def get_log_by_role_institution(role: str, institution: str):
+#     connection = pymysql.connect(host=DB_HOST,
+#                                  user=DB_USERNAME,
+#                                  password=DB_PASSWORD,
+#                                  database=DB_NAME,
+#                                  cursorclass=pymysql.cursors.DictCursor)
+#     try:
+#         with connection.cursor() as cursor:
+#             sql = "SELECT * FROM logs WHERE role = %s AND id_institution = %s"
+#             cursor.execute(sql, (role, institution))
+#             user_data = cursor.fetchall()
+#             return user_data
+#     except pymysql.MySQLError as e:
+#         print(f"Error: {e}")
+#         return None
+#     finally:
+#         connection.close()
+
+def get_log_by_role_institution(role: str, institution: str, page: int = 1, per_page: int = 10):
     connection = pymysql.connect(host=DB_HOST,
                                  user=DB_USERNAME,
                                  password=DB_PASSWORD,
@@ -506,10 +524,33 @@ def get_log_by_role_institution(role: str, institution: str):
                                  cursorclass=pymysql.cursors.DictCursor)
     try:
         with connection.cursor() as cursor:
-            sql = "SELECT * FROM logs WHERE role = %s AND id_institution = %s"
-            cursor.execute(sql, (role, institution))
-            user_data = cursor.fetchall()
-            return user_data
+            # Count total number of matching records
+            count_sql = "SELECT COUNT(*) as total FROM logs WHERE role = %s AND id_institution = %s"
+            cursor.execute(count_sql, (role, institution))
+            total_records = cursor.fetchone()['total']
+
+            # Calculate offset
+            offset = (page - 1) * per_page
+
+            # Fetch paginated results
+            sql = """
+                SELECT * FROM logs 
+                WHERE role = %s AND id_institution = %s
+                LIMIT %s OFFSET %s
+            """
+            cursor.execute(sql, (role, institution, per_page, offset))
+            logs = cursor.fetchall()
+
+            # Calculate total pages
+            total_pages = -(-total_records // per_page)  # Ceiling division
+
+            return {
+                'logs': logs,
+                'page': page,
+                'per_page': per_page,
+                'total_records': total_records,
+                'total_pages': total_pages
+            }
     except pymysql.MySQLError as e:
         print(f"Error: {e}")
         return None
