@@ -1109,7 +1109,7 @@ def get_report_by_id(key: str):
         connection.close()
 
 
-def get_report_beneish():
+def get_report_beneish(key: str):
     connection = pymysql.connect(host=DB_HOST,
                                  user=DB_USERNAME,
                                  password=DB_PASSWORD,
@@ -1131,9 +1131,11 @@ def get_report_beneish():
                 JOIN
                     users
                 ON
-                    reports.id_user = users.data_key;
+                    reports.id_user = users.data_key
+                WHERE
+                    users.data_key = %s;
                 """
-            cursor.execute(sql)
+            cursor.execute(sql, (key, ))
             user_data = cursor.fetchall()
             return user_data
     except pymysql.MySQLError as e:

@@ -1459,7 +1459,7 @@ async def get_report_list(user: UserDB = Depends(get_user)) -> JSONResponse:
             status_code=status.HTTP_403_FORBIDDEN
         )
 
-    reports = get_report_beneish()
+    reports = get_report_beneish(user.data_key)
     for report in reports:
         report['tanggal'] = report['tanggal'].strftime('%Y-%m-%d %H:%M:%S')
 
