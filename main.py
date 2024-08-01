@@ -578,51 +578,52 @@ async def get_staff(user: User = Depends(get_user)) -> JSONResponse:
     # for data in fetch_response.items:
 
 
-# @router.get("/log", tags=['General - Admin'])
-# async def get_login_log(user: User = Depends(get_user)) -> JSONResponse:
-#     if user.role not in ['admin', 'staff']:
-#         return create_response("Forbidden Access", False, status.HTTP_403_FORBIDDEN, {'role': user.role})
-#
-#     id_institution = user.get_institution()['data_key']
-#
-#     log_data = db_log.fetch([
-#         {'role': 'staff', 'id_institution': id_institution},
-#         {'role': 'reviewer', 'id_institution': id_institution},
-#         {'role': 'admin', 'id_institution': id_institution}
-#     ])
-#
-#     log_data = list(get_log_by_role_institution('staff', id_institution))
-#     log_data.extend(list(get_log_by_role_institution('reviewer', id_institution)))
-#     log_data.extend(list(get_log_by_role_institution('admin', id_institution)))
-#     log_data = remove_dict_duplicates(log_data)
-#
-#     if not log_data:
-#         return create_response(
-#             message="Empty Data",
-#             success=True,
-#             status_code=status.HTTP_200_OK
-#         )
-#
-#     # print(log_data.items[0])
-#     # print(type(log_data.items[0]['tanggal']))
-#
-#     final_data = []
-#     for data in log_data:
-#         data['tanggal'] = data['tanggal'].strftime('%Y-%m-%d %H:%M:%S')
-#         user_data = Log(**data)
-#         final_data.append({
-#             'nama': user_data.name,
-#             'email': user_data.email,
-#             'role': user_data.role,
-#             'event': user_data.event,
-#             'tanggal': user_data.tanggal
-#         })
-#
-#     final_data = sorted(final_data, key=lambda x: datetime.strptime(x['tanggal'], '%Y-%m-%d %H:%M:%S'), reverse=True)
-#
-#     return create_response("Fetch Data Success", True, status.HTTP_200_OK, data=final_data)
-
 @router.get("/log", tags=['General - Admin'])
+async def get_login_log(user: User = Depends(get_user)) -> JSONResponse:
+    if user.role not in ['admin', 'staff']:
+        return create_response("Forbidden Access", False, status.HTTP_403_FORBIDDEN, {'role': user.role})
+
+    id_institution = user.get_institution()['data_key']
+
+    log_data = db_log.fetch([
+        {'role': 'staff', 'id_institution': id_institution},
+        {'role': 'reviewer', 'id_institution': id_institution},
+        {'role': 'admin', 'id_institution': id_institution}
+    ])
+
+    log_data = list(get_log_by_role_institution('staff', id_institution))
+    log_data.extend(list(get_log_by_role_institution('reviewer', id_institution)))
+    log_data.extend(list(get_log_by_role_institution('admin', id_institution)))
+    log_data = remove_dict_duplicates(log_data)
+
+    if not log_data:
+        return create_response(
+            message="Empty Data",
+            success=True,
+            status_code=status.HTTP_200_OK
+        )
+
+    # print(log_data.items[0])
+    # print(type(log_data.items[0]['tanggal']))
+
+    final_data = []
+    for data in log_data:
+        data['tanggal'] = data['tanggal'].strftime('%Y-%m-%d %H:%M:%S')
+        user_data = Log(**data)
+        final_data.append({
+            'nama': user_data.name,
+            'email': user_data.email,
+            'role': user_data.role,
+            'event': user_data.event,
+            'tanggal': user_data.tanggal
+        })
+
+    final_data = sorted(final_data, key=lambda x: datetime.strptime(x['tanggal'], '%Y-%m-%d %H:%M:%S'), reverse=True)
+
+    return create_response("Fetch Data Success", True, status.HTTP_200_OK, data=final_data)
+
+
+@router.get("/log/new", tags=['General - Admin'])
 async def get_login_log(
     user: User = Depends(get_user),
     page: int = Query(1, ge=1),

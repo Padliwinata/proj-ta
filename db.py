@@ -498,25 +498,25 @@ def insert_new_notification(data: Dict[str, Any]):
         connection.close()
 
 
-# def get_log_by_role_institution(role: str, institution: str):
-#     connection = pymysql.connect(host=DB_HOST,
-#                                  user=DB_USERNAME,
-#                                  password=DB_PASSWORD,
-#                                  database=DB_NAME,
-#                                  cursorclass=pymysql.cursors.DictCursor)
-#     try:
-#         with connection.cursor() as cursor:
-#             sql = "SELECT * FROM logs WHERE role = %s AND id_institution = %s"
-#             cursor.execute(sql, (role, institution))
-#             user_data = cursor.fetchall()
-#             return user_data
-#     except pymysql.MySQLError as e:
-#         print(f"Error: {e}")
-#         return None
-#     finally:
-#         connection.close()
+def get_log_by_role_institution(role: str, institution: str):
+    connection = pymysql.connect(host=DB_HOST,
+                                 user=DB_USERNAME,
+                                 password=DB_PASSWORD,
+                                 database=DB_NAME,
+                                 cursorclass=pymysql.cursors.DictCursor)
+    try:
+        with connection.cursor() as cursor:
+            sql = "SELECT * FROM logs WHERE role = %s AND id_institution = %s"
+            cursor.execute(sql, (role, institution))
+            user_data = cursor.fetchall()
+            return user_data
+    except pymysql.MySQLError as e:
+        print(f"Error: {e}")
+        return None
+    finally:
+        connection.close()
 
-def get_log_by_role_institution(role: str, institution: str, page: int = 1, per_page: int = 10):
+def get_log_by_role_institution_new(role: str, institution: str, page: int = 1, per_page: int = 10):
     connection = pymysql.connect(host=DB_HOST,
                                  user=DB_USERNAME,
                                  password=DB_PASSWORD,
