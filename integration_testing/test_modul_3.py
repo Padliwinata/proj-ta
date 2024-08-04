@@ -72,6 +72,7 @@ def test_get_fraud_assessments_history(access_token_admin):
         "/api/assessments",
         headers={"Authorization": f"Bearer {access_token_admin}"},
     )
+    print(response)
     assert response.status_code == 200
     assert response.json()["message"] == "Success fetch data"
     assert response.json()["success"] is True
@@ -318,11 +319,11 @@ def test_assessment_evaluation_failed(access_token_reviewer_external):
         "/api/assessments/evaluation",
         headers={"Authorization": f"Bearer {access_token_reviewer_external}"},
         params={
-            "id_assessment": "pt7e6aqnbsny"
+            "id_assessment": "4rt70j4v2swm"
         }
     )
     assert response.status_code == 400
-    assert response.json()["message"] == "Already reviewed by another internal reviewer"
+    assert response.json()["message"] == "Already reviewed by another external reviewer"
     assert response.json()["success"] is False
 
 @pytest.mark.order(20)

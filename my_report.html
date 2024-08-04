@@ -2,7 +2,7 @@
 <html lang="en">
 
 <head>
-    <title>Test Penilaian Reviewer Internal</title>
+    <title>Test Verify Reviewer Internal</title>
     <!-- Bootstrap 5 -->
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -45,22 +45,22 @@
 <div class="container">
     <!-- Heading -->
     <div class='mt-3'>
-        <h2 class='text-uppercase'>Test Penilaian Reviewer Internal</h2>
+        <h2 class='text-uppercase'>Test Verify Reviewer Internal</h2>
         
-            <p class="fst-italic">Test Penilaian Assessment oleh Reviewer Internal</p>
+            <p class="fst-italic">Test Verify Reviewer Internal oleh Admin</p>
         
         <hr>
         <p>
             <strong>Start time:</strong>
-            <span>2024-07-18, 13:48:35</span>
+            <span>2024-08-03, 20:05:54</span>
         </p>
         <p>
             <strong>Duration:</strong>
-            <span>0:00:09.511464</span>
+            <span>0:00:04.489830</span>
         </p>
         <p>
             <strong>Status:</strong>
-            <span>Total: 4</span>
+            <span>Total: 2</span>
             
             
             
@@ -90,13 +90,13 @@
         </thead>
         
             <tr class="fw-bold">
-                <td>TestPenilaianAssessment</td>
-                <th>6</th>
+                <td>TestVerifyReviewerInternal</td>
                 <th>2</th>
                 <th>2</th>
                 <th>0</th>
                 <th>0</th>
-                <td><a href="javascript:showClassDetail('c1', '6')"
+                <th>0</th>
+                <td><a href="javascript:showClassDetail('c1', '2')"
                        class="text-decoration-none">Detail</a>
                 </td>
             </tr>
@@ -106,15 +106,26 @@
                 table-success
                 ">
                     <td>
-                        <div class='testcase'>test_reviewer_internal_get_assesment_list</div>
+                        <div class='testcase'>test_admin_activate_reviewer</div>
                     </td>
 
                     <td colspan='6' class="text-center">
                         <!--css div popup start-->
                         
-                            <span class='badge 
-                            bg-success text-white
-                            '>pass</span>
+                            <a class="popup_link badge text-decoration-none" onfocus='this.blur();'
+                               href="javascript:showTestDetail('div_pt1.1')">pass</a>
+
+                            <div id='div_pt1.1' class="popup_window">
+                                <div style='text-align: right; color:red;cursor:pointer'>
+                                    <a onfocus='this.blur();'
+                                       onclick="document.getElementById('div_pt1.1').style.display = 'none';">
+                                        [x]
+                                    </a>
+                                </div>
+                                <pre>pt1.1: The reviewer is already active, no action taken.
+</pre>
+                            </div>
+                            <!--css div popup end-->
                         
                     </td>
                 </tr>
@@ -123,7 +134,7 @@
                 table-success
                 ">
                     <td>
-                        <div class='testcase'>test_reviewer_internal_get_assesment_list_empty_data</div>
+                        <div class='testcase'>test_admin_deactivate_reviewer</div>
                     </td>
 
                     <td colspan='6' class="text-center">
@@ -136,81 +147,13 @@
                     </td>
                 </tr>
             
-                <tr id='ft1.3' class="
-                table-danger
-                ">
-                    <td>
-                        <div class='testcase'>test_reviewer_provide_assessment_already_reviewed</div>
-                    </td>
-
-                    <td colspan='6' class="text-center">
-                        <!--css div popup start-->
-                        
-                            <a class="popup_link badge text-decoration-none
-                            bg-danger text-black
-                            " onfocus='this.blur();'
-                               href="javascript:showTestDetail('div_ft1.3')">fail</a>
-
-                            <div id='div_ft1.3' class="popup_window">
-                                <div style='text-align: right; color:red;cursor:pointer'>
-                                    <a onfocus='this.blur();'
-                                       onclick="document.getElementById('div_ft1.3').style.display = 'none';">
-                                        [x]
-                                    </a>
-                                </div>
-                                <pre>ft1.3: Traceback (most recent call last):
-  File "D:\SEMESTER 8\TA\proj-ta\testing\test_penilaian_reviewer_internal.py", line 54, in test_reviewer_provide_assessment_already_reviewed
-    assert response.status_code == 400
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
-AssertionError
-</pre>
-                            </div>
-                            <!--css div popup end-->
-                        
-                    </td>
-                </tr>
-            
-                <tr id='ft1.4' class="
-                table-danger
-                ">
-                    <td>
-                        <div class='testcase'>test_reviewer_provide_assessment_success</div>
-                    </td>
-
-                    <td colspan='6' class="text-center">
-                        <!--css div popup start-->
-                        
-                            <a class="popup_link badge text-decoration-none
-                            bg-danger text-black
-                            " onfocus='this.blur();'
-                               href="javascript:showTestDetail('div_ft1.4')">fail</a>
-
-                            <div id='div_ft1.4' class="popup_window">
-                                <div style='text-align: right; color:red;cursor:pointer'>
-                                    <a onfocus='this.blur();'
-                                       onclick="document.getElementById('div_ft1.4').style.display = 'none';">
-                                        [x]
-                                    </a>
-                                </div>
-                                <pre>ft1.4: Traceback (most recent call last):
-  File "D:\SEMESTER 8\TA\proj-ta\testing\test_penilaian_reviewer_internal.py", line 34, in test_reviewer_provide_assessment_success
-    assert response.status_code == 200
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
-AssertionError
-</pre>
-                            </div>
-                            <!--css div popup end-->
-                        
-                    </td>
-                </tr>
-            
 
         
         <tr id=' total_row'>
             <td>Total</td>
-            <td>4</td>
             <td>2</td>
             <td>2</td>
+            <td>0</td>
             <td>0</td>
             <td>0</td>
             <td>&nbsp;</td>
