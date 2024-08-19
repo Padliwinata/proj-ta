@@ -1172,7 +1172,7 @@ def get_report_beneish(key: str):
                 JOIN
                     users
                 ON
-                    reports.id_user = users.data_key
+                    reports.id_institution = users.id_institution
                 WHERE
                     users.data_key = %s;
                 """
