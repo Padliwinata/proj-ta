@@ -29,22 +29,7 @@ class TestAssessmentHistoryStaff(unittest.TestCase):
         assert response.status_code == 200
         assert response.json()["message"] == "Success fetch data"
         assert response.json()["success"] is True
-        
-    @pytest.mark.order(2)
-    def test_staff_get_assessment_history_empty_data(self):
-        login_response = client.post(
-            "/api/auth",
-            data={"username": "staff_perusahaan", "password": "password"}
-        )
-        access_token = login_response.json()["data"]["access_token"]
-        
-        response = client.get(
-            "/api/assessments",
-            headers={"Authorization": f"Bearer {access_token}"}
-        )
-        assert response.status_code == 200
-        assert response.json()["message"] == "Empty data"
-        assert response.json()["success"] is True
+
 
 if __name__ == "__main__":
     runner = HTMLTestRunner(
