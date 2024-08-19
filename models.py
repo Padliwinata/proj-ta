@@ -186,6 +186,7 @@ class Assessment(BaseModel):
 
     def get_admin(self) -> str:
         # data = db_user.get(self.id_admin)
+        print(self.id_admin)
         data = get_user_by_key(self.id_admin)
         name: str = data['full_name']
         return name
